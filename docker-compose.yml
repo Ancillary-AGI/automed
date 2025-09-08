@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+
+  # Service Discovery
+  eureka-server:
+    build: ./backend/eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - automed-network
+
+  # Core Services
+  patient-service:
+    build: ./backend/patient-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres-patients
+      - kafka
+    networks:
+      - automed-network
+
+  hospital-service:
+    build: ./backend/hospital-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres-hospitals
+      - kafka
+    networks:
+      - automed-network
+
+  ai-service:
+    build: ./backend/ai-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - redis
+      - kafka
+    networks:
+      - automed-network
+
+  # Databases
+  postgres-patients:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: patients
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-patients-data:/var/lib/postgresql/data
+    networks:
+      - automed-network
+
+  postgres-hospitals:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hospitals
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-hospitals-data:/var/lib/postgresql/data
+    networks:
+      - automed-network
+
+  # Message Broker
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - automed-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - automed-network
+
+  # Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - automed-network
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - automed-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - automed-network
+
+volumes:
+  postgres-patients-data:
+  postgres-hospitals-data:
+
+networks:
+  automed-network:
+    driver: bridge

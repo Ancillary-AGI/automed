@@ -1,0 +1,137 @@
+name: automed_app
+description: "Automed - Global Healthcare Delivery Automation Platform"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI & Navigation
+  cupertino_icons: ^1.0.6
+  go_router: ^12.1.3
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Networking & API
+  dio: ^5.4.0
+  retrofit: ^4.0.3
+  json_annotation: ^4.8.1
+  
+  # Real-time Communication
+  web_socket_channel: ^2.4.0
+  socket_io_client: ^2.0.3+1
+  
+  # WebRTC for video calls
+  flutter_webrtc: ^0.9.48+hotfix.1
+  
+  # State Management & Caching
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.2
+  
+  # Authentication & Security
+  flutter_secure_storage: ^9.0.0
+  crypto: ^3.0.3
+  
+  # Device Integration
+  camera: ^0.10.5+5
+  permission_handler: ^11.1.0
+  device_info_plus: ^9.1.1
+  connectivity_plus: ^5.0.2
+  
+  # AI/ML
+  tflite_flutter: ^0.10.4
+  tflite_flutter_helper: ^0.3.1
+  
+  # Media & Files
+  image_picker: ^1.0.4
+  file_picker: ^6.1.1
+  path_provider: ^2.1.1
+  
+  # Localization & Accessibility
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.18.1
+  
+  # Health & Sensors
+  health: ^10.1.0
+  sensors_plus: ^4.0.2
+  
+  # Maps & Location
+  geolocator: ^10.1.0
+  google_maps_flutter: ^2.5.0
+  
+  # Notifications
+  flutter_local_notifications: ^16.3.0
+  firebase_messaging: ^14.7.6
+  
+  # Analytics & Monitoring
+  firebase_analytics: ^10.7.4
+  firebase_crashlytics: ^3.4.8
+  
+  # QR Code & Barcode
+  qr_code_scanner: ^1.0.1
+  barcode_widget: ^2.0.3
+  
+  # Charts & Visualization
+  fl_chart: ^0.65.0
+  syncfusion_flutter_charts: ^23.2.7
+  
+  # Biometric Authentication
+  local_auth: ^2.1.7
+  
+  # Background Tasks
+  workmanager: ^0.5.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  # Code Generation
+  build_runner: ^2.4.7
+  riverpod_generator: ^2.3.9
+  retrofit_generator: ^8.0.4
+  json_serializable: ^6.7.1
+  hive_generator: ^2.0.1
+  
+  # Linting & Analysis
+  flutter_lints: ^3.0.1
+  very_good_analysis: ^5.1.0
+  
+  # Testing
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/models/
+    - assets/translations/
+  
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+
+flutter_intl:
+  enabled: true
+  class_name: S
+  main_locale: en
+  arb_dir: lib/l10n
+  output_dir: lib/generated

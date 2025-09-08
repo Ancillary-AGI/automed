@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: automed
+  labels:
+    name: automed
+    environment: production
+    app.kubernetes.io/name: automed
+    app.kubernetes.io/version: "1.0.0"

@@ -1,0 +1,233 @@
+groups:
+  - name: automed.rules
+    rules:
+      # High-level service availability
+      - alert: ServiceDown
+        expr: up{job=~"automed-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Automed service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+      # API Gateway alerts
+      - alert: APIGatewayHighErrorRate
+        expr: rate(http_requests_total{job="automed-api-gateway",status=~"5.."}[5m]) / rate(http_requests_total{job="automed-api-gateway"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "API Gateway high error rate"
+          description: "API Gateway error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: APIGatewayHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="automed-api-gateway"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "API Gateway high latency"
+          description: "API Gateway 95th percentile latency is {{ $value }}s for the last 5 minutes."
+
+      # Patient Service alerts
+      - alert: PatientServiceHighErrorRate
+        expr: rate(http_requests_total{job="automed-patient-service",status=~"5.."}[5m]) / rate(http_requests_total{job="automed-patient-service"}[5m]) > 0.03
+        for: 2m
+        labels:
+          severity: warning
+          team: healthcare
+        annotations:
+          summary: "Patient Service high error rate"
+          description: "Patient Service error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: PatientServiceDatabaseConnectionFailure
+        expr: increase(database_connection_errors_total{service="patient-service"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          team: healthcare
+        annotations:
+          summary: "Patient Service database connection failures"
+          description: "Patient Service has {{ $value }} database connection failures in the last 5 minutes."
+
+      # Hospital Service alerts
+      - alert: HospitalServiceHighMemoryUsage
+        expr: process_resident_memory_bytes{job="automed-hospital-service"} / 1024 / 1024 / 1024 > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: healthcare
+        annotations:
+          summary: "Hospital Service high memory usage"
+          description: "Hospital Service memory usage is {{ $value }}GB."
+
+      # AI Service alerts
+      - alert: AIServiceModelInferenceFailure
+        expr: rate(ai_model_inference_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          team: ai
+        annotations:
+          summary: "AI Service model inference failures"
+          description: "AI Service has {{ $value }} model inference failures per second."
+
+      - alert: AIServiceGPUUtilizationHigh
+        expr: nvidia_gpu_utilization_gpu > 90
+        for: 10m
+        labels:
+          severity: warning
+          team: ai
+        annotations:
+          summary: "AI Service GPU utilization high"
+          description: "GPU utilization is {{ $value }}% for more than 10 minutes."
+
+      # Database alerts
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is down for more than 1 minute."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "PostgreSQL connection usage is {{ $value }}%."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_tup_returned[5m]) / rate(pg_stat_database_tup_fetched[5m]) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "PostgreSQL query efficiency is low: {{ $value | humanizePercentage }}."
+
+      # Redis alerts
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is down for more than 1 minute."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value }}%."
+
+      # Kubernetes cluster alerts
+      - alert: KubernetesNodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Kubernetes node not ready"
+          description: "Node {{ $labels.node }} has been not ready for more than 5 minutes."
+
+      - alert: KubernetesPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Kubernetes pod crash looping"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping."
+
+      - alert: KubernetesDeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas != kube_deployment_status_available_replicas
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Kubernetes deployment replicas mismatch"
+          description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has {{ $labels.spec_replicas }} desired but {{ $labels.available_replicas }} available replicas."
+
+      # Security alerts
+      - alert: UnauthorizedAPIAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "High rate of unauthorized API access attempts"
+          description: "{{ $value }} unauthorized access attempts per second detected."
+
+      - alert: SuspiciousUserActivity
+        expr: rate(user_login_failures_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Suspicious user activity detected"
+          description: "{{ $value }} login failures per second detected for user {{ $labels.user }}."
+
+      # Business logic alerts
+      - alert: CriticalPatientAlertNotProcessed
+        expr: increase(critical_patient_alerts_unprocessed_total[5m]) > 0
+        for: 30s
+        labels:
+          severity: critical
+          team: healthcare
+        annotations:
+          summary: "Critical patient alert not processed"
+          description: "{{ $value }} critical patient alerts have not been processed in the last 5 minutes."
+
+      - alert: EmergencyServiceResponseTimeHigh
+        expr: histogram_quantile(0.95, rate(emergency_response_duration_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: critical
+          team: healthcare
+        annotations:
+          summary: "Emergency service response time high"
+          description: "95th percentile emergency response time is {{ $value }}s."
+
+      # Data integrity alerts
+      - alert: PatientDataSyncFailure
+        expr: increase(patient_data_sync_failures_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: healthcare
+        annotations:
+          summary: "Patient data synchronization failure"
+          description: "{{ $value }} patient data sync failures in the last 10 minutes."
+
+      - alert: MedicalRecordCorruption
+        expr: increase(medical_record_validation_failures_total[5m]) > 0
+        for: 30s
+        labels:
+          severity: critical
+          team: healthcare
+        annotations:
+          summary: "Medical record corruption detected"
+          description: "{{ $value }} medical record validation failures detected."
