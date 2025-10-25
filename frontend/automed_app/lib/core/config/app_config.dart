@@ -1,12 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Configuration class for the Automed application
+/// Handles environment-specific settings and feature flags
+/// Supports development, staging, and production environments
 class AppConfig {
+  /// Base URL for API endpoints
   final String apiBaseUrl;
+
+  /// Base URL for WebSocket connections
   final String wsBaseUrl;
+
+  /// Current environment (development, staging, production)
   final String environment;
+
+  /// Enable/disable debug logging
   final bool enableLogging;
+
+  /// Enable/disable analytics tracking
   final bool enableAnalytics;
+
+  /// Application version string
   final String version;
+
+  /// Feature flags for enabling/disabling specific functionality
   final Map<String, dynamic> features;
 
   const AppConfig({
@@ -93,8 +109,11 @@ class AppConfig {
 
 final appConfigProvider = Provider<AppConfig>((ref) {
   // This would typically be determined by build configuration
-  const environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
-  
+  const environment = String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: 'development',
+  );
+
   switch (environment) {
     case 'staging':
       return AppConfig.staging();
