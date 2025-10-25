@@ -70,4 +70,60 @@ class AiController(
         val response = aiService.submitFeedback(request)
         return ResponseEntity.ok(response)
     }
+
+    @PostMapping("/predictive-health")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun predictHealth(@Valid @RequestBody request: PredictiveHealthRequest): Mono<ResponseEntity<PredictiveHealthResponse>> {
+        return aiService.predictHealth(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/analyze-medical-image")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun analyzeMedicalImage(@Valid @RequestBody request: MedicalImageAnalysisRequest): Mono<ResponseEntity<MedicalImageAnalysisResponse>> {
+        return aiService.analyzeMedicalImage(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/analyze-wearable-data")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun analyzeWearableData(@Valid @RequestBody request: WearableDataRequest): Mono<ResponseEntity<WearableDataResponse>> {
+        return aiService.analyzeWearableData(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/analyze-voice")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun analyzeVoice(@Valid @RequestBody request: VoiceAnalysisRequest): Mono<ResponseEntity<VoiceAnalysisResponse>> {
+        return aiService.analyzeVoice(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/population-health")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun analyzePopulationHealth(@Valid @RequestBody request: PopulationHealthRequest): Mono<ResponseEntity<PopulationHealthResponse>> {
+        return aiService.analyzePopulationHealth(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/detect-outbreak")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun detectOutbreak(@Valid @RequestBody request: OutbreakDetectionRequest): Mono<ResponseEntity<OutbreakDetectionResponse>> {
+        return aiService.detectOutbreak(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/robotic-procedure")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun initiateRoboticProcedure(@Valid @RequestBody request: RoboticProcedureRequest): Mono<ResponseEntity<RoboticProcedureResponse>> {
+        return aiService.initiateRoboticProcedure(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/vr-training")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun startVRTraining(@Valid @RequestBody request: VRTrainingRequest): Mono<ResponseEntity<VRTrainingResponse>> {
+        return aiService.startVRTraining(request)
+            .map { ResponseEntity.ok(it) }
+    }
 }

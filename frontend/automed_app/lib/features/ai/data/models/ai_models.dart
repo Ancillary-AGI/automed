@@ -1,92 +1,184 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class DiagnosisPredictionRequest {
+  final String patientId;
+  final List<String> symptoms;
+  final Map<String, double> vitals;
+  final String? medicalHistory;
+  final int? age;
+  final String? gender;
 
-part 'ai_models.freezed.dart';
-part 'ai_models.g.dart';
+  const DiagnosisPredictionRequest({
+    required this.patientId,
+    required this.symptoms,
+    required this.vitals,
+    this.medicalHistory,
+    this.age,
+    this.gender,
+  });
 
-@freezed
-class DiagnosisPredictionRequest with _$DiagnosisPredictionRequest {
-  const factory DiagnosisPredictionRequest({
-    required String patientId,
-    required List<String> symptoms,
-    required Map<String, double> vitals,
-    String? medicalHistory,
-    int? age,
-    String? gender,
-  }) = _DiagnosisPredictionRequest;
+  factory DiagnosisPredictionRequest.fromJson(Map<String, dynamic> json) {
+    return DiagnosisPredictionRequest(
+      patientId: json['patientId'],
+      symptoms: List<String>.from(json['symptoms']),
+      vitals: Map<String, double>.from(json['vitals']),
+      medicalHistory: json['medicalHistory'],
+      age: json['age'],
+      gender: json['gender'],
+    );
+  }
 
-  factory DiagnosisPredictionRequest.fromJson(Map<String, dynamic> json) =>
-      _$DiagnosisPredictionRequestFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'patientId': patientId,
+      'symptoms': symptoms,
+      'vitals': vitals,
+      'medicalHistory': medicalHistory,
+      'age': age,
+      'gender': gender,
+    };
+  }
 }
 
-@freezed
-class DiagnosisPredictionResponse with _$DiagnosisPredictionResponse {
-  const factory DiagnosisPredictionResponse({
-    required List<DiagnosisPrediction> predictions,
-    required double confidence,
-    required List<String> recommendations,
-    String? riskLevel,
-    Map<String, dynamic>? additionalInfo,
-  }) = _DiagnosisPredictionResponse;
+class DiagnosisPredictionResponse {
+  final List<DiagnosisPrediction> predictions;
+  final double confidence;
+  final List<String> recommendations;
+  final String? riskLevel;
+  final Map<String, dynamic>? additionalInfo;
 
-  factory DiagnosisPredictionResponse.fromJson(Map<String, dynamic> json) =>
-      _$DiagnosisPredictionResponseFromJson(json);
+  const DiagnosisPredictionResponse({
+    required this.predictions,
+    required this.confidence,
+    required this.recommendations,
+    this.riskLevel,
+    this.additionalInfo,
+  });
+
+  factory DiagnosisPredictionResponse.fromJson(Map<String, dynamic> json) {
+    return DiagnosisPredictionResponse(
+      predictions: (json['predictions'] as List)
+          .map((e) => DiagnosisPrediction.fromJson(e))
+          .toList(),
+      confidence: json['confidence'].toDouble(),
+      recommendations: List<String>.from(json['recommendations']),
+      riskLevel: json['riskLevel'],
+      additionalInfo: json['additionalInfo'],
+    );
+  }
 }
 
-@freezed
-class DiagnosisPrediction with _$DiagnosisPrediction {
-  const factory DiagnosisPrediction({
-    required String condition,
-    required double probability,
-    required String severity,
-    String? description,
-    List<String>? suggestedTests,
-  }) = _DiagnosisPrediction;
+class DiagnosisPrediction {
+  final String condition;
+  final double probability;
+  final String severity;
+  final String? description;
+  final List<String>? suggestedTests;
 
-  factory DiagnosisPrediction.fromJson(Map<String, dynamic> json) =>
-      _$DiagnosisPredictionFromJson(json);
+  const DiagnosisPrediction({
+    required this.condition,
+    required this.probability,
+    required this.severity,
+    this.description,
+    this.suggestedTests,
+  });
+
+  factory DiagnosisPrediction.fromJson(Map<String, dynamic> json) {
+    return DiagnosisPrediction(
+      condition: json['condition'],
+      probability: json['probability'].toDouble(),
+      severity: json['severity'],
+      description: json['description'],
+      suggestedTests: json['suggestedTests'] != null
+          ? List<String>.from(json['suggestedTests'])
+          : null,
+    );
+  }
 }
 
-@freezed
-class SymptomAnalysisRequest with _$SymptomAnalysisRequest {
-  const factory SymptomAnalysisRequest({
-    required List<String> symptoms,
-    required int duration,
-    required String severity,
-    String? patientId,
-    Map<String, dynamic>? context,
-  }) = _SymptomAnalysisRequest;
+class SymptomAnalysisRequest {
+  final List<String> symptoms;
+  final int duration;
+  final String severity;
+  final String? patientId;
+  final Map<String, dynamic>? context;
 
-  factory SymptomAnalysisRequest.fromJson(Map<String, dynamic> json) =>
-      _$SymptomAnalysisRequestFromJson(json);
+  const SymptomAnalysisRequest({
+    required this.symptoms,
+    required this.duration,
+    required this.severity,
+    this.patientId,
+    this.context,
+  });
+
+  factory SymptomAnalysisRequest.fromJson(Map<String, dynamic> json) {
+    return SymptomAnalysisRequest(
+      symptoms: List<String>.from(json['symptoms']),
+      duration: json['duration'],
+      severity: json['severity'],
+      patientId: json['patientId'],
+      context: json['context'],
+    );
+  }
 }
 
-@freezed
-class SymptomAnalysisResponse with _$SymptomAnalysisResponse {
-  const factory SymptomAnalysisResponse({
-    required List<String> relatedSymptoms,
-    required List<String> possibleCauses,
-    required String urgencyLevel,
-    required List<String> recommendations,
-    String? nextSteps,
-  }) = _SymptomAnalysisResponse;
+class SymptomAnalysisResponse {
+  final List<String> relatedSymptoms;
+  final List<String> possibleCauses;
+  final String urgencyLevel;
+  final List<String> recommendations;
+  final String? nextSteps;
 
-  factory SymptomAnalysisResponse.fromJson(Map<String, dynamic> json) =>
-      _$SymptomAnalysisResponseFromJson(json);
+  const SymptomAnalysisResponse({
+    required this.relatedSymptoms,
+    required this.possibleCauses,
+    required this.urgencyLevel,
+    required this.recommendations,
+    this.nextSteps,
+  });
+
+  factory SymptomAnalysisResponse.fromJson(Map<String, dynamic> json) {
+    return SymptomAnalysisResponse(
+      relatedSymptoms: List<String>.from(json['relatedSymptoms']),
+      possibleCauses: List<String>.from(json['possibleCauses']),
+      urgencyLevel: json['urgencyLevel'],
+      recommendations: List<String>.from(json['recommendations']),
+      nextSteps: json['nextSteps'],
+    );
+  }
 }
 
-@freezed
-class TFLiteModelInfo with _$TFLiteModelInfo {
-  const factory TFLiteModelInfo({
-    required String id,
-    required String name,
-    required String version,
-    required String downloadUrl,
-    required int size,
-    required String checksum,
-    String? description,
-    List<String>? supportedFeatures,
-  }) = _TFLiteModelInfo;
+class TFLiteModelInfo {
+  final String id;
+  final String name;
+  final String version;
+  final String downloadUrl;
+  final int size;
+  final String checksum;
+  final String? description;
+  final List<String>? supportedFeatures;
 
-  factory TFLiteModelInfo.fromJson(Map<String, dynamic> json) =>
-      _$TFLiteModelInfoFromJson(json);
+  const TFLiteModelInfo({
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.downloadUrl,
+    required this.size,
+    required this.checksum,
+    this.description,
+    this.supportedFeatures,
+  });
+
+  factory TFLiteModelInfo.fromJson(Map<String, dynamic> json) {
+    return TFLiteModelInfo(
+      id: json['id'],
+      name: json['name'],
+      version: json['version'],
+      downloadUrl: json['downloadUrl'],
+      size: json['size'],
+      checksum: json['checksum'],
+      description: json['description'],
+      supportedFeatures: json['supportedFeatures'] != null
+          ? List<String>.from(json['supportedFeatures'])
+          : null,
+    );
+  }
 }

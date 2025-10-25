@@ -141,3 +141,15 @@ data class SyncStatusResponse(
     val pendingConflictsCount: Int,
     val serverTimestamp: Long
 )
+
+data class DataConflict(
+    val id: String,
+    val entityType: String,
+    val entityId: String,
+    val localData: Map<String, Any>,
+    val serverData: Map<String, Any>,
+    val localTimestamp: Long,
+    val serverTimestamp: Long,
+    val type: ConflictType,
+    val description: String? = null
+)

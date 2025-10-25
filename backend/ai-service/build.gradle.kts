@@ -45,7 +45,15 @@ dependencies {
     
     // Observability
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    
+
+    // Resilience
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-retry:2.1.0")
+
+    // Logging
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("io.projectreactor:reactor-test")

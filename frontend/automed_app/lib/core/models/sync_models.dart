@@ -1,210 +1,425 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class SyncAction {
+  final String id;
+  final String type;
+  final String entityType;
+  final String entityId;
+  final Map<String, dynamic> data;
+  final int timestamp;
+  final String? userId;
+  final String? deviceId;
 
-part 'sync_models.freezed.dart';
-part 'sync_models.g.dart';
+  const SyncAction({
+    required this.id,
+    required this.type,
+    required this.entityType,
+    required this.entityId,
+    required this.data,
+    required this.timestamp,
+    this.userId,
+    this.deviceId,
+  });
 
-@freezed
-class SyncAction with _$SyncAction {
-  const factory SyncAction({
-    required String id,
-    required String type,
-    required String entityType,
-    required String entityId,
-    required Map<String, dynamic> data,
-    required int timestamp,
-    String? userId,
-    String? deviceId,
-  }) = _SyncAction;
+  factory SyncAction.fromJson(Map<String, dynamic> json) {
+    return SyncAction(
+      id: json['id'],
+      type: json['type'],
+      entityType: json['entityType'],
+      entityId: json['entityId'],
+      data: Map<String, dynamic>.from(json['data']),
+      timestamp: json['timestamp'],
+      userId: json['userId'],
+      deviceId: json['deviceId'],
+    );
+  }
 
-  factory SyncAction.fromJson(Map<String, dynamic> json) =>
-      _$SyncActionFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'entityType': entityType,
+      'entityId': entityId,
+      'data': data,
+      'timestamp': timestamp,
+      'userId': userId,
+      'deviceId': deviceId,
+    };
+  }
 }
 
-@freezed
-class OfflineDataUploadRequest with _$OfflineDataUploadRequest {
-  const factory OfflineDataUploadRequest({
-    required String deviceId,
-    required List<SyncAction> actions,
-    required int timestamp,
-    String? userId,
-  }) = _OfflineDataUploadRequest;
+class OfflineDataUploadRequest {
+  final String deviceId;
+  final List<SyncAction> actions;
+  final int timestamp;
+  final String? userId;
 
-  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) =>
-      _$OfflineDataUploadRequestFromJson(json);
+  const OfflineDataUploadRequest({
+    required this.deviceId,
+    required this.actions,
+    required this.timestamp,
+    this.userId,
+  });
+
+  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) {
+    return OfflineDataUploadRequest(
+      deviceId: json['deviceId'],
+      actions: (json['actions'] as List)
+          .map((e) => SyncAction.fromJson(e))
+          .toList(),
+      timestamp: json['timestamp'],
+      userId: json['userId'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'deviceId': deviceId,
+      'actions': actions.map((e) => e.toJson()).toList(),
+      'timestamp': timestamp,
+      'userId': userId,
+    };
+  }
 }
 
-@freezed
-class SyncResponse with _$SyncResponse {
-  const factory SyncResponse({
-    required bool success,
-    String? message,
-    List<String>? processedActions,
-    List<DataConflict>? conflicts,
-    int? timestamp,
-  }) = _SyncResponse;
+class SyncResponse {
+  final bool success;
+  final String? message;
+  final List<String>? processedActions;
+  final List<DataConflict>? conflicts;
+  final int? timestamp;
 
-  factory SyncResponse.fromJson(Map<String, dynamic> json) =>
-      _$SyncResponseFromJson(json);
+  const SyncResponse({
+    required this.success,
+    this.message,
+    this.processedActions,
+    this.conflicts,
+    this.timestamp,
+  });
+
+  factory SyncResponse.fromJson(Map<String, dynamic> json) {
+    return SyncResponse(
+      success: json['success'],
+      message: json['message'],
+      processedActions: json['processedActions'] != null
+          ? List<String>.from(json['processedActions'])
+          : null,
+      conflicts: json['conflicts'] != null
+          ? (json['conflicts'] as List)
+                .map((e) => DataConflict.fromJson(e))
+                .toList()
+          : null,
+      timestamp: json['timestamp'],
+    );
+  }
 }
 
-@freezed
-class DataConflict with _$DataConflict {
-  const factory DataConflict({
-    required String id,
-    required String entityType,
-    required String entityId,
-    required Map<String, dynamic> localData,
-    required Map<String, dynamic> serverData,
-    required int localTimestamp,
-    required int serverTimestamp,
-    required ConflictType type,
-    String? description,
-  }) = _DataConflict;
+class DataConflict {
+  final String id;
+  final String entityType;
+  final String entityId;
+  final Map<String, dynamic> localData;
+  final Map<String, dynamic> serverData;
+  final int localTimestamp;
+  final int serverTimestamp;
+  final ConflictType type;
+  final String? description;
 
-  factory DataConflict.fromJson(Map<String, dynamic> json) =>
-      _$DataConflictFromJson(json);
+  const DataConflict({
+    required this.id,
+    required this.entityType,
+    required this.entityId,
+    required this.localData,
+    required this.serverData,
+    required this.localTimestamp,
+    required this.serverTimestamp,
+    required this.type,
+    this.description,
+  });
+
+  factory DataConflict.fromJson(Map<String, dynamic> json) {
+    return DataConflict(
+      id: json['id'],
+      entityType: json['entityType'],
+      entityId: json['entityId'],
+      localData: Map<String, dynamic>.from(json['localData']),
+      serverData: Map<String, dynamic>.from(json['serverData']),
+      localTimestamp: json['localTimestamp'],
+      serverTimestamp: json['serverTimestamp'],
+      type: ConflictType.values[json['type'] as int],
+      description: json['description'],
+    );
+  }
 }
 
-enum ConflictType {
-  @JsonValue('UPDATE_CONFLICT')
-  updateConflict,
-  @JsonValue('DELETE_CONFLICT')
-  deleteConflict,
-  @JsonValue('CREATE_CONFLICT')
-  createConflict,
+enum ConflictType { updateConflict, deleteConflict, createConflict }
+
+class ConflictResolution {
+  final ConflictResolutionType type;
+  final Map<String, dynamic>? mergedData;
+  final String? notes;
+
+  const ConflictResolution({required this.type, this.mergedData, this.notes});
+
+  factory ConflictResolution.fromJson(Map<String, dynamic> json) {
+    return ConflictResolution(
+      type: ConflictResolutionType.values[json['type'] as int],
+      mergedData: json['mergedData'] != null
+          ? Map<String, dynamic>.from(json['mergedData'])
+          : null,
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'type': type.index, 'mergedData': mergedData, 'notes': notes};
+  }
 }
 
-@freezed
-class ConflictResolution with _$ConflictResolution {
-  const factory ConflictResolution({
-    required ConflictResolutionType type,
-    Map<String, dynamic>? mergedData,
-    String? notes,
-  }) = _ConflictResolution;
+enum ConflictResolutionType { useLocal, useServer, merge, skip }
 
-  factory ConflictResolution.fromJson(Map<String, dynamic> json) =>
-      _$ConflictResolutionFromJson(json);
+class ConflictResolutionRequest {
+  final String conflictId;
+  final ConflictResolution resolution;
+  final String deviceId;
+  final String? userId;
+
+  const ConflictResolutionRequest({
+    required this.conflictId,
+    required this.resolution,
+    required this.deviceId,
+    this.userId,
+  });
+
+  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) {
+    return ConflictResolutionRequest(
+      conflictId: json['conflictId'],
+      resolution: ConflictResolution.fromJson(json['resolution']),
+      deviceId: json['deviceId'],
+      userId: json['userId'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'conflictId': conflictId,
+      'resolution': resolution.toJson(),
+      'deviceId': deviceId,
+      'userId': userId,
+    };
+  }
 }
 
-enum ConflictResolutionType {
-  @JsonValue('USE_LOCAL')
-  useLocal,
-  @JsonValue('USE_SERVER')
-  useServer,
-  @JsonValue('MERGE')
-  merge,
-  @JsonValue('SKIP')
-  skip,
+class ConflictResolutionResponse {
+  final bool success;
+  final String? message;
+  final Map<String, dynamic>? resolvedData;
+
+  const ConflictResolutionResponse({
+    required this.success,
+    this.message,
+    this.resolvedData,
+  });
+
+  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) {
+    return ConflictResolutionResponse(
+      success: json['success'],
+      message: json['message'],
+      resolvedData: json['resolvedData'] != null
+          ? Map<String, dynamic>.from(json['resolvedData'])
+          : null,
+    );
+  }
 }
 
-@freezed
-class ConflictResolutionRequest with _$ConflictResolutionRequest {
-  const factory ConflictResolutionRequest({
-    required String conflictId,
-    required ConflictResolution resolution,
-    required String deviceId,
-    String? userId,
-  }) = _ConflictResolutionRequest;
+class SyncDownloadResponse {
+  final bool success;
+  final String? message;
+  final List<SyncUpdate>? updates;
+  final int? timestamp;
 
-  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) =>
-      _$ConflictResolutionRequestFromJson(json);
+  const SyncDownloadResponse({
+    required this.success,
+    this.message,
+    this.updates,
+    this.timestamp,
+  });
+
+  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) {
+    return SyncDownloadResponse(
+      success: json['success'],
+      message: json['message'],
+      updates: json['updates'] != null
+          ? (json['updates'] as List)
+                .map((e) => SyncUpdate.fromJson(e))
+                .toList()
+          : null,
+      timestamp: json['timestamp'],
+    );
+  }
 }
 
-@freezed
-class ConflictResolutionResponse with _$ConflictResolutionResponse {
-  const factory ConflictResolutionResponse({
-    required bool success,
-    String? message,
-    Map<String, dynamic>? resolvedData,
-  }) = _ConflictResolutionResponse;
+class SyncUpdate {
+  final String id;
+  final String entityType;
+  final String entityId;
+  final String operation;
+  final Map<String, dynamic> data;
+  final int timestamp;
 
-  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) =>
-      _$ConflictResolutionResponseFromJson(json);
+  const SyncUpdate({
+    required this.id,
+    required this.entityType,
+    required this.entityId,
+    required this.operation,
+    required this.data,
+    required this.timestamp,
+  });
+
+  factory SyncUpdate.fromJson(Map<String, dynamic> json) {
+    return SyncUpdate(
+      id: json['id'],
+      entityType: json['entityType'],
+      entityId: json['entityId'],
+      operation: json['operation'],
+      data: Map<String, dynamic>.from(json['data']),
+      timestamp: json['timestamp'],
+    );
+  }
 }
 
-@freezed
-class SyncDownloadResponse with _$SyncDownloadResponse {
-  const factory SyncDownloadResponse({
-    required bool success,
-    String? message,
-    List<SyncUpdate>? updates,
-    int? timestamp,
-  }) = _SyncDownloadResponse;
+class DeviceHeartbeatRequest {
+  final String deviceId;
+  final int timestamp;
+  final int pendingActionsCount;
+  final String appVersion;
+  final String? userId;
 
-  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) =>
-      _$SyncDownloadResponseFromJson(json);
+  const DeviceHeartbeatRequest({
+    required this.deviceId,
+    required this.timestamp,
+    required this.pendingActionsCount,
+    required this.appVersion,
+    this.userId,
+  });
+
+  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) {
+    return DeviceHeartbeatRequest(
+      deviceId: json['deviceId'],
+      timestamp: json['timestamp'],
+      pendingActionsCount: json['pendingActionsCount'],
+      appVersion: json['appVersion'],
+      userId: json['userId'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'deviceId': deviceId,
+      'timestamp': timestamp,
+      'pendingActionsCount': pendingActionsCount,
+      'appVersion': appVersion,
+      'userId': userId,
+    };
+  }
 }
 
-@freezed
-class SyncUpdate with _$SyncUpdate {
-  const factory SyncUpdate({
-    required String id,
-    required String entityType,
-    required String entityId,
-    required String operation,
-    required Map<String, dynamic> data,
-    required int timestamp,
-  }) = _SyncUpdate;
+class DeviceHeartbeatResponse {
+  final bool success;
+  final String? message;
+  final bool? forceSync;
+  final String? serverVersion;
 
-  factory SyncUpdate.fromJson(Map<String, dynamic> json) =>
-      _$SyncUpdateFromJson(json);
-}
+  const DeviceHeartbeatResponse({
+    required this.success,
+    this.message,
+    this.forceSync,
+    this.serverVersion,
+  });
 
-@freezed
-class DeviceHeartbeatRequest with _$DeviceHeartbeatRequest {
-  const factory DeviceHeartbeatRequest({
-    required String deviceId,
-    required int timestamp,
-    required int pendingActionsCount,
-    required String appVersion,
-    String? userId,
-  }) = _DeviceHeartbeatRequest;
-
-  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) =>
-      _$DeviceHeartbeatRequestFromJson(json);
-}
-
-@freezed
-class DeviceHeartbeatResponse with _$DeviceHeartbeatResponse {
-  const factory DeviceHeartbeatResponse({
-    required bool success,
-    String? message,
-    bool? forceSync,
-    String? serverVersion,
-  }) = _DeviceHeartbeatResponse;
-
-  factory DeviceHeartbeatResponse.fromJson(Map<String, dynamic> json) =>
-      _$DeviceHeartbeatResponseFromJson(json);
+  factory DeviceHeartbeatResponse.fromJson(Map<String, dynamic> json) {
+    return DeviceHeartbeatResponse(
+      success: json['success'],
+      message: json['message'],
+      forceSync: json['forceSync'],
+      serverVersion: json['serverVersion'],
+    );
+  }
 }
 
 // Result classes for service methods
-@freezed
-class SyncResult with _$SyncResult {
-  const factory SyncResult({
-    required bool success,
-    required String message,
-    required int syncedCount,
-    required int conflictCount,
-    List<DataConflict>? conflicts,
-  }) = _SyncResult;
+class SyncResult {
+  final bool success;
+  final String message;
+  final int syncedCount;
+  final int conflictCount;
+  final List<DataConflict>? conflicts;
+
+  const SyncResult({
+    required this.success,
+    required this.message,
+    required this.syncedCount,
+    required this.conflictCount,
+    this.conflicts,
+  });
+
+  factory SyncResult.fromJson(Map<String, dynamic> json) {
+    return SyncResult(
+      success: json['success'],
+      message: json['message'],
+      syncedCount: json['syncedCount'],
+      conflictCount: json['conflictCount'],
+      conflicts: json['conflicts'] != null
+          ? (json['conflicts'] as List)
+                .map((e) => DataConflict.fromJson(e))
+                .toList()
+          : null,
+    );
+  }
 }
 
-@freezed
-class SyncDownloadResult with _$SyncDownloadResult {
-  const factory SyncDownloadResult({
-    required bool success,
-    required String message,
-    required List<SyncUpdate> updates,
-  }) = _SyncDownloadResult;
+class SyncDownloadResult {
+  final bool success;
+  final String message;
+  final List<SyncUpdate> updates;
+
+  const SyncDownloadResult({
+    required this.success,
+    required this.message,
+    required this.updates,
+  });
+
+  factory SyncDownloadResult.fromJson(Map<String, dynamic> json) {
+    return SyncDownloadResult(
+      success: json['success'],
+      message: json['message'],
+      updates: (json['updates'] as List)
+          .map((e) => SyncUpdate.fromJson(e))
+          .toList(),
+    );
+  }
 }
 
-@freezed
-class SyncStatus with _$SyncStatus {
-  const factory SyncStatus({
-    required bool isOnline,
-    required int pendingActionsCount,
-    required int pendingConflictsCount,
-    required int lastSyncTimestamp,
-    required String deviceId,
-  }) = _SyncStatus;
+class SyncStatus {
+  final bool isOnline;
+  final int pendingActionsCount;
+  final int pendingConflictsCount;
+  final int lastSyncTimestamp;
+  final String deviceId;
+
+  const SyncStatus({
+    required this.isOnline,
+    required this.pendingActionsCount,
+    required this.pendingConflictsCount,
+    required this.lastSyncTimestamp,
+    required this.deviceId,
+  });
+
+  factory SyncStatus.fromJson(Map<String, dynamic> json) {
+    return SyncStatus(
+      isOnline: json['isOnline'],
+      pendingActionsCount: json['pendingActionsCount'],
+      pendingConflictsCount: json['pendingConflictsCount'],
+      lastSyncTimestamp: json['lastSyncTimestamp'],
+      deviceId: json['deviceId'],
+    );
+  }
 }

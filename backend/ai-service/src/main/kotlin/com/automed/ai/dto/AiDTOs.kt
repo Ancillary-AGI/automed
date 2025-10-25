@@ -166,3 +166,72 @@ data class AiFeedbackResponse(
     val message: String,
     val feedbackId: String
 )
+
+
+
+data class PredictiveHealthRequest(
+    @field:NotBlank
+    val patientId: String,
+
+    @field:NotEmpty
+    val historicalData: List<HealthDataPoint>,
+
+    @field:Min(1)
+    val predictionDays: Int,
+
+    val riskFactors: List<String>? = null,
+    val currentMedications: List<String>? = null
+)
+
+data class HealthDataPoint(
+    val timestamp: Long,
+    val heartRate: Double?,
+    val bloodPressureSystolic: Double?,
+    val bloodPressureDiastolic: Double?,
+    val temperature: Double?,
+    val oxygenSaturation: Double?,
+    val symptoms: List<String>? = null,
+    val mood: String? = null
+)
+
+data class PredictiveHealthResponse(
+    val patientId: String,
+    val riskScore: Double,
+    val riskLevel: RiskLevel,
+    val predictions: List<HealthPrediction>,
+    val recommendations: List<String>,
+    val alerts: List<HealthAlert>,
+    val confidence: Double,
+    val nextCheckupDate: String?
+)
+
+data class HealthPrediction(
+    val metric: String,
+    val predictedValue: Double,
+    val confidence: Double,
+    val trend: TrendDirection,
+    val description: String
+)
+
+data class HealthAlert(
+    val type: AlertType,
+    val severity: AlertSeverity,
+    val message: String,
+    val suggestedAction: String,
+    val timestamp: Long
+)
+
+enum class RiskLevel {
+    LOW, MODERATE, HIGH, CRITICAL
+}
+
+enum class TrendDirection {
+    IMPROVING, STABLE, DECLINING, VOLATILE
+}
+
+enum class AlertType {
+    DETERIORATION_RISK, MEDICATION_REMINDER, APPOINTMENT_NEEDED, EMERGENCY
+}
+
+enum class AlertSeverity {
+    INFO, WARNING, CRITICAL
