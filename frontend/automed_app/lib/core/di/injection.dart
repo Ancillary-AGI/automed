@@ -13,6 +13,7 @@ import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/sync_service.dart';
 import '../services/offline_data_service.dart';
+import '../services/firebase_service.dart';
 import '../models/hive_adapters.dart';
 
 // Core providers
@@ -136,6 +137,10 @@ final offlineDataServiceProvider = Provider<OfflineDataService>((ref) {
   return OfflineDataService(cacheService, storageService, connectivityService, apiService);
 });
 
+final firebaseServiceProvider = Provider<FirebaseService>((ref) {
+  return FirebaseService.instance;
+});
+
 // Initialize dependencies
 Future<void> configureDependencies() async {
   // Initialize SharedPreferences
@@ -164,28 +169,22 @@ Future<void> _initializeServices() async {
   final connectivityService = ConnectivityService();
   await connectivityService.initialize();
   
-  // Initialize Firebase (if using Firebase)
-  // await Firebase.initializeApp();
+  // Initialize Firebase with all services
+  try {
+    await FirebaseService.instance.initialize();
+    
+    // Subscribe to healthcare-specific topics
+    await FirebaseService.instance.subscribeToTopic('healthcare_alerts');
+    await FirebaseService.instance.subscribeToTopic('medication_reminders');
+    await FirebaseService.instance.subscribeToTopic('emergency_notifications');
+    
+    debugPrint('🔥 Firebase services initialized successfully');
+  } catch (e) {
+    debugPrint('⚠️ Firebase initialization failed: $e');
+    // Continue without Firebase if initialization fails
+  }
   
-  // Initialize push notifications
-  // await FirebaseMessaging.instance.requestPermission();
-  
-  // Initialize crash reporting
-  // await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  
-  // Initialize analytics
-  // await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-  
-  // Initialize performance monitoring
-  // await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
-  
-  // Initialize remote config
-  // await FirebaseRemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
-  //   fetchTimeout: const Duration(minutes: 1),
-  //   minimumFetchInterval: const Duration(hours: 1),
-  // ));
-  
-  debugPrint('All services initialized successfully');
+  debugPrint('✅ All services initialized successfully');
 }
 
 // Override providers for testing
