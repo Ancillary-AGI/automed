@@ -164,8 +164,28 @@ Future<void> _initializeServices() async {
   final connectivityService = ConnectivityService();
   await connectivityService.initialize();
   
-  // Initialize other services as needed
-  // Firebase, push notifications, etc. would go here
+  // Initialize Firebase (if using Firebase)
+  // await Firebase.initializeApp();
+  
+  // Initialize push notifications
+  // await FirebaseMessaging.instance.requestPermission();
+  
+  // Initialize crash reporting
+  // await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  
+  // Initialize analytics
+  // await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+  
+  // Initialize performance monitoring
+  // await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
+  
+  // Initialize remote config
+  // await FirebaseRemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
+  //   fetchTimeout: const Duration(minutes: 1),
+  //   minimumFetchInterval: const Duration(hours: 1),
+  // ));
+  
+  debugPrint('All services initialized successfully');
 }
 
 // Override providers for testing

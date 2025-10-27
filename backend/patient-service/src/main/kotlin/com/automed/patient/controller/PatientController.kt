@@ -72,8 +72,30 @@ class PatientController(
     @GetMapping("/{id}/medical-history")
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN') or @patientService.isPatientOwner(#id, authentication.name)")
     fun getMedicalHistory(@PathVariable id: UUID): ResponseEntity<Any> {
-        // This would integrate with medical history service
-        return ResponseEntity.ok(mapOf("message" to "Medical history endpoint"))
+        return try {
+            val patient = patientService.getPatientById(id)
+                ?: return ResponseEntity.notFound().build()
+            
+            val medicalHistory = medicalHistoryService.getMedicalHistoryByPatientId(id)
+            val vitalSigns = vitalSignsService.getVitalSignsByPatientId(id)
+            val medications = medicationService.getCurrentMedicationsByPatientId(id)
+            val allergies = allergyService.getAllergiesByPatientId(id)
+            
+            val response = mapOf(
+                "patient" to patient,
+                "medicalHistory" to medicalHistory,
+                "vitalSigns" to vitalSigns,
+                "currentMedications" to medications,
+                "allergies" to allergies,
+                "lastUpdated" to LocalDateTime.now()
+            )
+            
+            ResponseEntity.ok(response)
+        } catch (e: Exception) {
+            logger.error("Error retrieving medical history for patient $id", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(mapOf("error" to "Failed to retrieve medical history"))
+        }
     }
 
     @PostMapping("/{id}/emergency-contact")

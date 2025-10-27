@@ -108,7 +108,7 @@ class AppConfig {
 }
 
 final appConfigProvider = Provider<AppConfig>((ref) {
-  // This would typically be determined by build configuration
+  // Determine environment from build configuration
   const environment = String.fromEnvironment(
     'ENVIRONMENT',
     defaultValue: 'development',

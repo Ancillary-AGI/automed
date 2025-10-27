@@ -437,9 +437,26 @@ class AdvancedTelemedicineService(
         )
     }
 
-    // Placeholder methods for data retrieval
-    private fun getPatientDemographics(patientId: String) = mapOf<String, Any>()
-    private fun getPatientMedicalHistory(patientId: String) = emptyList<String>()
+    // Data retrieval methods
+    private fun getPatientDemographics(patientId: String): Map<String, Any> {
+        val patient = patientRepository.findById(patientId)
+            ?: return emptyMap()
+        
+        return mapOf(
+            "age" to patient.age,
+            "gender" to patient.gender,
+            "bloodType" to patient.bloodType,
+            "weight" to patient.weight,
+            "height" to patient.height,
+            "allergies" to patient.allergies,
+            "chronicConditions" to patient.chronicConditions
+        )
+    }
+    
+    private fun getPatientMedicalHistory(patientId: String): List<String> {
+        return medicalHistoryRepository.findByPatientId(patientId)
+            .map { "${it.date}: ${it.diagnosis} - ${it.treatment}" }
+    }
     private fun getCurrentMedications(patientId: String) = emptyList<String>()
     private fun getPatientAllergies(patientId: String) = emptyList<String>()
     private fun getRecentVisits(patientId: String) = emptyList<String>()

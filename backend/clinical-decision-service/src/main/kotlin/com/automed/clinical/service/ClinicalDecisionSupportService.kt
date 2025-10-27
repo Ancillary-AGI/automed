@@ -550,7 +550,19 @@ class ClinicalDecisionSupportService(
                         ))
                     }
                 }
-                // Add more lab checks...
+                // Additional lab value checks
+                if (labValue.name == "Creatinine" && labValue.value > 1.5) {
+                    recommendations.add("Consider kidney function assessment")
+                }
+                if (labValue.name == "Hemoglobin" && labValue.value < 12.0) {
+                    recommendations.add("Evaluate for anemia")
+                }
+                if (labValue.name == "Platelet Count" && labValue.value < 150000) {
+                    recommendations.add("Monitor for bleeding risk")
+                }
+                if (labValue.name == "White Blood Cell Count" && labValue.value > 11000) {
+                    recommendations.add("Investigate possible infection")
+                }
             }
         }
         
@@ -560,15 +572,67 @@ class ClinicalDecisionSupportService(
     private fun analyzeVitalTrends(vitals: Map<String, Any>?): List<VitalTrend> {
         if (vitals == null) return emptyList()
         
-        // This would analyze historical trends
-        return listOf(
-            VitalTrend(
-                parameter = "Heart Rate",
-                trend = "Increasing",
-                significance = "Monitor for tachycardia",
-                recommendation = "Continue monitoring"
-            )
-        )
+        // Analyze historical trends using statistical analysis
+        val trends = mutableListOf<VitalTrend>()
+        
+        // Heart rate trend analysis
+        val heartRateHistory = vitalSignsRepository.findHeartRateHistory(patientId, 30) // Last 30 days
+        if (heartRateHistory.size >= 5) {
+            val trend = calculateTrend(heartRateHistory.map { it.value })
+            trends.add(VitalTrend(
+                vitalType = "Heart Rate",
+                trend = if (trend > 0.1) "Increasing" else if (trend < -0.1) "Decreasing" else "Stable",
+                changeRate = trend,
+                significance = if (abs(trend) > 0.2) "High" else "Low",
+                recommendation = when {
+                    trend > 0.2 -> "Monitor for tachycardia"
+                    trend < -0.2 -> "Monitor for bradycardia"
+                    else -> "Continue monitoring"
+                }
+            ))
+        }
+        
+        // Blood pressure trend analysis
+        val bpHistory = vitalSignsRepository.findBloodPressureHistory(patientId, 30)
+        if (bpHistory.size >= 5) {
+            val systolicTrend = calculateTrend(bpHistory.map { it.systolic })
+            val diastolicTrend = calculateTrend(bpHistory.map { it.diastolic })
+            
+            trends.add(VitalTrend(
+                vitalType = "Blood Pressure",
+                trend = when {
+                    systolicTrend > 0.1 || diastolicTrend > 0.1 -> "Increasing"
+                    systolicTrend < -0.1 || diastolicTrend < -0.1 -> "Decreasing"
+                    else -> "Stable"
+                },
+                changeRate = maxOf(abs(systolicTrend), abs(diastolicTrend)),
+                significance = if (maxOf(abs(systolicTrend), abs(diastolicTrend)) > 0.15) "High" else "Low",
+                recommendation = when {
+                    systolicTrend > 0.15 -> "Consider hypertension management"
+                    systolicTrend < -0.15 -> "Monitor for hypotension"
+                    else -> "Continue current management"
+                }
+            ))
+        }
+        
+        return trends
+    }
+
+    private fun calculateTrend(values: List<Double>): Double {
+        if (values.size < 2) return 0.0
+        
+        val n = values.size
+        val sumX = (0 until n).sum().toDouble()
+        val sumY = values.sum()
+        val sumXY = values.mapIndexed { index, value -> index * value }.sum()
+        val sumX2 = (0 until n).map { it * it }.sum().toDouble()
+        
+        // Linear regression slope calculation
+        val denominator = n * sumX2 - sumX * sumX
+        if (denominator == 0.0) return 0.0
+        
+        val slope = (n * sumXY - sumX * sumY) / denominator
+        return slope
     }
 
     private fun calculateConfidence(request: ClinicalAnalysisRequest): Double {

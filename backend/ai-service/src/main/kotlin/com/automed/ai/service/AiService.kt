@@ -103,7 +103,28 @@ class AiService {
                             description = "Systolic blood pressure abnormal"
                         ))
                     }
-                    // Add more checks as needed
+                    // Additional safety checks
+                    if (medication.name.contains("warfarin", ignoreCase = true) && 
+                        otherMed.name.contains("aspirin", ignoreCase = true)) {
+                        interactions.add(DrugInteraction(
+                            medication1 = medication.name,
+                            medication2 = otherMed.name,
+                            severity = "HIGH",
+                            description = "Increased bleeding risk when combining warfarin with aspirin",
+                            recommendation = "Monitor INR closely and consider alternative antiplatelet therapy"
+                        ))
+                    }
+                    
+                    if (medication.name.contains("metformin", ignoreCase = true) && 
+                        otherMed.name.contains("contrast", ignoreCase = true)) {
+                        interactions.add(DrugInteraction(
+                            medication1 = medication.name,
+                            medication2 = otherMed.name,
+                            severity = "MODERATE",
+                            description = "Risk of lactic acidosis with contrast agents",
+                            recommendation = "Discontinue metformin 48 hours before contrast procedure"
+                        ))
+                    }
                 }
             }
 

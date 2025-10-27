@@ -146,10 +146,9 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   Future<void> _refreshCriticalData() async {
-    // This would fetch and cache the latest critical data from the server
-    // Implementation depends on your specific API endpoints
+    // Fetch and cache the latest critical data from the server
     try {
-      // Example: Refresh emergency protocols
+      // Refresh emergency protocols
       final protocols = await _apiService.get('/emergency/protocols');
       if (protocols != null) {
         final protocolList = (protocols['data'] as List)

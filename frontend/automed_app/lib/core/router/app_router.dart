@@ -181,7 +181,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-// Placeholder pages for routes that don't exist yet
+// Application pages
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
 

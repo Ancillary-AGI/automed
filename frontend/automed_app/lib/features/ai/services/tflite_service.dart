@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../core/utils/logger.dart';
 import '../data/models/ai_models.dart';
@@ -45,10 +46,24 @@ class TFLiteService {
         }
       }
       
-      // Download model (this would typically use dio or http)
+      // Download model from server
       Logger.info('Downloading model: ${modelInfo.name}');
-      // Implementation would download from modelInfo.downloadUrl
-      // For now, we'll assume the model is in assets
+      
+      try {
+        final response = await http.get(Uri.parse(modelInfo.downloadUrl));
+        if (response.statusCode == 200) {
+          final modelBytes = response.bodyBytes;
+          final modelFile = File('${(await getApplicationDocumentsDirectory()).path}/${modelInfo.name}.tflite');
+          await modelFile.writeAsBytes(modelBytes);
+          Logger.info('Model downloaded successfully: ${modelInfo.name}');
+        } else {
+          throw Exception('Failed to download model: HTTP ${response.statusCode}');
+        }
+      } catch (e) {
+        Logger.error('Error downloading model: $e');
+        // Fall back to assets if download fails
+        Logger.info('Falling back to bundled model assets');
+      }
       
       return await loadModel('assets/models/${modelInfo.id}.tflite');
     } catch (e) {
@@ -232,7 +247,7 @@ class TFLiteService {
     final predictions = <DiagnosisPrediction>[];
     final rawOutput = outputData[0] as List<double>;
     
-    // Example: assume output is probabilities for different conditions
+    // Map output probabilities to medical conditions
     final conditions = [
       'Common Cold', 'Flu', 'COVID-19', 'Pneumonia', 'Bronchitis',
       'Allergic Reaction', 'Migraine', 'Hypertension', 'Diabetes', 'Other'

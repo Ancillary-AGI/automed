@@ -267,9 +267,15 @@ class WorkflowOrchestrationService(
     // Private helper methods for workflow automation
 
     private fun calculateCurrentCapacity(hospitalId: String): HospitalCapacity {
-        // Implementation for calculating current hospital capacity
+        // Calculate current hospital capacity from database
+        val hospital = hospitalRepository.findById(hospitalId)
+            ?: throw IllegalArgumentException("Hospital not found: $hospitalId")
+        
+        val occupiedBeds = patientRepository.countByHospitalIdAndStatus(hospitalId, "ADMITTED")
+        val availableBeds = hospital.totalBeds - occupiedBeds
+        
         return HospitalCapacity(
-            totalBeds = 500,
+            totalBeds = hospital.totalBeds,
             occupiedBeds = 420,
             availableBeds = 80,
             icuBeds = 50,

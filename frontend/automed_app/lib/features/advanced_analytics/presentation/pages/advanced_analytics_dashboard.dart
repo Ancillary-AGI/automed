@@ -174,7 +174,29 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PredictiveChartsWidget(),
           SizedBox(height: 24),
-          // Add more predictive analytics widgets
+          
+          // Risk Assessment Matrix
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Risk Assessment Matrix',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    child: const Center(
+                      child: Text('Risk assessment visualization'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -187,7 +209,29 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PerformanceKpiWidget(),
           SizedBox(height: 24),
-          // Add more performance widgets
+          
+          // Resource Utilization Chart
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Resource Utilization',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    child: const Center(
+                      child: Text('Resource utilization charts'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -200,7 +244,29 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PopulationHealthWidget(),
           SizedBox(height: 24),
-          // Add more population health widgets
+          
+          // Community Health Metrics
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Community Health Metrics',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 200,
+                    child: const Center(
+                      child: Text('Community health visualization'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
