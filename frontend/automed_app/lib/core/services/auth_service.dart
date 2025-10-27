@@ -1,13 +1,16 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../models/api_response.dart';
 import 'api_service.dart';
 
 class AuthService {
   final FlutterSecureStorage _secureStorage;
+  final LocalAuthentication _localAuth = LocalAuthentication();
   final ApiService _apiService;
 
   static const String _accessTokenKey = 'access_token';
@@ -144,9 +147,29 @@ class AuthService {
   }
 
   Future<bool> authenticateWithBiometrics() async {
-    // This would integrate with local_auth package
-    // For now, return false as placeholder
-    return false;
+    try {
+      // Check if biometric authentication is available
+      final isAvailable = await _localAuth.isDeviceSupported();
+      if (!isAvailable) return false;
+      
+      // Check if biometrics are enrolled
+      final availableBiometrics = await _localAuth.getAvailableBiometrics();
+      if (availableBiometrics.isEmpty) return false;
+      
+      // Authenticate with biometrics
+      final isAuthenticated = await _localAuth.authenticate(
+        localizedReason: 'Please authenticate to access your medical data',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+      
+      return isAuthenticated;
+    } catch (e) {
+      debugPrint('Biometric authentication error: $e');
+      return false;
+    }
   }
 
   // Private methods

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/injection.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
@@ -145,12 +146,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 // Forgot Password
                 TextButton(
                   onPressed: () {
-                    // TODO: Implement forgot password
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Forgot password feature coming soon'),
-                      ),
-                    );
+                    // Navigate to forgot password page
+                    Navigator.pushNamed(context, '/forgot-password');
                   },
                   child: const Text('Forgot Password?'),
                 ),
@@ -213,8 +210,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     try {
-      // TODO: Implement actual login logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Perform actual login
+      final authService = ref.read(authServiceProvider);
+      final success = await authService.login(_emailController.text, _passwordController.text);
       
       // For demo purposes, navigate based on email domain
       final email = _emailController.text.toLowerCase();

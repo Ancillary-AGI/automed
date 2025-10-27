@@ -13,6 +13,7 @@ import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/sync_service.dart';
 import '../services/offline_data_service.dart';
+import '../models/hive_adapters.dart';
 
 // Core providers
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -131,7 +132,8 @@ final offlineDataServiceProvider = Provider<OfflineDataService>((ref) {
   final cacheService = ref.watch(cacheServiceProvider);
   final storageService = ref.watch(storageServiceProvider);
   final connectivityService = ref.watch(connectivityServiceProvider);
-  return OfflineDataService(cacheService, storageService, connectivityService);
+  final apiService = ref.watch(apiServiceProvider);
+  return OfflineDataService(cacheService, storageService, connectivityService, apiService);
 });
 
 // Initialize dependencies
@@ -147,15 +149,23 @@ Future<void> configureDependencies() async {
 }
 
 Future<void> _registerHiveAdapters() async {
-  // Register your Hive type adapters here
-  // Example:
-  // Hive.registerAdapter(PatientAdapter());
-  // Hive.registerAdapter(ConsultationAdapter());
+  // Register Hive type adapters for offline data storage
+  registerHiveAdapters();
 }
 
 Future<void> _initializeServices() async {
   // Initialize services that need async setup
-  // Example: Firebase, notifications, etc.
+  
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  
+  // Initialize connectivity service
+  final connectivityService = ConnectivityService();
+  await connectivityService.initialize();
+  
+  // Initialize other services as needed
+  // Firebase, push notifications, etc. would go here
 }
 
 // Override providers for testing

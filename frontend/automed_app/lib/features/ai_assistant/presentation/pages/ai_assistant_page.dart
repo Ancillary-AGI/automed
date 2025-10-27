@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
@@ -386,7 +387,13 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   }
 
   void _copyMessage(String text) {
-    // Implementation for copying message to clipboard
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Message copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _handleMessageAction(MessageAction action) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/injection.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
@@ -323,8 +324,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     try {
-      // TODO: Implement actual registration logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Perform actual registration
+      final authService = ref.read(authServiceProvider);
+      final success = await authService.register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        phone: _phoneController.text,
+      );
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

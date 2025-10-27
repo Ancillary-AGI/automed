@@ -15,13 +15,13 @@ class PatientDashboardPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // TODO: Navigate to notifications
+              Navigator.pushNamed(context, '/notifications');
             },
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Navigate to settings
+              Navigator.pushNamed(context, '/settings');
             },
           ),
         ],
@@ -114,7 +114,22 @@ class _HealthStatusChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
-        // TODO: Handle health status selection
+        if (selected) {
+          // Show health status details
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('$title Status'),
+              content: Text('Current status: $title\nLast updated: ${DateTime.now().toString().substring(0, 16)}'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
       },
       backgroundColor: color.withOpacity(0.1),
       selectedColor: color.withOpacity(0.2),
@@ -193,7 +208,26 @@ class _QuickActionCard extends StatelessWidget {
     return Card(
       child: InkWell(
         onTap: () {
-          // TODO: Handle quick action tap
+          switch (title) {
+            case 'Book Appointment':
+              Navigator.pushNamed(context, '/book-appointment');
+              break;
+            case 'View Records':
+              Navigator.pushNamed(context, '/medical-records');
+              break;
+            case 'Medications':
+              Navigator.pushNamed(context, '/medications');
+              break;
+            case 'Lab Results':
+              Navigator.pushNamed(context, '/lab-results');
+              break;
+            case 'Emergency':
+              Navigator.pushNamed(context, '/emergency');
+              break;
+            case 'Telemedicine':
+              Navigator.pushNamed(context, '/telemedicine');
+              break;
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -244,7 +278,7 @@ class _UpcomingAppointments extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // TODO: Navigate to all appointments
+                Navigator.pushNamed(context, '/appointments');
               },
               child: const Text('View All'),
             ),
@@ -261,7 +295,7 @@ class _UpcomingAppointments extends StatelessWidget {
             subtitle: const Text('General Consultation • Tomorrow 2:00 PM'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigate to appointment details
+              Navigator.pushNamed(context, '/appointment-details', arguments: appointment);
             },
           ),
         ),
@@ -334,7 +368,20 @@ class _PatientBottomNavBar extends StatelessWidget {
         ),
       ],
       onTap: (index) {
-        // TODO: Handle bottom nav tap
+        switch (index) {
+          case 0:
+            // Already on dashboard
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/appointments');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/medications');
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/profile');
+            break;
+        }
       },
     );
   }

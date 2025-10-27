@@ -5,12 +5,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'connectivity_service.dart';
 import 'cache_service.dart';
 import 'storage_service.dart';
+import 'api_service.dart';
 
 /// Comprehensive offline data management service for critical healthcare scenarios
 class OfflineDataService {
   final CacheService _cacheService;
   final StorageService _storageService;
   final ConnectivityService _connectivityService;
+  final ApiService _apiService;
   
   static const String _criticalDataBox = 'critical_healthcare_data';
   static const String _offlineActionsBox = 'offline_actions_queue';
@@ -26,6 +28,7 @@ class OfflineDataService {
     this._cacheService,
     this._storageService,
     this._connectivityService,
+    this._apiService,
   );
 
   /// Initialize offline data service
@@ -489,10 +492,36 @@ class OfflineDataService {
   }
 
   Future<bool> _performOfflineAction(OfflineAction action) async {
-    // Placeholder for actual action execution
-    // This would call the appropriate API endpoints
-    debugPrint('Performing offline action: ${action.type}');
-    return true;
+    try {
+      switch (action.type) {
+        case 'patient_update':
+          final response = await _apiService.put('/patients/${action.data['patientId']}', action.data);
+          return response != null;
+          
+        case 'vital_signs_entry':
+          final response = await _apiService.post('/patients/${action.data['patientId']}/vitals', action.data);
+          return response != null;
+          
+        case 'medication_administration':
+          final response = await _apiService.post('/medications/administration', action.data);
+          return response != null;
+          
+        case 'consultation_notes':
+          final response = await _apiService.put('/consultations/${action.data['consultationId']}/notes', action.data);
+          return response != null;
+          
+        case 'emergency_alert':
+          final response = await _apiService.post('/emergency/alerts', action.data);
+          return response != null;
+          
+        default:
+          debugPrint('Unknown offline action type: ${action.type}');
+          return false;
+      }
+    } catch (e) {
+      debugPrint('Error performing offline action: $e');
+      return false;
+    }
   }
 
   Future<void> _cleanupExpiredData() async {
