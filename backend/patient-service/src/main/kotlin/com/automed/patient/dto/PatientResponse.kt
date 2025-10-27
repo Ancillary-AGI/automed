@@ -24,4 +24,18 @@ data class PatientResponse(
     val status: PatientStatus,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
-)
+) {
+    val fullName: String
+        get() = "$firstName $lastName"
+    
+    val age: Int
+        get() {
+            val now = LocalDate.now()
+            var age = now.year - dateOfBirth.year
+            if (now.monthValue < dateOfBirth.monthValue || 
+                (now.monthValue == dateOfBirth.monthValue && now.dayOfMonth < dateOfBirth.dayOfMonth)) {
+                age--
+            }
+            return age
+        }
+}

@@ -10,32 +10,32 @@ import java.time.LocalDate
 
 data class UpdatePatientRequest(
     @field:Size(max = 100)
-    val firstName: String?,
+    val firstName: String? = null,
 
     @field:Size(max = 100)
-    val lastName: String?,
+    val lastName: String? = null,
 
     @field:Past
-    val dateOfBirth: LocalDate?,
+    val dateOfBirth: LocalDate? = null,
 
-    val gender: Gender?,
+    val gender: Gender? = null,
 
     @field:Email
-    val email: String?,
+    val email: String? = null,
 
     @field:Pattern(regexp = "^\\+?[1-9]\\d{1,14}$")
-    val phoneNumber: String?,
+    val phoneNumber: String? = null,
 
     @field:Valid
-    val address: Address?,
+    val address: Address? = null,
 
-    val bloodType: BloodType?,
+    val bloodType: BloodType? = null,
 
-    val allergies: Set<String>?,
+    val allergies: Set<String>? = null,
 
-    val medicalConditions: Set<String>?,
+    val medicalConditions: Set<String>? = null,
 
-    val status: PatientStatus?
+    val status: PatientStatus? = null
 ) {
     fun getUpdatedFields(): Map<String, Any?> {
         val fields = mutableMapOf<String, Any?>()

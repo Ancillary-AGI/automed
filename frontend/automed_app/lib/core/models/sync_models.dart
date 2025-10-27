@@ -1,403 +1,197 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'sync_models.g.dart';
+
+// Additional models used by SyncService
+@JsonSerializable()
 class SyncAction {
   final String id;
   final String type;
-  final String entityType;
   final String entityId;
   final Map<String, dynamic> data;
-  final int timestamp;
-  final String? userId;
-  final String? deviceId;
+  final DateTime timestamp;
+  final ActionType actionType;
 
-  const SyncAction({
+  SyncAction({
     required this.id,
     required this.type,
-    required this.entityType,
     required this.entityId,
     required this.data,
     required this.timestamp,
-    this.userId,
-    this.deviceId,
+    required this.actionType,
   });
 
-  factory SyncAction.fromJson(Map<String, dynamic> json) {
-    return SyncAction(
-      id: json['id'],
-      type: json['type'],
-      entityType: json['entityType'],
-      entityId: json['entityId'],
-      data: Map<String, dynamic>.from(json['data']),
-      timestamp: json['timestamp'],
-      userId: json['userId'],
-      deviceId: json['deviceId'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'entityType': entityType,
-      'entityId': entityId,
-      'data': data,
-      'timestamp': timestamp,
-      'userId': userId,
-      'deviceId': deviceId,
-    };
-  }
+  factory SyncAction.fromJson(Map<String, dynamic> json) => 
+      _$SyncActionFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncActionToJson(this);
 }
 
+@JsonSerializable()
 class OfflineDataUploadRequest {
   final String deviceId;
   final List<SyncAction> actions;
   final int timestamp;
-  final String? userId;
 
-  const OfflineDataUploadRequest({
+  OfflineDataUploadRequest({
     required this.deviceId,
     required this.actions,
     required this.timestamp,
-    this.userId,
   });
 
-  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) {
-    return OfflineDataUploadRequest(
-      deviceId: json['deviceId'],
-      actions: (json['actions'] as List)
-          .map((e) => SyncAction.fromJson(e))
-          .toList(),
-      timestamp: json['timestamp'],
-      userId: json['userId'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'deviceId': deviceId,
-      'actions': actions.map((e) => e.toJson()).toList(),
-      'timestamp': timestamp,
-      'userId': userId,
-    };
-  }
+  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) => 
+      _$OfflineDataUploadRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$OfflineDataUploadRequestToJson(this);
 }
 
+@JsonSerializable()
 class SyncResponse {
   final bool success;
   final String? message;
   final List<String>? processedActions;
   final List<DataConflict>? conflicts;
-  final int? timestamp;
 
-  const SyncResponse({
+  SyncResponse({
     required this.success,
     this.message,
     this.processedActions,
     this.conflicts,
-    this.timestamp,
   });
 
-  factory SyncResponse.fromJson(Map<String, dynamic> json) {
-    return SyncResponse(
-      success: json['success'],
-      message: json['message'],
-      processedActions: json['processedActions'] != null
-          ? List<String>.from(json['processedActions'])
-          : null,
-      conflicts: json['conflicts'] != null
-          ? (json['conflicts'] as List)
-                .map((e) => DataConflict.fromJson(e))
-                .toList()
-          : null,
-      timestamp: json['timestamp'],
-    );
-  }
+  factory SyncResponse.fromJson(Map<String, dynamic> json) => 
+      _$SyncResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncResponseToJson(this);
 }
 
+@JsonSerializable()
 class DataConflict {
   final String id;
-  final String entityType;
   final String entityId;
+  final String entityType;
   final Map<String, dynamic> localData;
   final Map<String, dynamic> serverData;
-  final int localTimestamp;
-  final int serverTimestamp;
-  final ConflictType type;
-  final String? description;
+  final DateTime timestamp;
 
-  const DataConflict({
+  DataConflict({
     required this.id,
-    required this.entityType,
     required this.entityId,
+    required this.entityType,
     required this.localData,
     required this.serverData,
-    required this.localTimestamp,
-    required this.serverTimestamp,
-    required this.type,
-    this.description,
+    required this.timestamp,
   });
 
-  factory DataConflict.fromJson(Map<String, dynamic> json) {
-    return DataConflict(
-      id: json['id'],
-      entityType: json['entityType'],
-      entityId: json['entityId'],
-      localData: Map<String, dynamic>.from(json['localData']),
-      serverData: Map<String, dynamic>.from(json['serverData']),
-      localTimestamp: json['localTimestamp'],
-      serverTimestamp: json['serverTimestamp'],
-      type: ConflictType.values[json['type'] as int],
-      description: json['description'],
-    );
-  }
+  factory DataConflict.fromJson(Map<String, dynamic> json) => 
+      _$DataConflictFromJson(json);
+  Map<String, dynamic> toJson() => _$DataConflictToJson(this);
 }
 
-enum ConflictType { updateConflict, deleteConflict, createConflict }
-
+@JsonSerializable()
 class ConflictResolution {
   final ConflictResolutionType type;
   final Map<String, dynamic>? mergedData;
-  final String? notes;
 
-  const ConflictResolution({required this.type, this.mergedData, this.notes});
+  ConflictResolution({
+    required this.type,
+    this.mergedData,
+  });
 
-  factory ConflictResolution.fromJson(Map<String, dynamic> json) {
-    return ConflictResolution(
-      type: ConflictResolutionType.values[json['type'] as int],
-      mergedData: json['mergedData'] != null
-          ? Map<String, dynamic>.from(json['mergedData'])
-          : null,
-      notes: json['notes'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'type': type.index, 'mergedData': mergedData, 'notes': notes};
-  }
+  factory ConflictResolution.fromJson(Map<String, dynamic> json) => 
+      _$ConflictResolutionFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionToJson(this);
 }
 
-enum ConflictResolutionType { useLocal, useServer, merge, skip }
-
+@JsonSerializable()
 class ConflictResolutionRequest {
   final String conflictId;
   final ConflictResolution resolution;
   final String deviceId;
-  final String? userId;
 
-  const ConflictResolutionRequest({
+  ConflictResolutionRequest({
     required this.conflictId,
     required this.resolution,
     required this.deviceId,
-    this.userId,
   });
 
-  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) {
-    return ConflictResolutionRequest(
-      conflictId: json['conflictId'],
-      resolution: ConflictResolution.fromJson(json['resolution']),
-      deviceId: json['deviceId'],
-      userId: json['userId'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'conflictId': conflictId,
-      'resolution': resolution.toJson(),
-      'deviceId': deviceId,
-      'userId': userId,
-    };
-  }
+  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) => 
+      _$ConflictResolutionRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionRequestToJson(this);
 }
 
+@JsonSerializable()
 class ConflictResolutionResponse {
   final bool success;
   final String? message;
-  final Map<String, dynamic>? resolvedData;
 
-  const ConflictResolutionResponse({
+  ConflictResolutionResponse({
     required this.success,
     this.message,
-    this.resolvedData,
   });
 
-  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) {
-    return ConflictResolutionResponse(
-      success: json['success'],
-      message: json['message'],
-      resolvedData: json['resolvedData'] != null
-          ? Map<String, dynamic>.from(json['resolvedData'])
-          : null,
-    );
-  }
+  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) => 
+      _$ConflictResolutionResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionResponseToJson(this);
 }
 
+@JsonSerializable()
 class SyncDownloadResponse {
   final bool success;
   final String? message;
   final List<SyncUpdate>? updates;
-  final int? timestamp;
 
-  const SyncDownloadResponse({
+  SyncDownloadResponse({
     required this.success,
     this.message,
     this.updates,
-    this.timestamp,
   });
 
-  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) {
-    return SyncDownloadResponse(
-      success: json['success'],
-      message: json['message'],
-      updates: json['updates'] != null
-          ? (json['updates'] as List)
-                .map((e) => SyncUpdate.fromJson(e))
-                .toList()
-          : null,
-      timestamp: json['timestamp'],
-    );
-  }
+  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) => 
+      _$SyncDownloadResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncDownloadResponseToJson(this);
 }
 
+@JsonSerializable()
 class SyncUpdate {
   final String id;
   final String entityType;
   final String entityId;
-  final String operation;
   final Map<String, dynamic> data;
-  final int timestamp;
+  final ActionType actionType;
+  final DateTime timestamp;
 
-  const SyncUpdate({
+  SyncUpdate({
     required this.id,
     required this.entityType,
     required this.entityId,
-    required this.operation,
     required this.data,
+    required this.actionType,
     required this.timestamp,
   });
 
-  factory SyncUpdate.fromJson(Map<String, dynamic> json) {
-    return SyncUpdate(
-      id: json['id'],
-      entityType: json['entityType'],
-      entityId: json['entityId'],
-      operation: json['operation'],
-      data: Map<String, dynamic>.from(json['data']),
-      timestamp: json['timestamp'],
-    );
-  }
+  factory SyncUpdate.fromJson(Map<String, dynamic> json) => 
+      _$SyncUpdateFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncUpdateToJson(this);
 }
 
+@JsonSerializable()
 class DeviceHeartbeatRequest {
   final String deviceId;
   final int timestamp;
   final int pendingActionsCount;
   final String appVersion;
-  final String? userId;
 
-  const DeviceHeartbeatRequest({
+  DeviceHeartbeatRequest({
     required this.deviceId,
     required this.timestamp,
     required this.pendingActionsCount,
     required this.appVersion,
-    this.userId,
   });
 
-  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) {
-    return DeviceHeartbeatRequest(
-      deviceId: json['deviceId'],
-      timestamp: json['timestamp'],
-      pendingActionsCount: json['pendingActionsCount'],
-      appVersion: json['appVersion'],
-      userId: json['userId'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'deviceId': deviceId,
-      'timestamp': timestamp,
-      'pendingActionsCount': pendingActionsCount,
-      'appVersion': appVersion,
-      'userId': userId,
-    };
-  }
+  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) => 
+      _$DeviceHeartbeatRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$DeviceHeartbeatRequestToJson(this);
 }
 
-class DeviceHeartbeatResponse {
-  final bool success;
-  final String? message;
-  final bool? forceSync;
-  final String? serverVersion;
-
-  const DeviceHeartbeatResponse({
-    required this.success,
-    this.message,
-    this.forceSync,
-    this.serverVersion,
-  });
-
-  factory DeviceHeartbeatResponse.fromJson(Map<String, dynamic> json) {
-    return DeviceHeartbeatResponse(
-      success: json['success'],
-      message: json['message'],
-      forceSync: json['forceSync'],
-      serverVersion: json['serverVersion'],
-    );
-  }
-}
-
-// Result classes for service methods
-class SyncResult {
-  final bool success;
-  final String message;
-  final int syncedCount;
-  final int conflictCount;
-  final List<DataConflict>? conflicts;
-
-  const SyncResult({
-    required this.success,
-    required this.message,
-    required this.syncedCount,
-    required this.conflictCount,
-    this.conflicts,
-  });
-
-  factory SyncResult.fromJson(Map<String, dynamic> json) {
-    return SyncResult(
-      success: json['success'],
-      message: json['message'],
-      syncedCount: json['syncedCount'],
-      conflictCount: json['conflictCount'],
-      conflicts: json['conflicts'] != null
-          ? (json['conflicts'] as List)
-                .map((e) => DataConflict.fromJson(e))
-                .toList()
-          : null,
-    );
-  }
-}
-
-class SyncDownloadResult {
-  final bool success;
-  final String message;
-  final List<SyncUpdate> updates;
-
-  const SyncDownloadResult({
-    required this.success,
-    required this.message,
-    required this.updates,
-  });
-
-  factory SyncDownloadResult.fromJson(Map<String, dynamic> json) {
-    return SyncDownloadResult(
-      success: json['success'],
-      message: json['message'],
-      updates: (json['updates'] as List)
-          .map((e) => SyncUpdate.fromJson(e))
-          .toList(),
-    );
-  }
-}
-
+@JsonSerializable()
 class SyncStatus {
   final bool isOnline;
   final int pendingActionsCount;
@@ -405,7 +199,7 @@ class SyncStatus {
   final int lastSyncTimestamp;
   final String deviceId;
 
-  const SyncStatus({
+  SyncStatus({
     required this.isOnline,
     required this.pendingActionsCount,
     required this.pendingConflictsCount,
@@ -413,13 +207,349 @@ class SyncStatus {
     required this.deviceId,
   });
 
-  factory SyncStatus.fromJson(Map<String, dynamic> json) {
-    return SyncStatus(
-      isOnline: json['isOnline'],
-      pendingActionsCount: json['pendingActionsCount'],
-      pendingConflictsCount: json['pendingConflictsCount'],
-      lastSyncTimestamp: json['lastSyncTimestamp'],
-      deviceId: json['deviceId'],
-    );
+  factory SyncStatus.fromJson(Map<String, dynamic> json) => 
+      _$SyncStatusFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncStatusToJson(this);
+}
+
+@JsonSerializable()
+class SyncDownloadResult {
+  final bool success;
+  final String message;
+  final List<SyncUpdate> updates;
+
+  SyncDownloadResult({
+    required this.success,
+    required this.message,
+    required this.updates,
+  });
+
+  factory SyncDownloadResult.fromJson(Map<String, dynamic> json) => 
+      _$SyncDownloadResultFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncDownloadResultToJson(this);
+}
+
+enum ActionType {
+  @JsonValue('CREATE')
+  create,
+  @JsonValue('UPDATE')
+  update,
+  @JsonValue('DELETE')
+  delete,
+}
+
+enum ConflictResolutionType {
+  @JsonValue('USE_LOCAL')
+  useLocal,
+  @JsonValue('USE_SERVER')
+  useServer,
+  @JsonValue('MERGE')
+  merge,
+}
+
+@JsonSerializable()
+class SyncResult {
+  final bool success;
+  final String? message;
+  final int uploadedItems;
+  final int failedItems;
+  final List<SyncError>? errors;
+  final DateTime timestamp;
+
+  SyncResult({
+    required this.success,
+    this.message,
+    required this.uploadedItems,
+    required this.failedItems,
+    this.errors,
+    required this.timestamp,
+  });
+
+  factory SyncResult.fromJson(Map<String, dynamic> json) => 
+      _$SyncResultFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncResultToJson(this);
+}
+
+@JsonSerializable()
+class SyncData {
+  final List<SyncItem> items;
+  final DateTime lastSyncTime;
+  final String deviceId;
+  final int totalItems;
+  final bool hasMore;
+
+  SyncData({
+    required this.items,
+    required this.lastSyncTime,
+    required this.deviceId,
+    required this.totalItems,
+    required this.hasMore,
+  });
+
+  factory SyncData.fromJson(Map<String, dynamic> json) => 
+      _$SyncDataFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncDataToJson(this);
+}
+
+@JsonSerializable()
+class SyncItem {
+  final String id;
+  final String type;
+  final Map<String, dynamic> data;
+  final DateTime timestamp;
+  final SyncAction action;
+  final SyncStatus status;
+
+  SyncItem({
+    required this.id,
+    required this.type,
+    required this.data,
+    required this.timestamp,
+    required this.action,
+    required this.status,
+  });
+
+  factory SyncItem.fromJson(Map<String, dynamic> json) => 
+      _$SyncItemFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncItemToJson(this);
+}
+
+@JsonSerializable()
+class SyncError {
+  final String itemId;
+  final String error;
+  final String? details;
+  final DateTime timestamp;
+
+  SyncError({
+    required this.itemId,
+    required this.error,
+    this.details,
+    required this.timestamp,
+  });
+
+  factory SyncError.fromJson(Map<String, dynamic> json) => 
+      _$SyncErrorFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncErrorToJson(this);
+}
+
+@JsonSerializable()
+class OfflineDataUpload {
+  final String deviceId;
+  final List<OfflineItem> items;
+  final DateTime timestamp;
+  final Map<String, dynamic>? metadata;
+
+  OfflineDataUpload({
+    required this.deviceId,
+    required this.items,
+    required this.timestamp,
+    this.metadata,
+  });
+
+  factory OfflineDataUpload.fromJson(Map<String, dynamic> json) => 
+      _$OfflineDataUploadFromJson(json);
+  Map<String, dynamic> toJson() => _$OfflineDataUploadToJson(this);
+}
+
+@JsonSerializable()
+class OfflineItem {
+  final String id;
+  final String type;
+  final Map<String, dynamic> data;
+  final DateTime createdAt;
+  final SyncAction action;
+  final int retryCount;
+
+  OfflineItem({
+    required this.id,
+    required this.type,
+    required this.data,
+    required this.createdAt,
+    required this.action,
+    this.retryCount = 0,
+  });
+
+  factory OfflineItem.fromJson(Map<String, dynamic> json) => 
+      _$OfflineItemFromJson(json);
+  Map<String, dynamic> toJson() => _$OfflineItemToJson(this);
+}
+
+@JsonSerializable()
+class ConflictResolution {
+  final List<ResolvedConflict> resolvedConflicts;
+  final int totalConflicts;
+  final DateTime timestamp;
+
+  ConflictResolution({
+    required this.resolvedConflicts,
+    required this.totalConflicts,
+    required this.timestamp,
+  });
+
+  factory ConflictResolution.fromJson(Map<String, dynamic> json) => 
+      _$ConflictResolutionFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionToJson(this);
+}
+
+@JsonSerializable()
+class ResolvedConflict {
+  final String itemId;
+  final String resolution;
+  final Map<String, dynamic> finalData;
+  final DateTime resolvedAt;
+
+  ResolvedConflict({
+    required this.itemId,
+    required this.resolution,
+    required this.finalData,
+    required this.resolvedAt,
+  });
+
+  factory ResolvedConflict.fromJson(Map<String, dynamic> json) => 
+      _$ResolvedConflictFromJson(json);
+  Map<String, dynamic> toJson() => _$ResolvedConflictToJson(this);
+}
+
+@JsonSerializable()
+class ConflictResolutionRequest {
+  final List<ConflictItem> conflicts;
+  final String deviceId;
+  final DateTime timestamp;
+
+  ConflictResolutionRequest({
+    required this.conflicts,
+    required this.deviceId,
+    required this.timestamp,
+  });
+
+  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) => 
+      _$ConflictResolutionRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionRequestToJson(this);
+}
+
+@JsonSerializable()
+class ConflictItem {
+  final String itemId;
+  final Map<String, dynamic> localData;
+  final Map<String, dynamic> serverData;
+  final ConflictResolutionStrategy strategy;
+
+  ConflictItem({
+    required this.itemId,
+    required this.localData,
+    required this.serverData,
+    required this.strategy,
+  });
+
+  factory ConflictItem.fromJson(Map<String, dynamic> json) => 
+      _$ConflictItemFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictItemToJson(this);
+}
+
+@JsonSerializable()
+class HeartbeatRequest {
+  final String deviceId;
+  final DateTime timestamp;
+  final Map<String, dynamic> deviceInfo;
+  final SyncStatus syncStatus;
+
+  HeartbeatRequest({
+    required this.deviceId,
+    required this.timestamp,
+    required this.deviceInfo,
+    required this.syncStatus,
+  });
+
+  factory HeartbeatRequest.fromJson(Map<String, dynamic> json) => 
+      _$HeartbeatRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$HeartbeatRequestToJson(this);
+}
+
+@JsonSerializable()
+class FileUploadResult {
+  final String fileId;
+  final String fileName;
+  final String url;
+  final int size;
+  final String mimeType;
+  final DateTime uploadedAt;
+
+  FileUploadResult({
+    required this.fileId,
+    required this.fileName,
+    required this.url,
+    required this.size,
+    required this.mimeType,
+    required this.uploadedAt,
+  });
+
+  factory FileUploadResult.fromJson(Map<String, dynamic> json) => 
+      _$FileUploadResultFromJson(json);
+  Map<String, dynamic> toJson() => _$FileUploadResultToJson(this);
+}
+
+// Enums
+enum SyncAction {
+  @JsonValue('CREATE')
+  create,
+  @JsonValue('UPDATE')
+  update,
+  @JsonValue('DELETE')
+  delete,
+}
+
+enum SyncStatus {
+  @JsonValue('PENDING')
+  pending,
+  @JsonValue('IN_PROGRESS')
+  inProgress,
+  @JsonValue('COMPLETED')
+  completed,
+  @JsonValue('FAILED')
+  failed,
+  @JsonValue('CONFLICT')
+  conflict,
+}
+
+enum ConflictResolutionStrategy {
+  @JsonValue('USE_LOCAL')
+  useLocal,
+  @JsonValue('USE_SERVER')
+  useServer,
+  @JsonValue('MERGE')
+  merge,
+  @JsonValue('MANUAL')
+  manual,
+}
+
+// Extension methods
+extension SyncActionExtension on SyncAction {
+  String get displayName {
+    switch (this) {
+      case SyncAction.create:
+        return 'Create';
+      case SyncAction.update:
+        return 'Update';
+      case SyncAction.delete:
+        return 'Delete';
+    }
+  }
+}
+
+extension SyncStatusExtension on SyncStatus {
+  String get displayName {
+    switch (this) {
+      case SyncStatus.pending:
+        return 'Pending';
+      case SyncStatus.inProgress:
+        return 'In Progress';
+      case SyncStatus.completed:
+        return 'Completed';
+      case SyncStatus.failed:
+        return 'Failed';
+      case SyncStatus.conflict:
+        return 'Conflict';
+    }
   }
 }

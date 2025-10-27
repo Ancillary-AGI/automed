@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
 import java.util.*
 
 @RestController
@@ -20,78 +21,132 @@ class ConsultationController(
 
     @PostMapping
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
-    fun scheduleConsultation(@Valid @RequestBody request: ScheduleConsultationRequest): ResponseEntity<ConsultationResponse> {
-        val consultation = consultationService.scheduleConsultation(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(consultation)
+    fun createConsultation(@Valid @RequestBody request: CreateConsultationRequest): Mono<ResponseEntity<ConsultationResponse>> {
+        return consultationService.createConsultation(request)
+            .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or @consultationService.isParticipant(#id, authentication.name)")
-    fun getConsultation(@PathVariable id: UUID): ResponseEntity<ConsultationResponse> {
-        val consultation = consultationService.getConsultation(id)
-        return ResponseEntity.ok(consultation)
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun getConsultation(@PathVariable id: UUID): Mono<ResponseEntity<ConsultationResponse>> {
+        return consultationService.getConsultation(id)
+            .map { ResponseEntity.ok(it) }
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
     fun getAllConsultations(
         pageable: Pageable,
-        @RequestParam(required = false) patientId: UUID?,
-        @RequestParam(required = false) doctorId: UUID?,
-        @RequestParam(required = false) status: String?
-    ): ResponseEntity<Page<ConsultationResponse>> {
-        val consultations = consultationService.getAllConsultations(pageable, patientId, doctorId, status)
-        return ResponseEntity.ok(consultations)
+        @RequestParam(required = false) status: String?,
+        @RequestParam(required = false) patientId: String?,
+        @RequestParam(required = false) providerId: String?
+    ): Mono<ResponseEntity<Page<ConsultationResponse>>> {
+        return consultationService.getAllConsultations(pageable, status, patientId, providerId)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun updateConsultation(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: UpdateConsultationRequest
+    ): Mono<ResponseEntity<ConsultationResponse>> {
+        return consultationService.updateConsultation(id, request)
+            .map { ResponseEntity.ok(it) }
     }
 
     @PostMapping("/{id}/start")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
-    fun startConsultation(@PathVariable id: UUID): ResponseEntity<ConsultationResponse> {
-        val consultation = consultationService.startConsultation(id)
-        return ResponseEntity.ok(consultation)
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun startConsultation(@PathVariable id: UUID): Mono<ResponseEntity<ConsultationSessionResponse>> {
+        return consultationService.startConsultation(id)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/{id}/join")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun joinConsultation(@PathVariable id: UUID): Mono<ResponseEntity<ConsultationSessionResponse>> {
+        return consultationService.joinConsultation(id)
+            .map { ResponseEntity.ok(it) }
     }
 
     @PostMapping("/{id}/end")
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
     fun endConsultation(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: EndConsultationRequest
-    ): ResponseEntity<ConsultationResponse> {
-        val consultation = consultationService.endConsultation(id, request)
-        return ResponseEntity.ok(consultation)
+        @RequestBody(required = false) notes: String?
+    ): Mono<ResponseEntity<Void>> {
+        return consultationService.endConsultation(id, notes)
+            .map { ResponseEntity.ok().build<Void>() }
+    }
+
+    @PostMapping("/{id}/messages")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun sendMessage(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: SendMessageRequest
+    ): Mono<ResponseEntity<MessageResponse>> {
+        return consultationService.sendMessage(id, request)
+            .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+    }
+
+    @GetMapping("/{id}/messages")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun getMessages(@PathVariable id: UUID): Mono<ResponseEntity<List<MessageResponse>>> {
+        return consultationService.getMessages(id)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/{id}/files")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun uploadFile(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: FileUploadRequest
+    ): Mono<ResponseEntity<FileUploadResponse>> {
+        return consultationService.uploadFile(id, request)
+            .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+    }
+
+    @GetMapping("/{id}/recording")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun getConsultationRecording(@PathVariable id: UUID): Mono<ResponseEntity<RecordingResponse>> {
+        return consultationService.getConsultationRecording(id)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/{id}/prescription")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun createPrescription(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: CreatePrescriptionRequest
+    ): Mono<ResponseEntity<PrescriptionResponse>> {
+        return consultationService.createPrescription(id, request)
+            .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+    }
+
+    @GetMapping("/upcoming")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun getUpcomingConsultations(): Mono<ResponseEntity<List<ConsultationResponse>>> {
+        return consultationService.getUpcomingConsultations()
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/{id}/reschedule")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun rescheduleConsultation(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: RescheduleConsultationRequest
+    ): Mono<ResponseEntity<ConsultationResponse>> {
+        return consultationService.rescheduleConsultation(id, request)
+            .map { ResponseEntity.ok(it) }
     }
 
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or @consultationService.isParticipant(#id, authentication.name)")
-    fun cancelConsultation(@PathVariable id: UUID): ResponseEntity<ConsultationResponse> {
-        val consultation = consultationService.cancelConsultation(id)
-        return ResponseEntity.ok(consultation)
-    }
-
-    @PostMapping("/{id}/join")
-    @PreAuthorize("@consultationService.isParticipant(#id, authentication.name)")
-    fun joinConsultation(@PathVariable id: UUID): ResponseEntity<JoinConsultationResponse> {
-        val joinInfo = consultationService.joinConsultation(id)
-        return ResponseEntity.ok(joinInfo)
-    }
-
-    @GetMapping("/patient/{patientId}")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or @consultationService.isPatientOwner(#patientId, authentication.name)")
-    fun getPatientConsultations(
-        @PathVariable patientId: UUID,
-        pageable: Pageable
-    ): ResponseEntity<Page<ConsultationResponse>> {
-        val consultations = consultationService.getPatientConsultations(patientId, pageable)
-        return ResponseEntity.ok(consultations)
-    }
-
-    @GetMapping("/doctor/{doctorId}")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or @consultationService.isDoctorOwner(#doctorId, authentication.name)")
-    fun getDoctorConsultations(
-        @PathVariable doctorId: UUID,
-        pageable: Pageable
-    ): ResponseEntity<Page<ConsultationResponse>> {
-        val consultations = consultationService.getDoctorConsultations(doctorId, pageable)
-        return ResponseEntity.ok(consultations)
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
+    fun cancelConsultation(
+        @PathVariable id: UUID,
+        @RequestBody(required = false) reason: String?
+    ): Mono<ResponseEntity<Void>> {
+        return consultationService.cancelConsultation(id, reason)
+            .map { ResponseEntity.ok().build<Void>() }
     }
 }

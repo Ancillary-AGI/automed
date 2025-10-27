@@ -1,226 +1,348 @@
-# Automed - Global Healthcare Delivery Automation Platform
+version: '3.8'
 
-## 🏥 Vision
-A multibillion-dollar healthcare automation platform connecting every hospital globally, providing AI-powered healthcare delivery to the remotest places on Earth.
+services:
+  # API Gateway
+  api-gateway:
+    build: 
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/api-gateway:/app
+      - /app/build
 
-## 🚀 Quick Start
+  # Service Discovery
+  eureka-server:
+    image: steeltoeoss/eureka-server:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - automed-network
 
-### Prerequisites
-- Docker & Docker Compose
-- Java 21+ (for backend development)
-- Flutter 3.16+ (for frontend development)
-- Node.js 18+ (for tooling)
+  # Core Services
+  patient-service:
+    build:
+      context: ./backend/patient-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-patients:5432/patients
+      - SPRING_DATASOURCE_USERNAME=automed
+      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - postgres-patients
+      - kafka
+      - eureka-server
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/patient-service:/app
+      - /app/build
 
-### Development Setup
+  hospital-service:
+    build:
+      context: ./backend/hospital-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-hospitals:5432/hospitals
+      - SPRING_DATASOURCE_USERNAME=automed
+      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - postgres-hospitals
+      - kafka
+      - eureka-server
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/hospital-service:/app
+      - /app/build
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd automed
-   ```
+  consultation-service:
+    build:
+      context: ./backend/consultation-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-consultations:5432/consultations
+      - SPRING_DATASOURCE_USERNAME=automed
+      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - postgres-consultations
+      - kafka
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/consultation-service:/app
+      - /app/build
 
-2. **Start development environment**
-   ```bash
-   make dev-up
-   ```
+  sync-service:
+    build:
+      context: ./backend/sync-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - kafka
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/sync-service:/app
+      - /app/build
 
-3. **Access services**
-   - API Gateway: http://localhost:8080
-   - Eureka Server: http://localhost:8761
-   - Patient Service: http://localhost:8081
-   - Consultation Service: http://localhost:8082
-   - Sync Service: http://localhost:8083
-   - AI Service: http://localhost:8084
-   - Kafka UI: http://localhost:8090
-   - Redis Commander: http://localhost:8091
-   - PgAdmin: http://localhost:8092
+  ai-service:
+    build:
+      context: ./backend/ai-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - kafka
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/ai-service:/app
+      - /app/build
 
-4. **Setup Flutter app**
-   ```bash
-   make flutter-deps
-   cd frontend/automed_app
-   flutter run
-   ```
+  clinical-decision-service:
+    build:
+      context: ./backend/clinical-decision-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-clinical:5432/clinical
+      - SPRING_DATASOURCE_USERNAME=automed
+      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - postgres-clinical
+      - kafka
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/clinical-decision-service:/app
+      - /app/build
 
-## 🚀 Architecture Overview
+  workflow-automation-service:
+    build:
+      context: ./backend/workflow-automation-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-workflow:5432/workflow
+      - SPRING_DATASOURCE_USERNAME=automed
+      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - postgres-workflow
+      - kafka
+      - eureka-server
+      - redis
+    networks:
+      - automed-network
+    volumes:
+      - ./backend/workflow-automation-service:/app
+      - /app/build
 
-### Frontend Stack
-- **Flutter/Dart** - Cross-platform mobile, web, desktop, XR, foldables, watches
-- **Platform Channels** - Native iOS/Android/Windows/macOS/Linux integrations
-- **TensorFlow Lite** - On-device AI inference
-- **WebRTC** - Real-time communication
-- **Offline-First** - Works in low-connectivity environments
+  # Databases
+  postgres-patients:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: patients
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-patients-data:/var/lib/postgresql/data
+      - ./backend/patient-service/src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - automed-network
 
-### Backend Stack
-- **Spring Boot 3.2** with Kotlin
-- **Microservices Architecture**
-- **Event-Driven Design** with Apache Kafka
-- **CQRS + Event Sourcing**
-- **Distributed Systems** with Spring Cloud
+  postgres-hospitals:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hospitals
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-hospitals-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - automed-network
 
-### Core Services
+  postgres-consultations:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: consultations
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-consultations-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - automed-network
 
-#### 🏥 Patient Service
-- Patient registration and profile management
-- Medical history and health records
-- FHIR-compliant data structures
-- Event-driven updates via Kafka
+  postgres-clinical:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: clinical
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-clinical-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - automed-network
 
-#### 💬 Consultation Service
-- Video/audio consultations via WebRTC
-- Real-time chat and file sharing
-- Session recording and playback
-- Multi-participant support
+  postgres-workflow:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: workflow
+      POSTGRES_USER: automed
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres-workflow-data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - automed-network
 
-#### 🔄 Sync Service
-- Offline-first data synchronization
-- Conflict resolution algorithms
-- Device heartbeat monitoring
-- Batch data processing
+  # Message Broker
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - automed-network
 
-#### 🤖 AI Service
-- Medical diagnosis prediction
-- Symptom analysis and triage
-- Drug interaction checking
-- TensorFlow Lite model distribution
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - automed-network
 
-### AI/ML Infrastructure
-- **Custom Model Training Pipeline**
-- **MLOps with Kubeflow**
-- **Edge AI Deployment**
-- **Federated Learning**
+  # Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - automed-network
 
-### Security & Compliance
-- **HIPAA/GDPR Compliant**
-- **Zero-Trust Architecture**
-- **End-to-End Encryption**
-- **Blockchain for Audit Trails**
+  # Development Tools
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+    networks:
+      - automed-network
 
-### DevOps & Infrastructure
-- **Kubernetes** orchestration
-- **GitOps** with ArgoCD
-- **Multi-cloud** deployment
-- **Chaos Engineering**
-- **Observability** with OpenTelemetry
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8091:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - automed-network
 
-## 📱 Applications
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8092:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@automed.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - automed-network
 
-### Hospital Management System
-- Staff management and scheduling
-- Equipment monitoring and maintenance
-- Resource optimization
-- Real-time analytics dashboard
+volumes:
+  postgres-patients-data:
+  postgres-hospitals-data:
+  postgres-consultations-data:
+  postgres-clinical-data:
+  postgres-workflow-data:
+  redis-data:
+  pgadmin-data:
 
-### Patient Care App
-- Telemedicine consultations
-- Health monitoring
-- Medication management
-- Emergency services
-
-### Key Features
-
-#### 🎥 Video Consultations
-- WebRTC-based real-time communication
-- Multi-platform support (mobile, web, desktop)
-- Session recording and playback
-- Chat and file sharing during calls
-
-#### 💊 Medication Tracking
-- Smart medication reminders
-- Offline-first data storage
-- Drug interaction warnings
-- Adherence analytics
-
-#### 🔄 Offline Synchronization
-- Queue actions when offline
-- Automatic sync when online
-- Conflict resolution UI
-- Background sync service
-
-#### 🤖 AI-Powered Insights
-- On-device inference with TensorFlow Lite
-- Cloud-based model serving
-- Federated learning support
-- Real-time health analytics
-
-## 🌐 Global Connectivity
-- Satellite internet integration
-- Mesh networking for remote areas
-- Progressive Web App capabilities
-- Offline synchronization
-
-## 🔬 Research & Development
-- Cancer research data platform
-- Clinical trial management
-- Drug discovery acceleration
-- Genomic analysis pipeline
-
-## 🛠️ Development Commands
-
-```bash
-# Development Environment
-make dev-up          # Start development environment
-make dev-down        # Stop development environment
-make dev-logs        # Show development logs
-make dev-clean       # Clean development environment
-
-# Build & Test
-make build           # Build all services
-make test            # Run all tests
-make clean           # Clean build artifacts
-
-# Flutter
-make flutter-deps    # Get Flutter dependencies
-make flutter-build   # Build Flutter app
-make flutter-test    # Run Flutter tests
-
-# Docker
-make docker-build    # Build Docker images
-make docker-push     # Push Docker images
-
-# Kubernetes
-make k8s-deploy      # Deploy to Kubernetes
-make k8s-delete      # Delete from Kubernetes
-```
-
-## 📚 API Documentation
-
-### Patient Service API
-- `POST /api/v1/patients` - Register new patient
-- `GET /api/v1/patients/{id}` - Get patient details
-- `PUT /api/v1/patients/{id}` - Update patient
-- `GET /api/v1/patients` - List patients (paginated)
-
-### Consultation Service API
-- `POST /api/v1/consultations` - Schedule consultation
-- `POST /api/v1/consultations/{id}/start` - Start consultation
-- `POST /api/v1/consultations/{id}/end` - End consultation
-- `POST /api/v1/consultations/{id}/join` - Join consultation
-
-### Sync Service API
-- `POST /api/v1/sync/upload` - Upload offline data
-- `GET /api/v1/sync/download/{deviceId}` - Download updates
-- `POST /api/v1/sync/resolve-conflicts` - Resolve conflicts
-- `POST /api/v1/sync/heartbeat` - Device heartbeat
-
-### AI Service API
-- `POST /api/v1/ai/predict-diagnosis` - Predict diagnosis
-- `POST /api/v1/ai/analyze-symptoms` - Analyze symptoms
-- `POST /api/v1/ai/triage` - Perform triage
-- `GET /api/v1/ai/models` - List available models
-
-## 🔧 Configuration
-
-### Environment Variables
-
-#### Backend Services
-```bash
-SPRING_PROFILES_ACTIVE=dev|staging|production
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/automed
-SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://localhost:8761/eureka
-```
-
-#### Flutter App
-```bash
-ENVIRONMENT=development|staging|production
+networks:
+  automed-network:
+    driver: bridge

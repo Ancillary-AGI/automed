@@ -36,10 +36,9 @@ class HospitalController(
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
     fun getAllHospitals(
         pageable: Pageable,
-        @RequestParam(required = false) search: String?,
-        @RequestParam(required = false) type: String?
+        @RequestParam(required = false) search: String?
     ): ResponseEntity<Page<HospitalResponse>> {
-        val hospitals = hospitalService.getAllHospitals(pageable, search, type)
+        val hospitals = hospitalService.getAllHospitals(pageable, search)
         return ResponseEntity.ok(hospitals)
     }
 
@@ -55,31 +54,25 @@ class HospitalController(
 
     @GetMapping("/{id}/staff")
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalStaff(
-        @PathVariable id: UUID,
-        pageable: Pageable
-    ): ResponseEntity<Page<StaffResponse>> {
-        val staff = hospitalService.getHospitalStaff(id, pageable)
+    fun getHospitalStaff(@PathVariable id: UUID): ResponseEntity<List<StaffResponse>> {
+        val staff = hospitalService.getHospitalStaff(id)
         return ResponseEntity.ok(staff)
     }
 
     @PostMapping("/{id}/staff")
     @PreAuthorize("hasRole('ADMIN')")
-    fun addStaff(
+    fun addStaffMember(
         @PathVariable id: UUID,
         @Valid @RequestBody request: CreateStaffRequest
     ): ResponseEntity<StaffResponse> {
-        val staff = hospitalService.addStaff(id, request)
+        val staff = hospitalService.addStaffMember(id, request)
         return ResponseEntity.status(HttpStatus.CREATED).body(staff)
     }
 
     @GetMapping("/{id}/equipment")
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalEquipment(
-        @PathVariable id: UUID,
-        pageable: Pageable
-    ): ResponseEntity<Page<EquipmentResponse>> {
-        val equipment = hospitalService.getHospitalEquipment(id, pageable)
+    fun getHospitalEquipment(@PathVariable id: UUID): ResponseEntity<List<EquipmentResponse>> {
+        val equipment = hospitalService.getHospitalEquipment(id)
         return ResponseEntity.ok(equipment)
     }
 
@@ -93,10 +86,34 @@ class HospitalController(
         return ResponseEntity.status(HttpStatus.CREATED).body(equipment)
     }
 
-    @GetMapping("/{id}/dashboard")
+    @GetMapping("/{id}/capacity")
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalDashboard(@PathVariable id: UUID): ResponseEntity<HospitalDashboardResponse> {
-        val dashboard = hospitalService.getHospitalDashboard(id)
-        return ResponseEntity.ok(dashboard)
+    fun getHospitalCapacity(@PathVariable id: UUID): ResponseEntity<HospitalCapacityResponse> {
+        val capacity = hospitalService.getHospitalCapacity(id)
+        return ResponseEntity.ok(capacity)
+    }
+
+    @GetMapping("/{id}/metrics")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun getHospitalMetrics(@PathVariable id: UUID): ResponseEntity<HospitalMetricsResponse> {
+        val metrics = hospitalService.getHospitalMetrics(id)
+        return ResponseEntity.ok(metrics)
+    }
+
+    @PostMapping("/{id}/emergency-alert")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun createEmergencyAlert(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: CreateEmergencyAlertRequest
+    ): ResponseEntity<EmergencyAlertResponse> {
+        val alert = hospitalService.createEmergencyAlert(id, request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(alert)
+    }
+
+    @GetMapping("/{id}/emergency-alerts")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    fun getEmergencyAlerts(@PathVariable id: UUID): ResponseEntity<List<EmergencyAlertResponse>> {
+        val alerts = hospitalService.getEmergencyAlerts(id)
+        return ResponseEntity.ok(alerts)
     }
 }

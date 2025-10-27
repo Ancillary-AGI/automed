@@ -1,0 +1,448 @@
+# Global configuration
+global:
+  imageRegistry: ghcr.io
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: automed
+  version: "1.0.0"
+  environment: production
+
+# API Gateway configuration
+apiGateway:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/automed/api-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 8080
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    hosts:
+      - host: api.automed.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: automed-api-tls
+        hosts:
+          - api.automed.com
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Microservices configuration
+services:
+  patientService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/patient-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 800m
+        memory: 1Gi
+      requests:
+        cpu: 400m
+        memory: 512Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+
+  hospitalService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/hospital-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 800m
+        memory: 1Gi
+      requests:
+        cpu: 400m
+        memory: 512Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+
+  consultationService:
+    enabled: true
+    replicaCount: 3
+    image:
+      repository: ghcr.io/automed/consultation-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1.5Gi
+      requests:
+        cpu: 500m
+        memory: 768Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+
+  aiService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/ai-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 60
+
+  clinicalDecisionService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/clinical-decision-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+
+  workflowAutomationService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/workflow-automation-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 800m
+        memory: 1Gi
+      requests:
+        cpu: 400m
+        memory: 512Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+
+  syncService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/sync-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 600m
+        memory: 768Mi
+      requests:
+        cpu: 300m
+        memory: 384Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 70
+
+  tenantService:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: ghcr.io/automed/tenant-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 600m
+        memory: 768Mi
+      requests:
+        cpu: 300m
+        memory: 384Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 70
+
+  monitoringService:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: ghcr.io/automed/monitoring-service
+      tag: latest
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "automed-postgres-password"
+    database: "automed"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  readReplicas:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "automed-redis-password"
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 300m
+        memory: 512Mi
+      requests:
+        cpu: 150m
+        memory: 256Mi
+
+# Kafka configuration
+kafka:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  zookeeper:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Service Discovery
+eureka:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: steeltoeoss/eureka-server
+    tag: latest
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 250m
+      memory: 384Mi
+
+# Monitoring configuration
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 50Gi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+    alertmanager:
+      enabled: true
+      persistentVolume:
+        enabled: true
+        size: 10Gi
+
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    adminPassword: "automed-grafana-admin"
+
+# Security configuration
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    enabled: true
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  storage:
+    size: 500Gi
+    storageClass: "backup-storage"
+
+# SSL/TLS configuration
+tls:
+  enabled: true
+  certManager:
+    enabled: true
+    issuer: letsencrypt-prod
+
+# Resource quotas
+resourceQuotas:
+  enabled: true
+  limits:
+    cpu: "20"
+    memory: "40Gi"
+    persistentvolumeclaims: "20"
+    services: "20"
+
+# Node affinity and tolerations
+nodeAffinity:
+  enabled: false
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+
+# Pod disruption budgets
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Health checks
+healthChecks:
+  enabled: true
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Logging configuration
+logging:
+  level: INFO
+  format: JSON
+  aggregation:
+    enabled: true
+    elasticsearch:
+      enabled: true
+      host: "elasticsearch.logging.svc.cluster.local"
+      port: 9200
+
+# Configuration management
+configMaps:
+  application:
+    spring.profiles.active: production
+    logging.level.com.automed: INFO
+    management.endpoints.web.exposure.include: health,info,metrics,prometheus
+
+secrets:
+  database:
+    username: automed
+    password: automed-db-password
+  redis:
+    password: automed-redis-password
+  jwt:
+    secret: automed-jwt-secret-key
+  encryption:
+    key: automed-encryption-key

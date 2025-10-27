@@ -5,11 +5,17 @@ WORKDIR /app
 # Install development tools
 RUN apt-get update && apt-get install -y \
     curl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy gradle files
-COPY build.gradle.kts settings.gradle.kts gradlew ./
+# Copy gradle wrapper and build files
+COPY gradlew .
 COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+# Make gradlew executable
+RUN chmod +x ./gradlew
 
 # Download dependencies
 RUN ./gradlew dependencies --no-daemon
