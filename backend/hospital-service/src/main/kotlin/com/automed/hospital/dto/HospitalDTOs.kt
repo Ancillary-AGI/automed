@@ -233,3 +233,80 @@ data class HospitalDashboardResponse(
     val recentAlerts: List<String>,
     val occupancyRate: Double
 )
+
+data class HospitalCapacityResponse(
+    val hospitalId: UUID,
+    val totalBeds: Int,
+    val occupiedBeds: Int,
+    val availableBeds: Int,
+    val occupancyRate: Double,
+    val icuBeds: Int,
+    val icuOccupied: Int,
+    val emergencyBeds: Int,
+    val emergencyOccupied: Int,
+    val lastUpdated: LocalDateTime
+)
+
+data class HospitalMetricsResponse(
+    val hospitalId: UUID,
+    val averageWaitTime: Long, // in minutes
+    val patientSatisfaction: Double, // 0-5 scale
+    val staffUtilization: Double, // percentage
+    val equipmentUptime: Double, // percentage
+    val emergencyResponseTime: Long, // in minutes
+    val readmissionRate: Double, // percentage
+    val infectionRate: Double, // percentage
+    val period: String, // e.g., "LAST_30_DAYS"
+    val lastUpdated: LocalDateTime
+)
+
+data class CreateEmergencyAlertRequest(
+    @field:NotBlank
+    @field:Size(max = 200)
+    val title: String,
+
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val description: String,
+
+    @field:NotNull
+    val severity: AlertSeverity,
+
+    @field:NotNull
+    val alertType: AlertType,
+
+    val affectedDepartments: Set<Department> = emptySet(),
+
+    val requiredResources: Set<String> = emptySet()
+)
+
+data class EmergencyAlertResponse(
+    val id: UUID,
+    val hospitalId: UUID,
+    val title: String,
+    val description: String,
+    val severity: AlertSeverity,
+    val alertType: AlertType,
+    val status: AlertStatus,
+    val affectedDepartments: Set<Department>,
+    val requiredResources: Set<String>,
+    val createdBy: UUID,
+    val acknowledgedBy: Set<UUID>,
+    val resolvedAt: LocalDateTime?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)
+
+enum class AlertSeverity {
+    LOW, MEDIUM, HIGH, CRITICAL
+}
+
+enum class AlertType {
+    MEDICAL_EMERGENCY, EQUIPMENT_FAILURE, STAFF_SHORTAGE,
+    RESOURCE_SHORTAGE, SECURITY_INCIDENT, NATURAL_DISASTER,
+    INFRASTRUCTURE_FAILURE, OTHER
+}
+
+enum class AlertStatus {
+    ACTIVE, ACKNOWLEDGED, RESOLVED, CANCELLED
+}

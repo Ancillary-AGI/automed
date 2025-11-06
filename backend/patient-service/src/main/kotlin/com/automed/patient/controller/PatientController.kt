@@ -6,12 +6,15 @@ import com.automed.patient.dto.PatientResponse
 import com.automed.patient.dto.UpdatePatientRequest
 import com.automed.patient.service.PatientService
 import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 
 @RestController
@@ -20,6 +23,7 @@ import java.util.*
 class PatientController(
     private val patientService: PatientService
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(PatientController::class.java)
 
     @PostMapping
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
@@ -73,23 +77,19 @@ class PatientController(
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN') or @patientService.isPatientOwner(#id, authentication.name)")
     fun getMedicalHistory(@PathVariable id: UUID): ResponseEntity<Any> {
         return try {
-            val patient = patientService.getPatientById(id)
-                ?: return ResponseEntity.notFound().build()
-            
-            val medicalHistory = medicalHistoryService.getMedicalHistoryByPatientId(id)
-            val vitalSigns = vitalSignsService.getVitalSignsByPatientId(id)
-            val medications = medicationService.getCurrentMedicationsByPatientId(id)
-            val allergies = allergyService.getAllergiesByPatientId(id)
-            
+            val patient = patientService.getPatient(id)
+
+            // TODO: Integrate with actual medical history, vital signs, medication, and allergy services
+            // For now, return basic patient information with placeholders
             val response = mapOf(
                 "patient" to patient,
-                "medicalHistory" to medicalHistory,
-                "vitalSigns" to vitalSigns,
-                "currentMedications" to medications,
-                "allergies" to allergies,
+                "medicalHistory" to listOf<Map<String, Any>>(), // Placeholder for medical history
+                "vitalSigns" to listOf<Map<String, Any>>(), // Placeholder for vital signs
+                "currentMedications" to listOf<Map<String, Any>>(), // Placeholder for medications
+                "allergies" to patient.allergies,
                 "lastUpdated" to LocalDateTime.now()
             )
-            
+
             ResponseEntity.ok(response)
         } catch (e: Exception) {
             logger.error("Error retrieving medical history for patient $id", e)

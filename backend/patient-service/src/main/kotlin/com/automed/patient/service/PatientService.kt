@@ -96,6 +96,11 @@ class PatientService(
     }
 
     @Transactional(readOnly = true)
+    fun getPatientById(id: UUID): Patient? {
+        return patientRepository.findById(id).orElse(null)
+    }
+
+    @Transactional(readOnly = true)
     fun isPatientOwner(patientId: UUID, userEmail: String): Boolean {
         return patientRepository.findById(patientId)
             .map { it.email == userEmail }

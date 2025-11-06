@@ -250,6 +250,93 @@ class HospitalService(
         )
     }
 
+    @Transactional(readOnly = true)
+    fun getHospitalCapacity(hospitalId: UUID): HospitalCapacityResponse {
+        val hospital = hospitalRepository.findById(hospitalId)
+            .orElseThrow { HospitalNotFoundException("Hospital not found with id: $hospitalId") }
+
+        // TODO: Implement proper capacity tracking with ICU and emergency beds
+        val icuBeds = (hospital.capacity * 0.1).toInt() // Assume 10% are ICU beds
+        val emergencyBeds = (hospital.capacity * 0.15).toInt() // Assume 15% are emergency beds
+        val icuOccupied = (icuBeds * 0.8).toInt() // Simulate occupancy
+        val emergencyOccupied = (emergencyBeds * 0.6).toInt() // Simulate occupancy
+
+        return HospitalCapacityResponse(
+            hospitalId = hospitalId,
+            totalBeds = hospital.capacity,
+            occupiedBeds = hospital.currentOccupancy,
+            availableBeds = hospital.capacity - hospital.currentOccupancy,
+            occupancyRate = (hospital.currentOccupancy.toDouble() / hospital.capacity) * 100,
+            icuBeds = icuBeds,
+            icuOccupied = icuOccupied,
+            emergencyBeds = emergencyBeds,
+            emergencyOccupied = emergencyOccupied,
+            lastUpdated = LocalDateTime.now()
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getHospitalMetrics(hospitalId: UUID): HospitalMetricsResponse {
+        val hospital = hospitalRepository.findById(hospitalId)
+            .orElseThrow { HospitalNotFoundException("Hospital not found with id: $hospitalId") }
+
+        // TODO: Implement real metrics calculation from historical data
+        return HospitalMetricsResponse(
+            hospitalId = hospitalId,
+            averageWaitTime = 45L, // minutes
+            patientSatisfaction = 4.2, // out of 5
+            staffUtilization = 78.5, // percentage
+            equipmentUptime = 92.3, // percentage
+            emergencyResponseTime = 8L, // minutes
+            readmissionRate = 5.2, // percentage
+            infectionRate = 0.8, // percentage
+            period = "LAST_30_DAYS",
+            lastUpdated = LocalDateTime.now()
+        )
+    }
+
+    fun createEmergencyAlert(hospitalId: UUID, request: CreateEmergencyAlertRequest): EmergencyAlertResponse {
+        val hospital = hospitalRepository.findById(hospitalId)
+            .orElseThrow { HospitalNotFoundException("Hospital not found with id: $hospitalId") }
+
+        // TODO: Implement emergency alert persistence and notification system
+        val alert = EmergencyAlertResponse(
+            id = UUID.randomUUID(),
+            hospitalId = hospitalId,
+            title = request.title,
+            description = request.description,
+            severity = request.severity,
+            alertType = request.alertType,
+            status = AlertStatus.ACTIVE,
+            affectedDepartments = request.affectedDepartments,
+            requiredResources = request.requiredResources,
+            createdBy = UUID.randomUUID(), // TODO: Get from security context
+            acknowledgedBy = emptySet(),
+            resolvedAt = null,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        )
+
+        // Publish event
+        kafkaTemplate.send("emergency-alert-created", mapOf(
+            "alertId" to alert.id,
+            "hospitalId" to hospitalId,
+            "severity" to alert.severity,
+            "type" to alert.alertType
+        ))
+
+        return alert
+    }
+
+    @Transactional(readOnly = true)
+    fun getEmergencyAlerts(hospitalId: UUID): List<EmergencyAlertResponse> {
+        val hospital = hospitalRepository.findById(hospitalId)
+            .orElseThrow { HospitalNotFoundException("Hospital not found with id: $hospitalId") }
+
+        // TODO: Implement emergency alerts retrieval from database
+        return emptyList() // Return empty list for now
+    }
+
     private fun generateHospitalCode(): String {
         return "H${System.currentTimeMillis()}"
     }
