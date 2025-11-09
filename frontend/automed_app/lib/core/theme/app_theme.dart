@@ -13,7 +13,7 @@ class AppTheme {
         seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
-      
+
       // App Bar Theme
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -26,16 +26,16 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      
+
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         color: AppColors.surface,
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -51,7 +51,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -66,7 +66,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -77,7 +77,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -102,7 +102,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         labelStyle: AppTextStyles.bodyMedium.copyWith(
           color: AppColors.onSurfaceVariant,
         ),
@@ -110,7 +111,7 @@ class AppTheme {
           color: AppColors.onSurfaceVariant.withOpacity(0.6),
         ),
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
@@ -123,7 +124,7 @@ class AppTheme {
         ),
         unselectedLabelStyle: AppTextStyles.labelSmall,
       ),
-      
+
       // Navigation Rail Theme
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.surface,
@@ -137,7 +138,7 @@ class AppTheme {
           color: AppColors.onSurfaceVariant,
         ),
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
@@ -147,7 +148,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceVariant,
@@ -157,9 +158,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
         ),
       ),
-      
+
       // Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -172,7 +173,7 @@ class AppTheme {
           color: AppColors.onSurface,
         ),
       ),
-      
+
       // Snack Bar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.inverseSurface,
@@ -184,7 +185,7 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      
+
       // Text Theme
       textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,
@@ -205,7 +206,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -214,29 +215,29 @@ class AppTheme {
         seedColor: AppColors.primary,
         brightness: Brightness.dark,
       ),
-      
+
       // App Bar Theme
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.surfaceDark,
-        foregroundColor: AppColors.onSurfaceDark,
+        backgroundColor: AppColors.darkSurface,
+        foregroundColor: AppColors.darkOnSurface,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: AppTextStyles.headlineSmall.copyWith(
-          color: AppColors.onSurfaceDark,
+          color: AppColors.darkOnSurface,
           fontWeight: FontWeight.w600,
         ),
       ),
-      
+
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        color: AppColors.surfaceDark,
+        color: AppColors.darkSurface,
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -252,18 +253,18 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceVariantDark.withOpacity(0.3),
+        fillColor: AppColors.darkSurfaceVariant.withOpacity(0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.outlineDark),
+          borderSide: BorderSide(color: AppColors.darkBorderColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.outlineDark),
+          borderSide: BorderSide(color: AppColors.darkBorderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -277,20 +278,21 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         labelStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.onSurfaceVariantDark,
+          color: AppColors.darkOnSurfaceVariant,
         ),
         hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.onSurfaceVariantDark.withOpacity(0.6),
+          color: AppColors.darkOnSurfaceVariant.withOpacity(0.6),
         ),
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: AppColors.darkSurface,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.onSurfaceVariantDark,
+        unselectedItemColor: AppColors.darkOnSurfaceVariant,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         selectedLabelStyle: AppTextStyles.labelSmall.copyWith(
@@ -298,24 +300,39 @@ class AppTheme {
         ),
         unselectedLabelStyle: AppTextStyles.labelSmall,
       ),
-      
+
       // Text Theme
       textTheme: TextTheme(
-        displayLarge: AppTextStyles.displayLarge.copyWith(color: AppColors.onSurfaceDark),
-        displayMedium: AppTextStyles.displayMedium.copyWith(color: AppColors.onSurfaceDark),
-        displaySmall: AppTextStyles.displaySmall.copyWith(color: AppColors.onSurfaceDark),
-        headlineLarge: AppTextStyles.headlineLarge.copyWith(color: AppColors.onSurfaceDark),
-        headlineMedium: AppTextStyles.headlineMedium.copyWith(color: AppColors.onSurfaceDark),
-        headlineSmall: AppTextStyles.headlineSmall.copyWith(color: AppColors.onSurfaceDark),
-        titleLarge: AppTextStyles.titleLarge.copyWith(color: AppColors.onSurfaceDark),
-        titleMedium: AppTextStyles.titleMedium.copyWith(color: AppColors.onSurfaceDark),
-        titleSmall: AppTextStyles.titleSmall.copyWith(color: AppColors.onSurfaceDark),
-        bodyLarge: AppTextStyles.bodyLarge.copyWith(color: AppColors.onSurfaceDark),
-        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: AppColors.onSurfaceDark),
-        bodySmall: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurfaceDark),
-        labelLarge: AppTextStyles.labelLarge.copyWith(color: AppColors.onSurfaceDark),
-        labelMedium: AppTextStyles.labelMedium.copyWith(color: AppColors.onSurfaceDark),
-        labelSmall: AppTextStyles.labelSmall.copyWith(color: AppColors.onSurfaceDark),
+        displayLarge:
+            AppTextStyles.displayLarge.copyWith(color: AppColors.darkOnSurface),
+        displayMedium: AppTextStyles.displayMedium
+            .copyWith(color: AppColors.darkOnSurface),
+        displaySmall:
+            AppTextStyles.displaySmall.copyWith(color: AppColors.darkOnSurface),
+        headlineLarge: AppTextStyles.headlineLarge
+            .copyWith(color: AppColors.darkOnSurface),
+        headlineMedium: AppTextStyles.headlineMedium
+            .copyWith(color: AppColors.darkOnSurface),
+        headlineSmall: AppTextStyles.headlineSmall
+            .copyWith(color: AppColors.darkOnSurface),
+        titleLarge:
+            AppTextStyles.titleLarge.copyWith(color: AppColors.darkOnSurface),
+        titleMedium:
+            AppTextStyles.titleMedium.copyWith(color: AppColors.darkOnSurface),
+        titleSmall:
+            AppTextStyles.titleSmall.copyWith(color: AppColors.darkOnSurface),
+        bodyLarge:
+            AppTextStyles.bodyLarge.copyWith(color: AppColors.darkOnSurface),
+        bodyMedium:
+            AppTextStyles.bodyMedium.copyWith(color: AppColors.darkOnSurface),
+        bodySmall:
+            AppTextStyles.bodySmall.copyWith(color: AppColors.darkOnSurface),
+        labelLarge:
+            AppTextStyles.labelLarge.copyWith(color: AppColors.darkOnSurface),
+        labelMedium:
+            AppTextStyles.labelMedium.copyWith(color: AppColors.darkOnSurface),
+        labelSmall:
+            AppTextStyles.labelSmall.copyWith(color: AppColors.darkOnSurface),
       ),
     );
   }

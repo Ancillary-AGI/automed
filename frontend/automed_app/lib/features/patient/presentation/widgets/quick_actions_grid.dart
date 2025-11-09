@@ -52,10 +52,10 @@ class QuickActionsGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 2,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1,
+        childAspectRatio: 1.2,
       ),
       itemCount: actions.length,
       itemBuilder: (context, index) => actions[index],
@@ -78,23 +78,32 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3), width: 1),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 32),
+            Icon(
+              icon,
+              size: 32,
+              color: color,
+            ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: color,
+              style: AppTextStyles.bodyText2.copyWith(
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,

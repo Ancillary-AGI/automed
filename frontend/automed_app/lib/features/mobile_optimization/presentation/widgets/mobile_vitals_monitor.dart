@@ -24,22 +24,25 @@ class MobileVitalsMonitor extends ConsumerWidget {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/vitals-monitor'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/vitals-monitor'),
                   child: const Text('Full View'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Vital signs summary
             Row(
               children: [
                 Expanded(
-                  child: _buildVitalCard('Heart Rate', '72', 'bpm', Colors.red, Icons.favorite),
+                  child: _buildVitalCard(
+                      'Heart Rate', '--', 'bpm', Colors.red, Icons.favorite),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildVitalCard('Blood Pressure', '120/80', 'mmHg', Colors.blue, Icons.bloodtype),
+                  child: _buildVitalCard('Blood Pressure', '--', 'mmHg',
+                      Colors.blue, Icons.bloodtype),
                 ),
               ],
             ),
@@ -47,16 +50,18 @@ class MobileVitalsMonitor extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildVitalCard('Temperature', '98.6', '°F', Colors.orange, Icons.thermostat),
+                  child: _buildVitalCard('Temperature', '--', '°F',
+                      Colors.orange, Icons.thermostat),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildVitalCard('Oxygen', '98', '%', Colors.green, Icons.air),
+                  child: _buildVitalCard(
+                      'Oxygen', '--', '%', Colors.green, Icons.air),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Mini chart
             SizedBox(
               height: 100,
@@ -67,7 +72,7 @@ class MobileVitalsMonitor extends ConsumerWidget {
                   borderData: FlBorderData(show: false),
                   lineBarsData: [
                     LineChartBarData(
-                      spots: _generateSampleData(),
+                      spots: const [],
                       isCurved: true,
                       color: Colors.red,
                       barWidth: 2,
@@ -83,7 +88,8 @@ class MobileVitalsMonitor extends ConsumerWidget {
     );
   }
 
-  Widget _buildVitalCard(String title, String value, String unit, Color color, IconData icon) {
+  Widget _buildVitalCard(
+      String title, String value, String unit, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -123,12 +129,5 @@ class MobileVitalsMonitor extends ConsumerWidget {
     );
   }
 
-  List<FlSpot> _generateSampleData() {
-    return List.generate(20, (index) {
-      return FlSpot(
-        index.toDouble(),
-        60 + (index % 5) * 5 + (index % 3) * 2,
-      );
-    });
-  }
+  // No synthetic sample data: this widget expects real vitals provided by the app.
 }

@@ -1,279 +1,225 @@
-import 'dart:convert';
-
 import 'package:hive_flutter/hive_flutter.dart';
 
 class CacheService {
-  final HiveInterface _hive;
-  static const String _cacheBoxName = 'app_cache';
-  static const String _imagesCacheBoxName = 'images_cache';
-  static const String _apiCacheBoxName = 'api_cache';
+  final Box<dynamic> box;
 
-  CacheService(this._hive);
+  CacheService(this.box);
 
-  // Generic cache methods
-  Future<void> put(String key, dynamic value, {Duration? ttl}) async {
-    final box = await _getCacheBox();
-    final cacheItem = CacheItem(
-      data: value,
-      timestamp: DateTime.now(),
-      ttl: ttl,
-    );
-    await box.put(key, cacheItem.toJson());
+  // Generic cache operations
+  Future<void> put(String key, dynamic value) async {
+    await box.put(key, value);
   }
 
-  Future<T?> get<T>(String key) async {
-    final box = await _getCacheBox();
-    final cacheData = box.get(key);
-    
-    if (cacheData == null) return null;
-    
-    final cacheItem = CacheItem.fromJson(cacheData);
-    
-    // Check if cache item has expired
-    if (cacheItem.isExpired) {
-      await box.delete(key);
-      return null;
-    }
-    
-    return cacheItem.data as T?;
+  dynamic get(String key) {
+    return box.get(key);
   }
 
-  Future<void> remove(String key) async {
-    final box = await _getCacheBox();
+  Future<void> delete(String key) async {
     await box.delete(key);
   }
 
   Future<void> clear() async {
-    final box = await _getCacheBox();
     await box.clear();
   }
 
-  Future<bool> contains(String key) async {
-    final box = await _getCacheBox();
+  bool containsKey(String key) {
     return box.containsKey(key);
   }
 
-  Future<List<String>> getKeys() async {
-    final box = await _getCacheBox();
-    return box.keys.cast<String>().toList();
+  // Patient data caching
+  Future<void> cachePatientData(String patientId, Map<String, dynamic> data) async {
+    await put('patient_$patientId', data);
   }
 
-  // API response cache
-  Future<void> cacheApiResponse(String endpoint, Map<String, dynamic> response, {Duration? ttl}) async {
-    final box = await _getApiCacheBox();
-    final cacheItem = CacheItem(
-      data: response,
-      timestamp: DateTime.now(),
-      ttl: ttl ?? const Duration(minutes: 15), // Default 15 minutes for API cache
-    );
-    await box.put(endpoint, cacheItem.toJson());
+  Map<String, dynamic>? getCachedPatientData(String patientId) {
+    return get('patient_$patientId') as Map<String, dynamic>?;
   }
 
-  Future<Map<String, dynamic>?> getCachedApiResponse(String endpoint) async {
-    final box = await _getApiCacheBox();
-    final cacheData = box.get(endpoint);
-    
-    if (cacheData == null) return null;
-    
-    final cacheItem = CacheItem.fromJson(cacheData);
-    
-    if (cacheItem.isExpired) {
-      await box.delete(endpoint);
-      return null;
+  // Dashboard data caching
+  Future<void> cacheDashboardData(Map<String, dynamic> data) async {
+    await put('dashboard_data', data);
+    await put('dashboard_timestamp', DateTime.now().millisecondsSinceEpoch);
+  }
+
+  Map<String, dynamic>? getCachedDashboardData() {
+    final data = get('dashboard_data') as Map<String, dynamic>?;
+    final timestamp = get('dashboard_timestamp') as int?;
+
+    if (data != null && timestamp != null) {
+      // Check if data is still fresh (less than 5 minutes old)
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age < 5 * 60 * 1000) { // 5 minutes
+        return data;
+      }
     }
-    
-    return cacheItem.data as Map<String, dynamic>?;
+    return null;
   }
 
-  Future<void> clearApiCache() async {
-    final box = await _getApiCacheBox();
-    await box.clear();
+  // Medication data caching
+  Future<void> cacheMedications(List<Map<String, dynamic>> medications) async {
+    await put('medications', medications);
+    await put('medications_timestamp', DateTime.now().millisecondsSinceEpoch);
   }
 
-  // Image cache
-  Future<void> cacheImage(String url, List<int> imageData, {Duration? ttl}) async {
-    final box = await _getImagesCacheBox();
-    final cacheItem = CacheItem(
-      data: imageData,
-      timestamp: DateTime.now(),
-      ttl: ttl ?? const Duration(days: 7), // Default 7 days for images
-    );
-    await box.put(url, cacheItem.toJson());
-  }
+  List<Map<String, dynamic>>? getCachedMedications() {
+    final medications = get('medications') as List<Map<String, dynamic>>?;
+    final timestamp = get('medications_timestamp') as int?;
 
-  Future<List<int>?> getCachedImage(String url) async {
-    final box = await _getImagesCacheBox();
-    final cacheData = box.get(url);
-    
-    if (cacheData == null) return null;
-    
-    final cacheItem = CacheItem.fromJson(cacheData);
-    
-    if (cacheItem.isExpired) {
-      await box.delete(url);
-      return null;
+    if (medications != null && timestamp != null) {
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age < 10 * 60 * 1000) { // 10 minutes
+        return medications;
+      }
     }
-    
-    return (cacheItem.data as List).cast<int>();
+    return null;
   }
 
-  Future<void> clearImageCache() async {
-    final box = await _getImagesCacheBox();
-    await box.clear();
+  // Appointments caching
+  Future<void> cacheAppointments(List<Map<String, dynamic>> appointments) async {
+    await put('appointments', appointments);
+    await put('appointments_timestamp', DateTime.now().millisecondsSinceEpoch);
   }
 
-  // User data cache
-  Future<void> cacheUserData(String userId, Map<String, dynamic> userData) async {
-    await put('user_$userId', userData, ttl: const Duration(hours: 1));
+  List<Map<String, dynamic>>? getCachedAppointments() {
+    final appointments = get('appointments') as List<Map<String, dynamic>>?;
+    final timestamp = get('appointments_timestamp') as int?;
+
+    if (appointments != null && timestamp != null) {
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age < 15 * 60 * 1000) { // 15 minutes
+        return appointments;
+      }
+    }
+    return null;
   }
 
-  Future<Map<String, dynamic>?> getCachedUserData(String userId) async {
-    return await get<Map<String, dynamic>>('user_$userId');
+  // Hospital data caching
+  Future<void> cacheHospitals(List<Map<String, dynamic>> hospitals) async {
+    await put('hospitals', hospitals);
+    await put('hospitals_timestamp', DateTime.now().millisecondsSinceEpoch);
   }
 
-  // Patient data cache
-  Future<void> cachePatientData(String patientId, Map<String, dynamic> patientData) async {
-    await put('patient_$patientId', patientData, ttl: const Duration(minutes: 30));
+  List<Map<String, dynamic>>? getCachedHospitals() {
+    final hospitals = get('hospitals') as List<Map<String, dynamic>>?;
+    final timestamp = get('hospitals_timestamp') as int?;
+
+    if (hospitals != null && timestamp != null) {
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age < 30 * 60 * 1000) { // 30 minutes
+        return hospitals;
+      }
+    }
+    return null;
   }
 
-  Future<Map<String, dynamic>?> getCachedPatientData(String patientId) async {
-    return await get<Map<String, dynamic>>('patient_$patientId');
+  // Analytics data caching
+  Future<void> cacheAnalyticsData(Map<String, dynamic> analytics) async {
+    await put('analytics_data', analytics);
+    await put('analytics_timestamp', DateTime.now().millisecondsSinceEpoch);
   }
 
-  // Consultation data cache
-  Future<void> cacheConsultationData(String consultationId, Map<String, dynamic> consultationData) async {
-    await put('consultation_$consultationId', consultationData, ttl: const Duration(minutes: 15));
+  Map<String, dynamic>? getCachedAnalyticsData() {
+    final analytics = get('analytics_data') as Map<String, dynamic>?;
+    final timestamp = get('analytics_timestamp') as int?;
+
+    if (analytics != null && timestamp != null) {
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age < 60 * 60 * 1000) { // 1 hour
+        return analytics;
+      }
+    }
+    return null;
   }
 
-  Future<Map<String, dynamic>?> getCachedConsultationData(String consultationId) async {
-    return await get<Map<String, dynamic>>('consultation_$consultationId');
+  // User preferences caching
+  Future<void> cacheUserPreferences(Map<String, dynamic> preferences) async {
+    await put('user_preferences', preferences);
   }
 
-  // Medical records cache
-  Future<void> cacheMedicalRecords(String patientId, List<Map<String, dynamic>> records) async {
-    await put('medical_records_$patientId', records, ttl: const Duration(hours: 2));
+  Map<String, dynamic>? getCachedUserPreferences() {
+    return get('user_preferences') as Map<String, dynamic>?;
   }
 
-  Future<List<Map<String, dynamic>>?> getCachedMedicalRecords(String patientId) async {
-    final cached = await get<List>('medical_records_$patientId');
-    return cached?.cast<Map<String, dynamic>>();
+  // Offline queue caching
+  Future<void> cacheOfflineQueue(List<Map<String, dynamic>> queue) async {
+    await put('offline_queue', queue);
   }
 
-  // Medication cache
-  Future<void> cacheMedications(String patientId, List<Map<String, dynamic>> medications) async {
-    await put('medications_$patientId', medications, ttl: const Duration(hours: 1));
+  List<Map<String, dynamic>> getCachedOfflineQueue() {
+    return get('offline_queue') as List<Map<String, dynamic>>? ?? [];
   }
 
-  Future<List<Map<String, dynamic>>?> getCachedMedications(String patientId) async {
-    final cached = await get<List>('medications_$patientId');
-    return cached?.cast<Map<String, dynamic>>();
+  Future<void> addToOfflineQueue(Map<String, dynamic> item) async {
+    final queue = getCachedOfflineQueue();
+    queue.add(item);
+    await cacheOfflineQueue(queue);
   }
 
-  // AI analysis cache
-  Future<void> cacheAIAnalysis(String analysisKey, Map<String, dynamic> analysis) async {
-    await put('ai_analysis_$analysisKey', analysis, ttl: const Duration(hours: 24));
+  Future<void> removeFromOfflineQueue(int index) async {
+    final queue = getCachedOfflineQueue();
+    if (index >= 0 && index < queue.length) {
+      queue.removeAt(index);
+      await cacheOfflineQueue(queue);
+    }
   }
 
-  Future<Map<String, dynamic>?> getCachedAIAnalysis(String analysisKey) async {
-    return await get<Map<String, dynamic>>('ai_analysis_$analysisKey');
+  // Cache statistics
+  Map<String, dynamic> getCacheStats() {
+    return {
+      'total_keys': box.length,
+      'keys': box.keys.toList(),
+      'is_empty': box.isEmpty,
+      'is_not_empty': box.isNotEmpty,
+    };
   }
 
-  // Cache maintenance
-  Future<void> clearExpiredItems() async {
-    final boxes = [
-      await _getCacheBox(),
-      await _getApiCacheBox(),
-      await _getImagesCacheBox(),
+  // Clear specific cache types
+  Future<void> clearPatientCache() async {
+    final keysToDelete = box.keys.where((key) => key.toString().startsWith('patient_'));
+    for (final key in keysToDelete) {
+      await delete(key);
+    }
+  }
+
+  Future<void> clearExpiredCache() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final keysWithTimestamps = [
+      'dashboard_timestamp',
+      'medications_timestamp',
+      'appointments_timestamp',
+      'hospitals_timestamp',
+      'analytics_timestamp',
     ];
 
-    for (final box in boxes) {
-      final keysToDelete = <String>[];
-      
-      for (final key in box.keys) {
-        final cacheData = box.get(key);
-        if (cacheData != null) {
-          final cacheItem = CacheItem.fromJson(cacheData);
-          if (cacheItem.isExpired) {
-            keysToDelete.add(key.toString());
-          }
+    for (final timestampKey in keysWithTimestamps) {
+      final timestamp = get(timestampKey) as int?;
+      if (timestamp != null) {
+        final age = now - timestamp;
+        final maxAge = _getMaxAgeForKey(timestampKey);
+        if (age > maxAge) {
+          // Delete the data and timestamp
+          final dataKey = timestampKey.replaceAll('_timestamp', '_data');
+          await delete(dataKey);
+          await delete(timestampKey);
         }
       }
-      
-      for (final key in keysToDelete) {
-        await box.delete(key);
-      }
     }
   }
 
-  Future<int> getCacheSize() async {
-    final boxes = [
-      await _getCacheBox(),
-      await _getApiCacheBox(),
-      await _getImagesCacheBox(),
-    ];
-
-    int totalSize = 0;
-    for (final box in boxes) {
-      totalSize += box.length;
+  int _getMaxAgeForKey(String key) {
+    switch (key) {
+      case 'dashboard_timestamp':
+        return 5 * 60 * 1000; // 5 minutes
+      case 'medications_timestamp':
+        return 10 * 60 * 1000; // 10 minutes
+      case 'appointments_timestamp':
+        return 15 * 60 * 1000; // 15 minutes
+      case 'hospitals_timestamp':
+        return 30 * 60 * 1000; // 30 minutes
+      case 'analytics_timestamp':
+        return 60 * 60 * 1000; // 1 hour
+      default:
+        return 60 * 60 * 1000; // 1 hour default
     }
-    
-    return totalSize;
   }
-
-  Future<void> clearAllCache() async {
-    await clear();
-    await clearApiCache();
-    await clearImageCache();
-  }
-
-  // Private methods
-  Future<Box> _getCacheBox() async {
-    if (!_hive.isBoxOpen(_cacheBoxName)) {
-      return await _hive.openBox(_cacheBoxName);
-    }
-    return _hive.box(_cacheBoxName);
-  }
-
-  Future<Box> _getApiCacheBox() async {
-    if (!_hive.isBoxOpen(_apiCacheBoxName)) {
-      return await _hive.openBox(_apiCacheBoxName);
-    }
-    return _hive.box(_apiCacheBoxName);
-  }
-
-  Future<Box> _getImagesCacheBox() async {
-    if (!_hive.isBoxOpen(_imagesCacheBoxName)) {
-      return await _hive.openBox(_imagesCacheBoxName);
-    }
-    return _hive.box(_imagesCacheBoxName);
-  }
-}
-
-class CacheItem {
-  final dynamic data;
-  final DateTime timestamp;
-  final Duration? ttl;
-
-  CacheItem({
-    required this.data,
-    required this.timestamp,
-    this.ttl,
-  });
-
-  bool get isExpired {
-    if (ttl == null) return false;
-    return DateTime.now().isAfter(timestamp.add(ttl!));
-  }
-
-  Map<String, dynamic> toJson() => {
-    'data': data,
-    'timestamp': timestamp.millisecondsSinceEpoch,
-    'ttl': ttl?.inMilliseconds,
-  };
-
-  factory CacheItem.fromJson(Map<String, dynamic> json) => CacheItem(
-    data: json['data'],
-    timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
-    ttl: json['ttl'] != null ? Duration(milliseconds: json['ttl']) : null,
-  );
 }

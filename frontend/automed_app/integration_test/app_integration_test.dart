@@ -51,10 +51,19 @@ void main() {
           appConfigProvider.overrideWithValue(
             AppConfig(
               apiBaseUrl: 'http://localhost:8080/api/v1',
-              environment: 'test',
-              enableOfflineMode: true,
-              enableAnalytics: false,
-              enableCrashReporting: false,
+              wsBaseUrl: 'ws://localhost:8080/ws',
+              enableLogging: true,
+              version: '1.0.0-test',
+              features: {
+                'ai_assistant': true,
+                'telemedicine': true,
+                'emergency_response': true,
+                'offline_mode': true,
+                'real_time_monitoring': true,
+                'predictive_analytics': true,
+                'smart_medication': true,
+                'multi_tenant': false,
+              },
             ),
           ),
         ],

@@ -45,3 +45,13 @@ logging:
   level:
     com.automed: DEBUG
     org.springframework.security: DEBUG
+
+ai:
+  model:
+    default-model: claude-sonnet-3.5
+    enabled-models:
+      claude-sonnet-3.5: true
+      gpt-4: false
+      llama-2: false
+    api-keys:
+      anthropic: ${ANTHROPIC_API_KEY:}

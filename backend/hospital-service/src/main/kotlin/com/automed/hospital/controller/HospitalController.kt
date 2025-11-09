@@ -1,119 +1,121 @@
 package com.automed.hospital.controller
 
-import com.automed.hospital.dto.*
+import com.automed.hospital.dto.HospitalDTOs.*
 import com.automed.hospital.service.HospitalService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @RestController
 @RequestMapping("/api/v1/hospitals")
-@CrossOrigin(origins = ["*"])
+@Tag(name = "Hospital Management", description = "APIs for managing hospital information and operations")
 class HospitalController(
     private val hospitalService: HospitalService
 ) {
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new hospital")
     fun createHospital(@Valid @RequestBody request: CreateHospitalRequest): ResponseEntity<HospitalResponse> {
         val hospital = hospitalService.createHospital(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(hospital)
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospital(@PathVariable id: UUID): ResponseEntity<HospitalResponse> {
+    @Operation(summary = "Get hospital by ID")
+    fun getHospital(@PathVariable id: String): ResponseEntity<HospitalResponse> {
         val hospital = hospitalService.getHospital(id)
         return ResponseEntity.ok(hospital)
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
+    @Operation(summary = "Get all hospitals with pagination and search")
     fun getAllHospitals(
-        pageable: Pageable,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) search: String?
     ): ResponseEntity<Page<HospitalResponse>> {
+        val pageable: Pageable = PageRequest.of(page, size)
         val hospitals = hospitalService.getAllHospitals(pageable, search)
         return ResponseEntity.ok(hospitals)
     }
 
+    @GetMapping("/search/location")
+    @Operation(summary = "Find hospitals by location and specialty")
+    fun findHospitalsByLocation(
+        @RequestParam city: String,
+        @RequestParam(required = false) specialty: String?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<Page<HospitalResponse>> {
+        val pageable: Pageable = PageRequest.of(page, size)
+        val hospitals = hospitalService.findHospitalsByLocation(city, specialty, pageable)
+        return ResponseEntity.ok(hospitals)
+    }
+
+    @GetMapping("/search/specialty")
+    @Operation(summary = "Find hospitals by specialty")
+    fun findHospitalsBySpecialty(
+        @RequestParam specialty: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<Page<HospitalResponse>> {
+        val pageable: Pageable = PageRequest.of(page, size)
+        val hospitals = hospitalService.findHospitalsBySpecialty(specialty, pageable)
+        return ResponseEntity.ok(hospitals)
+    }
+
+    @GetMapping("/emergency-services")
+    @Operation(summary = "Find hospitals with emergency services")
+    fun findHospitalsWithEmergencyServices(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<Page<HospitalResponse>> {
+        val pageable: Pageable = PageRequest.of(page, size)
+        val hospitals = hospitalService.findHospitalsWithEmergencyServices(pageable)
+        return ResponseEntity.ok(hospitals)
+    }
+
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update hospital information")
     fun updateHospital(
-        @PathVariable id: UUID,
+        @PathVariable id: String,
         @Valid @RequestBody request: UpdateHospitalRequest
     ): ResponseEntity<HospitalResponse> {
         val hospital = hospitalService.updateHospital(id, request)
         return ResponseEntity.ok(hospital)
     }
 
-    @GetMapping("/{id}/staff")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalStaff(@PathVariable id: UUID): ResponseEntity<List<StaffResponse>> {
-        val staff = hospitalService.getHospitalStaff(id)
-        return ResponseEntity.ok(staff)
-    }
-
-    @PostMapping("/{id}/staff")
-    @PreAuthorize("hasRole('ADMIN')")
-    fun addStaffMember(
-        @PathVariable id: UUID,
-        @Valid @RequestBody request: CreateStaffRequest
-    ): ResponseEntity<StaffResponse> {
-        val staff = hospitalService.addStaffMember(id, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(staff)
-    }
-
-    @GetMapping("/{id}/equipment")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalEquipment(@PathVariable id: UUID): ResponseEntity<List<EquipmentResponse>> {
-        val equipment = hospitalService.getHospitalEquipment(id)
-        return ResponseEntity.ok(equipment)
-    }
-
-    @PostMapping("/{id}/equipment")
-    @PreAuthorize("hasRole('ADMIN')")
-    fun addEquipment(
-        @PathVariable id: UUID,
-        @Valid @RequestBody request: CreateEquipmentRequest
-    ): ResponseEntity<EquipmentResponse> {
-        val equipment = hospitalService.addEquipment(id, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(equipment)
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete hospital")
+    fun deleteHospital(@PathVariable id: String): ResponseEntity<Void> {
+        hospitalService.deleteHospital(id)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/{id}/capacity")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalCapacity(@PathVariable id: UUID): ResponseEntity<HospitalCapacityResponse> {
+    @Operation(summary = "Get hospital capacity information")
+    fun getHospitalCapacity(@PathVariable id: String): ResponseEntity<HospitalCapacityResponse> {
         val capacity = hospitalService.getHospitalCapacity(id)
         return ResponseEntity.ok(capacity)
     }
 
-    @GetMapping("/{id}/metrics")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getHospitalMetrics(@PathVariable id: UUID): ResponseEntity<HospitalMetricsResponse> {
-        val metrics = hospitalService.getHospitalMetrics(id)
-        return ResponseEntity.ok(metrics)
+    @GetMapping("/{id}/staff")
+    @Operation(summary = "Get hospital staff information")
+    fun getHospitalStaff(@PathVariable id: String): ResponseEntity<List<StaffResponse>> {
+        val staff = hospitalService.getHospitalStaff(id)
+        return ResponseEntity.ok(staff)
     }
 
-    @PostMapping("/{id}/emergency-alert")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun createEmergencyAlert(
-        @PathVariable id: UUID,
-        @Valid @RequestBody request: CreateEmergencyAlertRequest
-    ): ResponseEntity<EmergencyAlertResponse> {
-        val alert = hospitalService.createEmergencyAlert(id, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(alert)
-    }
-
-    @GetMapping("/{id}/emergency-alerts")
-    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('ADMIN')")
-    fun getEmergencyAlerts(@PathVariable id: UUID): ResponseEntity<List<EmergencyAlertResponse>> {
-        val alerts = hospitalService.getEmergencyAlerts(id)
-        return ResponseEntity.ok(alerts)
+    @GetMapping("/{id}/equipment")
+    @Operation(summary = "Get hospital equipment information")
+    fun getHospitalEquipment(@PathVariable id: String): ResponseEntity<List<EquipmentResponse>> {
+        val equipment = hospitalService.getHospitalEquipment(id)
+        return ResponseEntity.ok(equipment)
     }
 }

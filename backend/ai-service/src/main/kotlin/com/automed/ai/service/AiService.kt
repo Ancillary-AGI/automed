@@ -103,36 +103,58 @@ class AiService {
                             description = "Systolic blood pressure abnormal"
                         ))
                     }
-                    // Additional safety checks
-                    if (medication.name.contains("warfarin", ignoreCase = true) && 
-                        otherMed.name.contains("aspirin", ignoreCase = true)) {
-                        interactions.add(DrugInteraction(
-                            medication1 = medication.name,
-                            medication2 = otherMed.name,
-                            severity = "HIGH",
-                            description = "Increased bleeding risk when combining warfarin with aspirin",
-                            recommendation = "Monitor INR closely and consider alternative antiplatelet therapy"
+                    "bloodPressureDiastolic" -> if (value < 60 || value > 90) {
+                        abnormalValues.add(AbnormalVital(
+                            parameter = key,
+                            value = value,
+                            normalRange = "60-90 mmHg",
+                            severity = if (value < 50 || value > 110) "High" else "Medium",
+                            description = "Diastolic blood pressure abnormal"
                         ))
                     }
-                    
-                    if (medication.name.contains("metformin", ignoreCase = true) && 
-                        otherMed.name.contains("contrast", ignoreCase = true)) {
-                        interactions.add(DrugInteraction(
-                            medication1 = medication.name,
-                            medication2 = otherMed.name,
-                            severity = "MODERATE",
-                            description = "Risk of lactic acidosis with contrast agents",
-                            recommendation = "Discontinue metformin 48 hours before contrast procedure"
+                    "temperature" -> if (value < 36.1 || value > 37.5) {
+                        abnormalValues.add(AbnormalVital(
+                            parameter = key,
+                            value = value,
+                            normalRange = "36.1-37.5°C",
+                            severity = if (value < 35.0 || value > 38.5) "High" else "Medium",
+                            description = "Body temperature abnormal"
+                        ))
+                    }
+                    "oxygenSaturation" -> if (value < 95) {
+                        abnormalValues.add(AbnormalVital(
+                            parameter = key,
+                            value = value,
+                            normalRange = "95-100%",
+                            severity = if (value < 90) "High" else "Medium",
+                            description = "Oxygen saturation low"
+                        ))
+                    }
+                    "respiratoryRate" -> if (value < 12 || value > 20) {
+                        abnormalValues.add(AbnormalVital(
+                            parameter = key,
+                            value = value,
+                            normalRange = "12-20 breaths/min",
+                            severity = if (value < 8 || value > 30) "High" else "Medium",
+                            description = "Respiratory rate abnormal"
                         ))
                     }
                 }
             }
 
+            val overallAssessment = when {
+                abnormalValues.any { it.severity == "High" } -> "Critical"
+                abnormalValues.isNotEmpty() -> "Abnormal"
+                else -> "Normal"
+            }
+
+            val recommendations = generateVitalRecommendations(abnormalValues, overallAssessment)
+
             VitalsAnalysisResponse(
                 abnormalValues = abnormalValues,
-                overallAssessment = if (abnormalValues.isEmpty()) "Normal" else "Abnormal",
-                recommendations = listOf("Monitor vitals", "Consult doctor if abnormal"),
-                riskFactors = listOf("Age", "Medical history")
+                overallAssessment = overallAssessment,
+                recommendations = recommendations,
+                riskFactors = identifyRiskFactors(request.patientId, abnormalValues)
             )
         }
     }
@@ -364,6 +386,88 @@ class AiService {
         ))
 
         return alerts
+    }
+
+    private fun generateVitalRecommendations(abnormalValues: List<AbnormalVital>, overallAssessment: String): List<String> {
+        val recommendations = mutableListOf<String>()
+
+        when (overallAssessment) {
+            "Critical" -> {
+                recommendations.add("Seek immediate emergency medical attention")
+                recommendations.add("Call emergency services (911/112)")
+                recommendations.add("Do not delay - this requires urgent care")
+            }
+            "Abnormal" -> {
+                recommendations.add("Schedule appointment with healthcare provider within 24-48 hours")
+                recommendations.add("Monitor symptoms closely and note any changes")
+                recommendations.add("Follow up if symptoms worsen or persist")
+            }
+            else -> {
+                recommendations.add("Continue regular health monitoring")
+                recommendations.add("Maintain healthy lifestyle habits")
+                recommendations.add("Schedule routine check-up as recommended")
+            }
+        }
+
+        // Add specific recommendations based on abnormal values
+        abnormalValues.forEach { abnormal ->
+            when (abnormal.parameter) {
+                "heartRate" -> {
+                    if (abnormal.value > 100) recommendations.add("Rest and avoid strenuous activity")
+                    if (abnormal.value < 60) recommendations.add("Consult cardiologist for bradycardia evaluation")
+                }
+                "bloodPressureSystolic", "bloodPressureDiastolic" -> {
+                    recommendations.add("Monitor blood pressure regularly")
+                    recommendations.add("Reduce sodium intake and maintain healthy weight")
+                }
+                "temperature" -> {
+                    if (abnormal.value > 38.0) recommendations.add("Use fever-reducing medication if needed")
+                    if (abnormal.value < 36.0) recommendations.add("Keep warm and monitor for hypothermia symptoms")
+                }
+                "oxygenSaturation" -> {
+                    recommendations.add("Use supplemental oxygen if prescribed")
+                    recommendations.add("Avoid high altitudes and maintain good ventilation")
+                }
+                "respiratoryRate" -> {
+                    if (abnormal.value > 20) recommendations.add("Practice breathing exercises and use inhalers as prescribed")
+                    if (abnormal.value < 12) recommendations.add("Consult pulmonologist for respiratory evaluation")
+                }
+            }
+        }
+
+        return recommendations.distinct()
+    }
+
+    private fun identifyRiskFactors(patientId: String, abnormalValues: List<AbnormalVital>): List<String> {
+        val riskFactors = mutableListOf<String>()
+
+        // Add general risk factors
+        riskFactors.add("Age-related changes")
+        riskFactors.add("Lifestyle factors")
+        riskFactors.add("Medical history")
+
+        // Add specific risk factors based on abnormal values
+        if (abnormalValues.any { it.parameter.contains("bloodPressure") }) {
+            riskFactors.add("Hypertension risk")
+            riskFactors.add("Cardiovascular disease risk")
+        }
+
+        if (abnormalValues.any { it.parameter == "heartRate" }) {
+            riskFactors.add("Cardiac conditions")
+            riskFactors.add("Stress or anxiety")
+        }
+
+        if (abnormalValues.any { it.parameter == "oxygenSaturation" }) {
+            riskFactors.add("Respiratory conditions")
+            riskFactors.add("Sleep apnea")
+        }
+
+        if (abnormalValues.any { it.parameter == "temperature" }) {
+            riskFactors.add("Infection risk")
+            riskFactors.add("Immune system factors")
+        }
+
+        return riskFactors.distinct()
     }
 
     fun analyzeMedicalImage(request: MedicalImageAnalysisRequest): Mono<MedicalImageAnalysisResponse> {

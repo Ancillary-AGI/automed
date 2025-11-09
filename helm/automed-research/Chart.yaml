@@ -1,0 +1,40 @@
+apiVersion: v2
+name: automed-research
+description: AutoMed Research Platform for Advanced Medical Research
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: "12.1.6"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+
+  - name: redis
+    version: "17.3.3"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+
+  - name: kafka
+    version: "21.3.1"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
+
+  - name: mlflow
+    version: "0.7.6"
+    repository: "https://community-charts.github.io/helm-charts"
+    condition: mlflow.enabled
+
+keywords:
+  - research
+  - medical
+  - ai
+  - machine-learning
+  - drug-discovery
+  - genomics
+  - proteomics
+
+maintainers:
+  - name: AutoMed Team
+    email: research@automed.ai

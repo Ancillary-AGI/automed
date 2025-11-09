@@ -1,474 +1,278 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
+
+import 'firebase_service.dart';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
-  NotificationService._internal();
+  final FirebaseService firebaseService;
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  NotificationService({required this.firebaseService});
+
+  static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  bool _isInitialized = false;
-
   Future<void> initialize() async {
-    if (_isInitialized) return;
-
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    // Initialize local notifications
+    const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
+    const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-      macOS: initializationSettingsIOS,
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
     );
 
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+    await _localNotifications.initialize(
+      settings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    _isInitialized = true;
+    // Request permissions
+    await _requestPermissions();
+
+    // Initialize Firebase messaging
+    await firebaseService.initializeMessaging();
   }
 
-  Future<bool> requestPermissions() async {
-    if (Platform.isIOS || Platform.isMacOS) {
-      return await _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin>()
-              ?.requestPermissions(
-                alert: true,
-                badge: true,
-                sound: true,
-              ) ??
-          false;
-    } else if (Platform.isAndroid) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+  Future<void> _requestPermissions() async {
+    // Request Android permissions
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
-      return await androidImplementation?.requestPermission() ?? false;
-    }
-    return true;
+    await androidPlugin?.requestNotificationsPermission();
+
+    // iOS permissions are requested in Firebase service
   }
 
   Future<void> showNotification({
-    required int id,
+    required String id,
     required String title,
     required String body,
     String? payload,
-    NotificationPriority priority = NotificationPriority.defaultPriority,
-    NotificationCategory category = NotificationCategory.general,
+    NotificationType type = NotificationType.general,
+    Importance importance = Importance.defaultImportance,
+    Priority priority = Priority.defaultPriority,
   }) async {
-    await _flutterLocalNotificationsPlugin.show(
-      id,
+    final androidDetails = AndroidNotificationDetails(
+      _getChannelId(type),
+      _getChannelName(type),
+      channelDescription: _getChannelDescription(type),
+      importance: importance,
+      priority: priority,
+      icon: '@mipmap/ic_launcher',
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      int.parse(id),
       title,
       body,
-      _getNotificationDetails(priority: priority, category: category),
+      details,
       payload: payload,
     );
   }
 
-  Future<void> showMedicationReminder({
-    required int id,
-    required String medicationName,
-    required String dosage,
-    required DateTime scheduledTime,
+  Future<void> showScheduledNotification({
+    required String id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+    NotificationType type = NotificationType.general,
   }) async {
-    await showNotification(
-      id: id,
-      title: 'Medication Reminder',
-      body: 'Time to take $medicationName ($dosage)',
-      priority: NotificationPriority.high,
-      category: NotificationCategory.medication,
-      payload: jsonEncode({
-        'type': 'medication_reminder',
-        'medicationName': medicationName,
-        'dosage': dosage,
-        'scheduledTime': scheduledTime.toIso8601String(),
-      }),
+    final androidDetails = AndroidNotificationDetails(
+      _getChannelId(type),
+      _getChannelName(type),
+      channelDescription: _getChannelDescription(type),
     );
-  }
 
-  Future<void> showAppointmentReminder({
-    required int id,
-    required String doctorName,
-    required DateTime appointmentTime,
-    required String location,
-  }) async {
-    await showNotification(
-      id: id,
-      title: 'Appointment Reminder',
-      body: 'Appointment with Dr. $doctorName in 30 minutes',
-      priority: NotificationPriority.high,
-      category: NotificationCategory.appointment,
-      payload: jsonEncode({
-        'type': 'appointment_reminder',
-        'doctorName': doctorName,
-        'appointmentTime': appointmentTime.toIso8601String(),
-        'location': location,
-      }),
+    const iosDetails = DarwinNotificationDetails();
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
     );
-  }
 
-  Future<void> showEmergencyAlert({
-    required int id,
-    required String message,
-    required String location,
-  }) async {
-    await showNotification(
-      id: id,
-      title: 'Emergency Alert',
-      body: message,
-      priority: NotificationPriority.max,
-      category: NotificationCategory.emergency,
-      payload: jsonEncode({
-        'type': 'emergency_alert',
-        'message': message,
-        'location': location,
-        'timestamp': DateTime.now().toIso8601String(),
-      }),
-    );
-  }
-
-  Future<void> showConsultationNotification({
-    required int id,
-    required String patientName,
-    required String consultationType,
-    required DateTime scheduledTime,
-  }) async {
-    await showNotification(
-      id: id,
-      title: 'Consultation Starting',
-      body: '$consultationType with $patientName is starting now',
-      priority: NotificationPriority.high,
-      category: NotificationCategory.consultation,
-      payload: jsonEncode({
-        'type': 'consultation_notification',
-        'patientName': patientName,
-        'consultationType': consultationType,
-        'scheduledTime': scheduledTime.toIso8601String(),
-      }),
-    );
-  }
-
-  Future<void> showHealthAlert({
-    required int id,
-    required String alertType,
-    required String message,
-    required Map<String, dynamic> vitals,
-  }) async {
-    await showNotification(
-      id: id,
-      title: 'Health Alert',
-      body: '$alertType: $message',
-      priority: NotificationPriority.high,
-      category: NotificationCategory.health,
-      payload: jsonEncode({
-        'type': 'health_alert',
-        'alertType': alertType,
-        'message': message,
-        'vitals': vitals,
-        'timestamp': DateTime.now().toIso8601String(),
-      }),
-    );
-  }
-
-  // Scheduled notifications
-  Future<void> scheduleMedicationReminder({
-    required int id,
-    required String medicationName,
-    required String dosage,
-    required DateTime scheduledTime,
-  }) async {
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      'Medication Reminder',
-      'Time to take $medicationName ($dosage)',
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      _getNotificationDetails(
-        priority: NotificationPriority.high,
-        category: NotificationCategory.medication,
-      ),
-      payload: jsonEncode({
-        'type': 'medication_reminder',
-        'medicationName': medicationName,
-        'dosage': dosage,
-        'scheduledTime': scheduledTime.toIso8601String(),
-      }),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    await _localNotifications.zonedSchedule(
+      int.parse(id),
+      title,
+      body,
+      scheduledDate,
+      details,
+      androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      payload: payload,
     );
   }
 
-  Future<void> scheduleAppointmentReminder({
-    required int id,
-    required String doctorName,
-    required DateTime appointmentTime,
-    required String location,
-  }) async {
-    // Schedule 30 minutes before appointment
-    final reminderTime = appointmentTime.subtract(const Duration(minutes: 30));
-
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      'Appointment Reminder',
-      'Appointment with Dr. $doctorName in 30 minutes',
-      tz.TZDateTime.from(reminderTime, tz.local),
-      _getNotificationDetails(
-        priority: NotificationPriority.high,
-        category: NotificationCategory.appointment,
-      ),
-      payload: jsonEncode({
-        'type': 'appointment_reminder',
-        'doctorName': doctorName,
-        'appointmentTime': appointmentTime.toIso8601String(),
-        'location': location,
-      }),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-  }
-
-  // Recurring notifications
-  Future<void> scheduleRecurringMedicationReminder({
-    required int id,
-    required String medicationName,
-    required String dosage,
-    required Time time,
-    required RepeatInterval interval,
-  }) async {
-    await _flutterLocalNotificationsPlugin.periodicallyShow(
-      id,
-      'Medication Reminder',
-      'Time to take $medicationName ($dosage)',
-      interval,
-      _getNotificationDetails(
-        priority: NotificationPriority.high,
-        category: NotificationCategory.medication,
-      ),
-      payload: jsonEncode({
-        'type': 'recurring_medication_reminder',
-        'medicationName': medicationName,
-        'dosage': dosage,
-        'time': '${time.hour}:${time.minute}',
-      }),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  // Notification management
-  Future<void> cancelNotification(int id) async {
-    await _flutterLocalNotificationsPlugin.cancel(id);
+  Future<void> cancelNotification(String id) async {
+    await _localNotifications.cancel(int.parse(id));
   }
 
   Future<void> cancelAllNotifications() async {
-    await _flutterLocalNotificationsPlugin.cancelAll();
+    await _localNotifications.cancelAll();
   }
 
   Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    return await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    return await _localNotifications.pendingNotificationRequests();
   }
 
-  Future<List<ActiveNotification>> getActiveNotifications() async {
-    if (Platform.isAndroid) {
-      final androidImplementation = _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      return await androidImplementation?.getActiveNotifications() ?? [];
+  void _onNotificationTapped(NotificationResponse response) {
+    // Handle notification tap
+    final payload = response.payload;
+    if (payload != null) {
+      // Navigate to appropriate screen based on payload
+      _handleNotificationNavigation(payload);
     }
-    return [];
   }
 
-  // Private methods
-  NotificationDetails _getNotificationDetails({
-    NotificationPriority priority = NotificationPriority.defaultPriority,
-    NotificationCategory category = NotificationCategory.general,
-  }) {
-    return NotificationDetails(
-      android: AndroidNotificationDetails(
-        _getChannelId(category),
-        _getChannelName(category),
-        channelDescription: _getChannelDescription(category),
-        importance: _getImportance(priority),
-        priority: _getPriority(priority),
-        icon: '@mipmap/ic_launcher',
-        color: _getNotificationColor(category),
-        enableVibration: true,
-        playSound: true,
-      ),
-      iOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        categoryIdentifier: _getChannelId(category),
-      ),
-    );
+  void _handleNotificationNavigation(String payload) {
+    // Parse payload and navigate to appropriate screen
+    // This would typically use a navigation service or router
   }
 
-  String _getChannelId(NotificationCategory category) {
-    switch (category) {
-      case NotificationCategory.medication:
-        return 'medication_channel';
-      case NotificationCategory.appointment:
-        return 'appointment_channel';
-      case NotificationCategory.emergency:
+  String _getChannelId(NotificationType type) {
+    switch (type) {
+      case NotificationType.emergency:
         return 'emergency_channel';
-      case NotificationCategory.consultation:
-        return 'consultation_channel';
-      case NotificationCategory.health:
-        return 'health_channel';
-      case NotificationCategory.general:
+      case NotificationType.medication:
+        return 'medication_channel';
+      case NotificationType.appointment:
+        return 'appointment_channel';
+      case NotificationType.vitals:
+        return 'vitals_channel';
+      case NotificationType.general:
+      default:
         return 'general_channel';
     }
   }
 
-  String _getChannelName(NotificationCategory category) {
-    switch (category) {
-      case NotificationCategory.medication:
-        return 'Medication Reminders';
-      case NotificationCategory.appointment:
-        return 'Appointment Reminders';
-      case NotificationCategory.emergency:
+  String _getChannelName(NotificationType type) {
+    switch (type) {
+      case NotificationType.emergency:
         return 'Emergency Alerts';
-      case NotificationCategory.consultation:
-        return 'Consultation Notifications';
-      case NotificationCategory.health:
-        return 'Health Alerts';
-      case NotificationCategory.general:
+      case NotificationType.medication:
+        return 'Medication Reminders';
+      case NotificationType.appointment:
+        return 'Appointment Reminders';
+      case NotificationType.vitals:
+        return 'Health Vitals';
+      case NotificationType.general:
+      default:
         return 'General Notifications';
     }
   }
 
-  String _getChannelDescription(NotificationCategory category) {
-    switch (category) {
-      case NotificationCategory.medication:
-        return 'Reminders for taking medications';
-      case NotificationCategory.appointment:
-        return 'Reminders for upcoming appointments';
-      case NotificationCategory.emergency:
-        return 'Critical emergency alerts';
-      case NotificationCategory.consultation:
-        return 'Notifications about consultations';
-      case NotificationCategory.health:
-        return 'Health monitoring alerts';
-      case NotificationCategory.general:
+  String _getChannelDescription(NotificationType type) {
+    switch (type) {
+      case NotificationType.emergency:
+        return 'Critical emergency alerts and notifications';
+      case NotificationType.medication:
+        return 'Medication reminders and schedules';
+      case NotificationType.appointment:
+        return 'Appointment reminders and updates';
+      case NotificationType.vitals:
+        return 'Health vitals monitoring alerts';
+      case NotificationType.general:
+      default:
         return 'General app notifications';
     }
   }
 
-  Importance _getImportance(NotificationPriority priority) {
-    switch (priority) {
-      case NotificationPriority.min:
-        return Importance.min;
-      case NotificationPriority.low:
-        return Importance.low;
-      case NotificationPriority.defaultPriority:
-        return Importance.defaultImportance;
-      case NotificationPriority.high:
-        return Importance.high;
-      case NotificationPriority.max:
-        return Importance.max;
-    }
+  // Convenience methods for common notifications
+  Future<void> showMedicationReminder({
+    required String id,
+    required String medicationName,
+    required String dosage,
+    required List<String> times,
+  }) async {
+    final title = 'Medication Reminder';
+    final body = 'Time to take $medicationName ($dosage)';
+
+    await showNotification(
+      id: id,
+      title: title,
+      body: body,
+      type: NotificationType.medication,
+      importance: Importance.high,
+      priority: Priority.high,
+    );
   }
 
-  Priority _getPriority(NotificationPriority priority) {
-    switch (priority) {
-      case NotificationPriority.min:
-        return Priority.min;
-      case NotificationPriority.low:
-        return Priority.low;
-      case NotificationPriority.defaultPriority:
-        return Priority.defaultPriority;
-      case NotificationPriority.high:
-        return Priority.high;
-      case NotificationPriority.max:
-        return Priority.max;
-    }
+  Future<void> showAppointmentReminder({
+    required String id,
+    required String doctorName,
+    required DateTime appointmentTime,
+  }) async {
+    final title = 'Appointment Reminder';
+    final body =
+        'You have an appointment with Dr. $doctorName at ${appointmentTime.hour}:${appointmentTime.minute.toString().padLeft(2, '0')}';
+
+    await showNotification(
+      id: id,
+      title: title,
+      body: body,
+      type: NotificationType.appointment,
+      importance: Importance.high,
+      priority: Priority.high,
+    );
   }
 
-  int? _getNotificationColor(NotificationCategory category) {
-    switch (category) {
-      case NotificationCategory.emergency:
-        return 0xFFD32F2F; // Red
-      case NotificationCategory.health:
-        return 0xFFFF9800; // Orange
-      case NotificationCategory.medication:
-        return 0xFF4CAF50; // Green
-      case NotificationCategory.appointment:
-        return 0xFF2196F3; // Blue
-      case NotificationCategory.consultation:
-        return 0xFF9C27B0; // Purple
-      case NotificationCategory.general:
-        return 0xFF607D8B; // Blue Grey
-    }
+  Future<void> showEmergencyAlert({
+    required String id,
+    required String title,
+    required String message,
+  }) async {
+    await showNotification(
+      id: id,
+      title: title,
+      body: message,
+      type: NotificationType.emergency,
+      importance: Importance.max,
+      priority: Priority.max,
+    );
   }
 
-  void _onNotificationTapped(NotificationResponse notificationResponse) {
-    final payload = notificationResponse.payload;
-    if (payload != null) {
-      try {
-        final data = jsonDecode(payload);
-        _handleNotificationTap(data);
-      } catch (e) {
-        debugPrint('Error parsing notification payload: $e');
-      }
-    }
-  }
+  Future<void> showVitalsAlert({
+    required String id,
+    required String vitalName,
+    required String value,
+    required String status,
+  }) async {
+    final title = 'Health Alert';
+    final body = 'Your $vitalName is $value ($status)';
 
-  void _handleNotificationTap(Map<String, dynamic> data) {
-    final type = data['type'] as String?;
-    
-    switch (type) {
-      case 'medication_reminder':
-        // Navigate to medication screen
-        break;
-      case 'appointment_reminder':
-        // Navigate to appointment screen
-        break;
-      case 'emergency_alert':
-        // Navigate to emergency screen
-        break;
-      case 'consultation_notification':
-        // Navigate to consultation screen
-        break;
-      case 'health_alert':
-        // Navigate to health monitoring screen
-        break;
-      default:
-        // Navigate to home screen
-        break;
-    }
+    await showNotification(
+      id: id,
+      title: title,
+      body: body,
+      type: NotificationType.vitals,
+      importance: Importance.high,
+      priority: Priority.high,
+    );
   }
 }
 
-enum NotificationPriority {
-  min,
-  low,
-  defaultPriority,
-  high,
-  max,
-}
-
-enum NotificationCategory {
+enum NotificationType {
   general,
+  emergency,
   medication,
   appointment,
-  emergency,
-  consultation,
-  health,
+  vitals,
 }

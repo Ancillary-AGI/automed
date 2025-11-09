@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  research-service:
+    build:
+      context: ./backend/research-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_HOST=research-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=researchdb
+      - POSTGRES_USER=research
+      - POSTGRES_PASSWORD=research123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - research_data:/app/data
+      - research_models:/app/models
+    networks:
+      - automed-network
+    depends_on:
+      - research-db
+      - redis
+      - kafka
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 32G
+          cpus: '8.0'
+
+  research-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=researchdb
+      - POSTGRES_USER=research
+      - POSTGRES_PASSWORD=research123
+    volumes:
+      - research_postgres_data:/var/lib/postgresql/data
+    networks:
+      - automed-network
+    ports:
+      - "5433:5432"
+
+  research-redis:
+    image: redis:7-alpine
+    volumes:
+      - research_redis_data:/data
+    networks:
+      - automed-network
+    ports:
+      - "6380:6379"
+
+  jupyter-lab:
+    build:
+      context: .
+      dockerfile: docker/research-jupyter.Dockerfile
+    ports:
+      - "8888:8888"
+    volumes:
+      - research_data:/home/jovyan/work
+      - research_models:/home/jovyan/models
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=research2024
+    networks:
+      - automed-network
+    depends_on:
+      - research-service
+
+  mlflow-server:
+    image: mlflow/mlflow:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - research_mlflow:/mlflow
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - MLFLOW_ARTIFACT_STORE_URI=file:///mlflow/artifacts
+    networks:
+      - automed-network
+    command: mlflow server --host 0.0.0.0 --port 5000
+
+  tensorboard:
+    image: tensorflow/tensorflow:latest-gpu
+    ports:
+      - "6006:6006"
+    volumes:
+      - research_tensorboard:/tensorboard_logs
+    networks:
+      - automed-network
+    command: tensorboard --logdir /tensorboard_logs --host 0.0.0.0 --port 6006
+
+volumes:
+  research_data:
+    driver: local
+  research_models:
+    driver: local
+  research_postgres_data:
+    driver: local
+  research_redis_data:
+    driver: local
+  research_mlflow:
+    driver: local
+  research_tensorboard:
+    driver: local
+
+networks:
+  automed-network:
+    external: true

@@ -1,181 +1,162 @@
 import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
 
-import '../models/api_response.dart';
-import '../models/patient_models.dart';
-import '../models/consultation_models.dart';
-import '../models/ai_models.dart';
+import '../../core/config/app_config.dart';
 
-part 'api_service.g.dart';
+class ApiService {
+  final Dio dio;
+  final AppConfig appConfig;
 
-@RestApi()
-abstract class ApiService {
-  factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
+  ApiService({
+    required this.dio,
+    required this.appConfig,
+  }) {
+    _configureDio();
+  }
 
-  // Authentication endpoints
-  @POST('/auth/login')
-  Future<ApiResponse<AuthResponse>> login(@Body() LoginRequest request);
+  void _configureDio() {
+    dio.options.baseUrl = appConfig.apiBaseUrl;
+    dio.options.headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
 
-  @POST('/auth/register')
-  Future<ApiResponse<AuthResponse>> register(@Body() RegisterRequest request);
+    // Add interceptors
+    dio.interceptors.addAll([
+      LogInterceptor(
+        request: appConfig.enableLogging,
+        requestHeader: appConfig.enableLogging,
+        requestBody: appConfig.enableLogging,
+        responseHeader: appConfig.enableLogging,
+        responseBody: appConfig.enableLogging,
+        error: true,
+      ),
+    ]);
+  }
 
-  @POST('/auth/refresh')
-  Future<ApiResponse<AuthResponse>> refreshToken(@Body() RefreshTokenRequest request);
+  // Generic GET request
+  Future<Map<String, dynamic>> get(String endpoint) async {
+    try {
+      final response = await dio.get(endpoint);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
 
-  @POST('/auth/logout')
-  Future<ApiResponse<void>> logout();
+  // Generic POST request
+  Future<Map<String, dynamic>> post(String endpoint, {dynamic data}) async {
+    try {
+      final response = await dio.post(endpoint, data: data);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Generic PUT request
+  Future<Map<String, dynamic>> put(String endpoint, {dynamic data}) async {
+    try {
+      final response = await dio.put(endpoint, data: data);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Generic DELETE request
+  Future<Map<String, dynamic>> delete(String endpoint) async {
+    try {
+      final response = await dio.delete(endpoint);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Handle errors
+  Exception _handleError(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return Exception('Connection timeout');
+        case DioExceptionType.badResponse:
+          return Exception('Server error: ${error.response?.statusCode}');
+        case DioExceptionType.cancel:
+          return Exception('Request cancelled');
+        default:
+          return Exception('Network error');
+      }
+    }
+    return Exception('Unknown error: $error');
+  }
 
   // Patient endpoints
-  @GET('/api/v1/patients')
-  Future<ApiResponse<PaginatedResponse<Patient>>> getPatients(
-    @Query('page') int page,
-    @Query('size') int size,
-    @Query('search') String? search,
-  );
+  Future<Map<String, dynamic>> getPatientDashboard() async {
+    return get('/patients/dashboard');
+  }
 
-  @GET('/api/v1/patients/{id}')
-  Future<ApiResponse<Patient>> getPatient(@Path('id') String id);
+  Future<Map<String, dynamic>> getPatient(String patientId) async {
+    return get('/patients/$patientId');
+  }
 
-  @POST('/api/v1/patients')
-  Future<ApiResponse<Patient>> createPatient(@Body() CreatePatientRequest request);
+  Future<Map<String, dynamic>> createPatient(Map<String, dynamic> patientData) async {
+    return post('/patients', data: patientData);
+  }
 
-  @PUT('/api/v1/patients/{id}')
-  Future<ApiResponse<Patient>> updatePatient(
-    @Path('id') String id,
-    @Body() UpdatePatientRequest request,
-  );
-
-  @DELETE('/api/v1/patients/{id}')
-  Future<ApiResponse<void>> deletePatient(@Path('id') String id);
-
-  @GET('/api/v1/patients/{id}/medical-history')
-  Future<ApiResponse<List<MedicalRecord>>> getMedicalHistory(@Path('id') String id);
+  Future<Map<String, dynamic>> updatePatient(String patientId, Map<String, dynamic> patientData) async {
+    return put('/patients/$patientId', data: patientData);
+  }
 
   // Consultation endpoints
-  @GET('/api/v1/consultations')
-  Future<ApiResponse<PaginatedResponse<Consultation>>> getConsultations(
-    @Query('page') int page,
-    @Query('size') int size,
-    @Query('status') String? status,
-  );
+  Future<Map<String, dynamic>> getConsultations() async {
+    return get('/consultations');
+  }
 
-  @GET('/api/v1/consultations/{id}')
-  Future<ApiResponse<Consultation>> getConsultation(@Path('id') String id);
-
-  @POST('/api/v1/consultations')
-  Future<ApiResponse<Consultation>> createConsultation(@Body() CreateConsultationRequest request);
-
-  @PUT('/api/v1/consultations/{id}')
-  Future<ApiResponse<Consultation>> updateConsultation(
-    @Path('id') String id,
-    @Body() UpdateConsultationRequest request,
-  );
-
-  @POST('/api/v1/consultations/{id}/start')
-  Future<ApiResponse<ConsultationSession>> startConsultation(@Path('id') String id);
-
-  @POST('/api/v1/consultations/{id}/end')
-  Future<ApiResponse<void>> endConsultation(@Path('id') String id);
-
-  @POST('/api/v1/consultations/{id}/join')
-  Future<ApiResponse<ConsultationSession>> joinConsultation(@Path('id') String id);
+  Future<Map<String, dynamic>> createConsultation(Map<String, dynamic> consultationData) async {
+    return post('/consultations', data: consultationData);
+  }
 
   // Hospital endpoints
-  @GET('/api/v1/hospitals')
-  Future<ApiResponse<PaginatedResponse<Hospital>>> getHospitals(
-    @Query('page') int page,
-    @Query('size') int size,
-    @Query('search') String? search,
-  );
+  Future<Map<String, dynamic>> getHospitals() async {
+    return get('/hospitals');
+  }
 
-  @GET('/api/v1/hospitals/{id}')
-  Future<ApiResponse<Hospital>> getHospital(@Path('id') String id);
+  Future<Map<String, dynamic>> getHospital(String hospitalId) async {
+    return get('/hospitals/$hospitalId');
+  }
 
-  @GET('/api/v1/hospitals/{id}/staff')
-  Future<ApiResponse<List<Staff>>> getHospitalStaff(@Path('id') String id);
+  // AI endpoints
+  Future<Map<String, dynamic>> analyzeSymptoms(Map<String, dynamic> symptomsData) async {
+    return post('/ai/analyze-symptoms', data: symptomsData);
+  }
 
-  @GET('/api/v1/hospitals/{id}/equipment')
-  Future<ApiResponse<List<Equipment>>> getHospitalEquipment(@Path('id') String id);
-
-  // AI Service endpoints
-  @POST('/api/v1/ai/predict-diagnosis')
-  Future<ApiResponse<DiagnosisPrediction>> predictDiagnosis(@Body() DiagnosisRequest request);
-
-  @POST('/api/v1/ai/analyze-symptoms')
-  Future<ApiResponse<SymptomAnalysis>> analyzeSymptoms(@Body() SymptomAnalysisRequest request);
-
-  @POST('/api/v1/ai/triage')
-  Future<ApiResponse<TriageResult>> performTriage(@Body() TriageRequest request);
-
-  @POST('/api/v1/ai/analyze-medical-image')
-  Future<ApiResponse<ImageAnalysisResult>> analyzeMedicalImage(@Body() ImageAnalysisRequest request);
-
-  @POST('/api/v1/ai/analyze-wearable-data')
-  Future<ApiResponse<WearableAnalysisResult>> analyzeWearableData(@Body() WearableDataRequest request);
-
-  @POST('/api/v1/ai/analyze-voice')
-  Future<ApiResponse<VoiceAnalysisResult>> analyzeVoice(@Body() VoiceAnalysisRequest request);
-
-  @POST('/api/v1/ai/population-health')
-  Future<ApiResponse<PopulationHealthAnalysis>> analyzePopulationHealth(@Body() PopulationHealthRequest request);
-
-  @POST('/api/v1/ai/detect-outbreak')
-  Future<ApiResponse<OutbreakDetection>> detectOutbreak(@Body() OutbreakDetectionRequest request);
-
-  @GET('/api/v1/ai/models')
-  Future<ApiResponse<List<AIModel>>> getAvailableModels();
-
-  // Sync endpoints
-  @POST('/api/v1/sync/upload')
-  Future<ApiResponse<SyncResult>> uploadOfflineData(@Body() OfflineDataUpload request);
-
-  @GET('/api/v1/sync/download/{deviceId}')
-  Future<ApiResponse<SyncData>> downloadUpdates(@Path('deviceId') String deviceId);
-
-  @POST('/api/v1/sync/resolve-conflicts')
-  Future<ApiResponse<ConflictResolution>> resolveConflicts(@Body() ConflictResolutionRequest request);
-
-  @POST('/api/v1/sync/heartbeat')
-  Future<ApiResponse<void>> sendHeartbeat(@Body() HeartbeatRequest request);
-
-  // Medication endpoints
-  @GET('/api/v1/medications')
-  Future<ApiResponse<PaginatedResponse<Medication>>> getMedications(
-    @Query('page') int page,
-    @Query('size') int size,
-    @Query('patientId') String? patientId,
-  );
-
-  @POST('/api/v1/medications')
-  Future<ApiResponse<Medication>> createMedication(@Body() CreateMedicationRequest request);
-
-  @PUT('/api/v1/medications/{id}')
-  Future<ApiResponse<Medication>> updateMedication(
-    @Path('id') String id,
-    @Body() UpdateMedicationRequest request,
-  );
-
-  @POST('/api/v1/medications/{id}/take')
-  Future<ApiResponse<MedicationLog>> takeMedication(@Path('id') String id);
+  Future<Map<String, dynamic>> predictDiagnosis(Map<String, dynamic> diagnosisData) async {
+    return post('/ai/predict-diagnosis', data: diagnosisData);
+  }
 
   // Emergency endpoints
-  @POST('/api/v1/emergency/alert')
-  Future<ApiResponse<EmergencyAlert>> createEmergencyAlert(@Body() EmergencyAlertRequest request);
+  Future<Map<String, dynamic>> createEmergencyAlert(Map<String, dynamic> emergencyData) async {
+    return post('/emergency/alert', data: emergencyData);
+  }
 
-  @GET('/api/v1/emergency/alerts')
-  Future<ApiResponse<List<EmergencyAlert>>> getEmergencyAlerts();
+  // Medication endpoints
+  Future<Map<String, dynamic>> getMedications() async {
+    return get('/medications');
+  }
 
-  @PUT('/api/v1/emergency/alerts/{id}/respond')
-  Future<ApiResponse<void>> respondToEmergencyAlert(
-    @Path('id') String id,
-    @Body() EmergencyResponse response,
-  );
+  Future<Map<String, dynamic>> createMedication(Map<String, dynamic> medicationData) async {
+    return post('/medications', data: medicationData);
+  }
 
-  // File upload endpoints
-  @POST('/api/v1/files/upload')
-  @MultiPart()
-  Future<ApiResponse<FileUploadResult>> uploadFile(@Part() MultipartFile file);
+  // Analytics endpoints
+  Future<Map<String, dynamic>> getAnalytics() async {
+    return get('/analytics');
+  }
 
-  @GET('/api/v1/files/{id}')
-  Future<HttpResponse<ResponseBody>> downloadFile(@Path('id') String id);
+  // Sync endpoints
+  Future<Map<String, dynamic>> syncData(Map<String, dynamic> syncData) async {
+    return post('/sync', data: syncData);
+  }
 }

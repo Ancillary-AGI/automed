@@ -1,30 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/di/injection.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
 class PatientMonitoringPage extends ConsumerStatefulWidget {
   final String patientId;
-  
+
   const PatientMonitoringPage({
     super.key,
     required this.patientId,
   });
 
   @override
-  ConsumerState<PatientMonitoringPage> createState() => _PatientMonitoringPageState();
+  ConsumerState<PatientMonitoringPage> createState() =>
+      _PatientMonitoringPageState();
 }
 
 class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
     with TickerProviderStateMixin {
   late AnimationController _heartbeatController;
   late Animation<double> _heartbeatAnimation;
-  
+  List<FlSpot> _heartRateSpots = [];
+  String _heartRateValue = '72';
+  String _bloodPressureValue = '120/80';
+  String _temperatureValue = '98.6';
+  String _oxygenValue = '98';
+  bool _isLoading = true;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
+    // Load initial vitals from API (no mock fallbacks)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshVitals();
+    });
   }
 
   @override
@@ -45,7 +58,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
       parent: _heartbeatController,
       curve: Curves.easeInOut,
     ));
-    
+
     _heartbeatController.repeat(reverse: true);
   }
 
@@ -63,17 +76,40 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildVitalSignsGrid(),
-            const SizedBox(height: 24),
-            _buildRealTimeCharts(),
-            const SizedBox(height: 24),
-            _buildAlertsPanel(),
-          ],
-        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : (_errorMessage != null
+                ? Center(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.error,
+                                color: Colors.red, size: 48),
+                            const SizedBox(height: 8),
+                            Text('Failed to load vitals'),
+                            const SizedBox(height: 8),
+                            Text(_errorMessage ?? ''),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildVitalSignsGrid(),
+                        const SizedBox(height: 24),
+                        _buildRealTimeCharts(),
+                        const SizedBox(height: 24),
+                        _buildAlertsPanel(),
+                      ],
+                    ),
+                  )),
       ),
     );
   }
@@ -88,32 +124,32 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
       children: [
         _buildVitalSignCard(
           'Heart Rate',
-          '72',
+          _heartRateValue,
           'bpm',
           Icons.favorite,
-          AppColors.heartRate,
+          AppColors.vitalSigns,
           isAnimated: true,
         ),
         _buildVitalSignCard(
           'Blood Pressure',
-          '120/80',
+          _bloodPressureValue,
           'mmHg',
           Icons.bloodtype,
-          AppColors.bloodPressure,
+          AppColors.vitalSigns,
         ),
         _buildVitalSignCard(
           'Temperature',
-          '98.6',
+          _temperatureValue,
           '°F',
           Icons.thermostat,
-          AppColors.temperature,
+          AppColors.vitalSigns,
         ),
         _buildVitalSignCard(
           'Oxygen Sat',
-          '98',
+          _oxygenValue,
           '%',
           Icons.air,
-          AppColors.oxygenSaturation,
+          AppColors.vitalSigns,
         ),
       ],
     );
@@ -128,7 +164,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
     bool isAnimated = false,
   }) {
     Widget iconWidget = Icon(icon, color: color, size: 32);
-    
+
     if (isAnimated) {
       iconWidget = AnimatedBuilder(
         animation: _heartbeatAnimation,
@@ -196,22 +232,29 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true),
-                  titlesData: FlTitlesData(show: true),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: _generateHeartRateData(),
-                      isCurved: true,
-                      color: AppColors.heartRate,
-                      barWidth: 2,
-                      dotData: FlDotData(show: false),
+              child: _heartRateSpots.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No real-time heart rate data available',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    )
+                  : LineChart(
+                      LineChartData(
+                        gridData: FlGridData(show: true),
+                        titlesData: FlTitlesData(show: true),
+                        borderData: FlBorderData(show: true),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: _heartRateSpots,
+                            isCurved: true,
+                            color: AppColors.vitalSigns,
+                            barWidth: 2,
+                            dotData: FlDotData(show: false),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -260,14 +303,55 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
     );
   }
 
-  List<FlSpot> _generateHeartRateData() {
-    // Generate sample heart rate data
-    return List.generate(20, (index) {
-      return FlSpot(
-        index.toDouble(),
-        70 + (index % 3) * 5 + (index % 7) * 2,
-      );
+  Future<void> _loadVitals() async {
+    final api = ref.read(apiServiceProvider);
+    final resp =
+        await api.get('/patients/${Uri.encodeComponent(widget.patientId)}');
+
+    // Expecting structure { 'vitals': { ... } }
+    final vitals = resp['vitals'] as Map<String, dynamic>?;
+    if (vitals == null) {
+      throw Exception(
+          'No vitals data returned for patient ${widget.patientId}');
+    }
+
+    setState(() {
+      final heart = vitals['heartRate'];
+      final bp = vitals['bloodPressure'];
+      final temp = vitals['temperature'];
+      final oxy = vitals['oxygenSaturation'];
+
+      _heartRateValue = heart != null ? heart.toString() : '';
+      _bloodPressureValue = bp != null ? bp.toString() : '';
+      _temperatureValue = temp != null ? temp.toString() : '';
+      _oxygenValue = oxy != null ? oxy.toString() : '';
+
+      final series = (vitals['heartRateSeries'] as List<dynamic>?)
+              ?.map((e) => (e as num).toDouble())
+              .toList() ??
+          [];
+      _heartRateSpots =
+          List.generate(series.length, (i) => FlSpot(i.toDouble(), series[i]));
     });
+  }
+
+  Future<void> _refreshVitals() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await _loadVitals();
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _triggerEmergencyAlert() {
@@ -275,7 +359,8 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Emergency Alert'),
-        content: const Text('Are you sure you want to trigger an emergency alert?'),
+        content:
+            const Text('Are you sure you want to trigger an emergency alert?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

@@ -1,319 +1,225 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:local_auth/local_auth.dart';
 
-import '../models/api_response.dart';
 import 'api_service.dart';
 
 class AuthService {
-  final FlutterSecureStorage _secureStorage;
-  final LocalAuthentication _localAuth = LocalAuthentication();
-  final ApiService _apiService;
+  final ApiService apiService;
+  final FlutterSecureStorage secureStorage;
+  final LocalAuthentication localAuth;
 
-  static const String _accessTokenKey = 'access_token';
+  AuthService({
+    required this.apiService,
+    required this.secureStorage,
+    required this.localAuth,
+  });
+
+  static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
-  static const String _userDataKey = 'user_data';
-
-  AuthService(this._secureStorage, this._apiService);
+  static const String _userKey = 'user_data';
 
   // Authentication methods
-  Future<AuthResult> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final request = LoginRequest(email: email, password: password);
-      final response = await _apiService.login(request);
-      
-      if (response.success && response.data != null) {
-        await _storeTokens(response.data!);
-        return AuthResult.success(response.data!.user);
-      } else {
-        return AuthResult.failure(response.message ?? 'Login failed');
+      final response = await apiService.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+      });
+
+      final token = response['token'];
+      final refreshToken = response['refreshToken'];
+      final user = response['user'];
+
+      if (token != null) {
+        await secureStorage.write(key: _tokenKey, value: token);
       }
+      if (refreshToken != null) {
+        await secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+      }
+      if (user != null) {
+        await secureStorage.write(key: _userKey, value: user.toString());
+      }
+
+      return response;
     } catch (e) {
-      return AuthResult.failure('Network error: ${e.toString()}');
+      throw Exception('Login failed: $e');
     }
   }
 
-  Future<AuthResult> register({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    required String userType,
-    Map<String, dynamic>? additionalData,
-  }) async {
+  Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
-      final request = RegisterRequest(
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-        userType: userType,
-        additionalData: additionalData,
-      );
-      
-      final response = await _apiService.register(request);
-      
-      if (response.success && response.data != null) {
-        await _storeTokens(response.data!);
-        return AuthResult.success(response.data!.user);
-      } else {
-        return AuthResult.failure(response.message ?? 'Registration failed');
-      }
-    } catch (e) {
-      return AuthResult.failure('Network error: ${e.toString()}');
-    }
-  }
+      final response = await apiService.post('/auth/register', data: userData);
 
-  Future<bool> refreshToken() async {
-    try {
-      final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
-      if (refreshToken == null) return false;
+      final token = response['token'];
+      final refreshToken = response['refreshToken'];
+      final user = response['user'];
 
-      final request = RefreshTokenRequest(refreshToken: refreshToken);
-      final response = await _apiService.refreshToken(request);
-      
-      if (response.success && response.data != null) {
-        await _storeTokens(response.data!);
-        return true;
+      if (token != null) {
+        await secureStorage.write(key: _tokenKey, value: token);
       }
-      return false;
+      if (refreshToken != null) {
+        await secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+      }
+      if (user != null) {
+        await secureStorage.write(key: _userKey, value: user.toString());
+      }
+
+      return response;
     } catch (e) {
-      return false;
+      throw Exception('Registration failed: $e');
     }
   }
 
   Future<void> logout() async {
     try {
-      await _apiService.logout();
+      await secureStorage.delete(key: _tokenKey);
+      await secureStorage.delete(key: _refreshTokenKey);
+      await secureStorage.delete(key: _userKey);
     } catch (e) {
-      // Continue with local logout even if API call fails
-    } finally {
-      await _clearTokens();
+      throw Exception('Logout failed: $e');
     }
   }
 
-  // Token management
-  Future<String?> getAccessToken() async {
-    final token = await _secureStorage.read(key: _accessTokenKey);
-    if (token != null && !JwtDecoder.isExpired(token)) {
-      return token;
+  Future<bool> isAuthenticated() async {
+    try {
+      final token = await secureStorage.read(key: _tokenKey);
+      return token != null && token.isNotEmpty;
+    } catch (e) {
+      return false;
     }
-    
-    // Try to refresh token if expired
-    if (token != null && JwtDecoder.isExpired(token)) {
-      final refreshed = await refreshToken();
-      if (refreshed) {
-        return await _secureStorage.read(key: _accessTokenKey);
+  }
+
+  Future<String?> getToken() async {
+    try {
+      return await secureStorage.read(key: _tokenKey);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<String?> getRefreshToken() async {
+    try {
+      return await secureStorage.read(key: _refreshTokenKey);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      final userData = await secureStorage.read(key: _userKey);
+      if (userData != null) {
+        // Parse user data (assuming it's stored as JSON string)
+        return {'user': userData};
       }
+      return null;
+    } catch (e) {
+      return null;
     }
-    
-    return null;
   }
 
-  Future<bool> isLoggedIn() async {
-    final token = await getAccessToken();
-    return token != null;
-  }
+  Future<Map<String, dynamic>> refreshToken() async {
+    try {
+      final refreshToken = await getRefreshToken();
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
+      }
 
-  Future<User?> getCurrentUser() async {
-    final userData = await _secureStorage.read(key: _userDataKey);
-    if (userData != null) {
-      return User.fromJson(jsonDecode(userData));
+      final response = await apiService.post('/auth/refresh', data: {
+        'refreshToken': refreshToken,
+      });
+
+      final newToken = response['token'];
+      if (newToken != null) {
+        await secureStorage.write(key: _tokenKey, value: newToken);
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Token refresh failed: $e');
     }
-    return null;
-  }
-
-  Future<String?> getUserType() async {
-    final user = await getCurrentUser();
-    return user?.userType;
-  }
-
-  Future<String?> getUserId() async {
-    final user = await getCurrentUser();
-    return user?.id;
   }
 
   // Biometric authentication
-  Future<bool> isBiometricEnabled() async {
-    final enabled = await _secureStorage.read(key: 'biometric_enabled');
-    return enabled == 'true';
-  }
-
-  Future<void> setBiometricEnabled(bool enabled) async {
-    await _secureStorage.write(key: 'biometric_enabled', value: enabled.toString());
-  }
-
-  Future<bool> authenticateWithBiometrics() async {
+  Future<bool> isBiometricAvailable() async {
     try {
-      // Check if biometric authentication is available
-      final isAvailable = await _localAuth.isDeviceSupported();
-      if (!isAvailable) return false;
-      
-      // Check if biometrics are enrolled
-      final availableBiometrics = await _localAuth.getAvailableBiometrics();
-      if (availableBiometrics.isEmpty) return false;
-      
-      // Authenticate with biometrics
-      final isAuthenticated = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to access your medical data',
+      return await localAuth.canCheckBiometrics;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<List<String>> getAvailableBiometrics() async {
+    try {
+      final availableBiometrics = await localAuth.getAvailableBiometrics();
+      return availableBiometrics.map((type) => type.name).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> authenticateWithBiometrics(String reason) async {
+    try {
+      final authenticated = await localAuth.authenticate(
+        localizedReason: reason,
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
         ),
       );
-      
-      return isAuthenticated;
-    } catch (e) {
-      debugPrint('Biometric authentication error: $e');
-      return false;
-    }
-  }
-
-  // Private methods
-  Future<void> _storeTokens(AuthResponse authResponse) async {
-    await _secureStorage.write(key: _accessTokenKey, value: authResponse.accessToken);
-    await _secureStorage.write(key: _refreshTokenKey, value: authResponse.refreshToken);
-    await _secureStorage.write(key: _userDataKey, value: jsonEncode(authResponse.user.toJson()));
-  }
-
-  Future<void> _clearTokens() async {
-    await _secureStorage.delete(key: _accessTokenKey);
-    await _secureStorage.delete(key: _refreshTokenKey);
-    await _secureStorage.delete(key: _userDataKey);
-  }
-
-  // Token validation
-  bool isTokenValid(String token) {
-    try {
-      return !JwtDecoder.isExpired(token);
+      return authenticated;
     } catch (e) {
       return false;
     }
   }
 
-  Map<String, dynamic>? decodeToken(String token) {
+  // Password reset
+  Future<void> requestPasswordReset(String email) async {
     try {
-      return JwtDecoder.decode(token);
+      await apiService.post('/auth/forgot-password', data: {'email': email});
     } catch (e) {
-      return null;
+      throw Exception('Password reset request failed: $e');
     }
   }
-}
 
-// Data classes
-class AuthResult {
-  final bool success;
-  final User? user;
-  final String? error;
+  Future<void> resetPassword(String token, String newPassword) async {
+    try {
+      await apiService.post('/auth/reset-password', data: {
+        'token': token,
+        'password': newPassword,
+      });
+    } catch (e) {
+      throw Exception('Password reset failed: $e');
+    }
+  }
 
-  AuthResult.success(this.user) : success = true, error = null;
-  AuthResult.failure(this.error) : success = false, user = null;
-}
+  // Profile management
+  Future<Map<String, dynamic>> updateProfile(
+      Map<String, dynamic> profileData) async {
+    try {
+      final response = await apiService.put('/auth/profile', data: profileData);
 
-class LoginRequest {
-  final String email;
-  final String password;
+      // Update stored user data
+      final user = response['user'];
+      if (user != null) {
+        await secureStorage.write(key: _userKey, value: user.toString());
+      }
 
-  LoginRequest({required this.email, required this.password});
+      return response;
+    } catch (e) {
+      throw Exception('Profile update failed: $e');
+    }
+  }
 
-  Map<String, dynamic> toJson() => {
-    'email': email,
-    'password': password,
-  };
-}
-
-class RegisterRequest {
-  final String email;
-  final String password;
-  final String firstName;
-  final String lastName;
-  final String userType;
-  final Map<String, dynamic>? additionalData;
-
-  RegisterRequest({
-    required this.email,
-    required this.password,
-    required this.firstName,
-    required this.lastName,
-    required this.userType,
-    this.additionalData,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'email': email,
-    'password': password,
-    'firstName': firstName,
-    'lastName': lastName,
-    'userType': userType,
-    if (additionalData != null) ...additionalData!,
-  };
-}
-
-class RefreshTokenRequest {
-  final String refreshToken;
-
-  RefreshTokenRequest({required this.refreshToken});
-
-  Map<String, dynamic> toJson() => {
-    'refreshToken': refreshToken,
-  };
-}
-
-class AuthResponse {
-  final String accessToken;
-  final String refreshToken;
-  final User user;
-
-  AuthResponse({
-    required this.accessToken,
-    required this.refreshToken,
-    required this.user,
-  });
-
-  factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
-    accessToken: json['accessToken'],
-    refreshToken: json['refreshToken'],
-    user: User.fromJson(json['user']),
-  );
-}
-
-class User {
-  final String id;
-  final String email;
-  final String firstName;
-  final String lastName;
-  final String userType;
-  final Map<String, dynamic>? profile;
-
-  User({
-    required this.id,
-    required this.email,
-    required this.firstName,
-    required this.lastName,
-    required this.userType,
-    this.profile,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) => User(
-    id: json['id'],
-    email: json['email'],
-    firstName: json['firstName'],
-    lastName: json['lastName'],
-    userType: json['userType'],
-    profile: json['profile'],
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'email': email,
-    'firstName': firstName,
-    'lastName': lastName,
-    'userType': userType,
-    if (profile != null) 'profile': profile,
-  };
-
-  String get fullName => '$firstName $lastName';
+  Future<void> changePassword(
+      String currentPassword, String newPassword) async {
+    try {
+      await apiService.post('/auth/change-password', data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+    } catch (e) {
+      throw Exception('Password change failed: $e');
+    }
+  }
 }

@@ -1,0 +1,227 @@
+# AutoMed Research Platform Helm Chart Values
+
+# Research Service Configuration
+researchService:
+  image:
+    repository: automed/research-service
+    tag: "latest"
+    pullPolicy: Always
+
+  replicaCount: 2
+
+  resources:
+    limits:
+      cpu: 8000m
+      memory: 32Gi
+      nvidia.com/gpu: 2
+    requests:
+      cpu: 4000m
+      memory: 16Gi
+      nvidia.com/gpu: 1
+
+  nodeSelector:
+    accelerator: nvidia-tesla-v100
+
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+  env:
+    - name: JAVA_OPTS
+      value: "-Xmx24g -Xms8g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+    - name: CUDA_VISIBLE_DEVICES
+      value: "0,1"
+    - name: TF_CPP_MIN_LOG_LEVEL
+      value: "2"
+
+# Database Configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "research123"
+    username: "research"
+    password: "research123"
+    database: "researchdb"
+
+  architecture: replication
+  primary:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+  readReplicas:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# Redis Configuration
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+
+  master:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# Kafka Configuration
+kafka:
+  enabled: true
+  replicas: 3
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    interbroker:
+      protocol: PLAINTEXT
+
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# MLflow Configuration
+mlflow:
+  enabled: true
+  backendStore:
+    postgres:
+      enabled: true
+      connectionString: "postgresql://research:research123@postgresql:5432/mlflow"
+
+  artifactStore:
+    gcs:
+      enabled: true
+      bucket: "automed-research-mlflow"
+
+# Jupyter Configuration
+jupyter:
+  enabled: true
+  image:
+    repository: automed/research-jupyter
+    tag: "latest"
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+      nvidia.com/gpu: 1
+
+# GPU Configuration
+gpu:
+  enabled: true
+  type: "nvidia"
+  resourceName: "nvidia.com/gpu"
+  devices: 2
+
+# Storage Configuration
+storage:
+  researchData:
+    enabled: true
+    size: 1Ti
+    className: "fast-ssd"
+    accessMode: ReadWriteMany
+
+  models:
+    enabled: true
+    size: 500Gi
+    className: "fast-ssd"
+    accessMode: ReadWriteMany
+
+  results:
+    enabled: true
+    size: 2Ti
+    className: "standard"
+    accessMode: ReadWriteMany
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+  hosts:
+    - host: research.automed.ai
+      paths:
+        - path: /
+          pathType: Prefix
+
+  tls:
+    - secretName: automed-research-tls
+      hosts:
+        - research.automed.ai
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    scrapeInterval: 30s
+
+  grafana:
+    enabled: true
+    adminPassword: "research2024"
+
+# Security Configuration
+security:
+  networkPolicy:
+    enabled: true
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+        - ALL
+
+# Autoscaling Configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: 30
+
+  postgresql:
+    enabled: true
+
+  redis:
+    enabled: true
+
+  researchData:
+    enabled: true

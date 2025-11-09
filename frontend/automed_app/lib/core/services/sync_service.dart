@@ -1,333 +1,243 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:hive/hive.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../config/app_config.dart';
-import '../models/sync_models.dart';
-import '../utils/logger.dart';
+import '../../core/config/app_config.dart';
+import 'api_service.dart';
+import 'connectivity_service.dart';
+import 'offline_data_service.dart';
 
 class SyncService {
-  final Dio _dio;
-  final AppConfig _config;
-  final Box _syncBox;
-  final Box _conflictsBox;
-  
-  static const String _pendingActionsKey = 'pending_actions';
-  static const String _lastSyncKey = 'last_sync_timestamp';
-  static const String _deviceIdKey = 'device_id';
+  final ApiService apiService;
+  final OfflineDataService offlineDataService;
+  final ConnectivityService connectivityService;
+  final AppConfig appConfig;
 
-  SyncService(this._dio, this._config, this._syncBox, this._conflictsBox);
+  SyncService({
+    required this.apiService,
+    required this.offlineDataService,
+    required this.connectivityService,
+    required this.appConfig,
+  });
 
-  /// Queue an action to be synced when online
-  Future<void> queueAction(SyncAction action) async {
+  Future<SyncResult> performFullSync() async {
+    if (!await connectivityService.isConnected) {
+      return SyncResult.failure('No internet connection');
+    }
+
     try {
-      final pendingActions = await _getPendingActions();
-      pendingActions.add(action);
-      await _syncBox.put(_pendingActionsKey, pendingActions.map((a) => a.toJson()).toList());
-      
-      Logger.info('Queued action: ${action.type} for entity ${action.entityId}');
-      
-      // Try to sync immediately if online
-      if (await _isOnline()) {
-        await syncPendingActions();
-      }
+      final results = await Future.wait([
+        _syncPatientData(),
+        _syncMedications(),
+        _syncAppointments(),
+        _syncOfflineActions(),
+      ]);
+
+      final totalSynced =
+          results.fold<int>(0, (sum, result) => sum + result.syncedItems);
+      final totalFailed =
+          results.fold<int>(0, (sum, result) => sum + result.failedItems);
+      final allErrors = results.expand((result) => result.errors).toList();
+
+      return SyncResult(
+        success: totalFailed == 0,
+        syncedItems: totalSynced,
+        failedItems: totalFailed,
+        errors: allErrors,
+        message: totalFailed == 0
+            ? 'Full sync completed successfully'
+            : 'Sync completed with $totalFailed errors',
+      );
     } catch (e) {
-      Logger.error('Failed to queue action', e);
+      return SyncResult.failure('Sync failed: $e');
     }
   }
 
-  /// Sync all pending actions with the server
-  Future<SyncResult> syncPendingActions() async {
-    if (!await _isOnline()) {
-      return SyncResult(
-        success: false,
-        message: 'No internet connection',
-        syncedCount: 0,
-        conflictCount: 0,
-      );
-    }
+  Future<SyncResult> syncPatientData() async {
+    return _syncPatientData();
+  }
 
+  Future<SyncResult> syncMedications() async {
+    return _syncMedications();
+  }
+
+  Future<SyncResult> syncAppointments() async {
+    return _syncAppointments();
+  }
+
+  Future<SyncResult> syncOfflineActions() async {
+    return _syncOfflineActions();
+  }
+
+  Future<SyncResult> _syncPatientData() async {
     try {
-      final pendingActions = await _getPendingActions();
-      if (pendingActions.isEmpty) {
-        return SyncResult(
-          success: true,
-          message: 'No actions to sync',
-          syncedCount: 0,
-          conflictCount: 0,
-        );
+      // Get local patient data
+      final localPatients = await _getLocalPatientData();
+
+      if (localPatients.isEmpty) {
+        return SyncResult.success('No patient data to sync');
       }
 
-      final deviceId = await _getDeviceId();
-      final uploadRequest = OfflineDataUploadRequest(
-        deviceId: deviceId,
-        actions: pendingActions,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-      );
+      int synced = 0;
+      int failed = 0;
+      final errors = <String>[];
 
-      final response = await _dio.post(
-        '/sync/upload',
-        data: uploadRequest.toJson(),
-      );
-
-      final syncResponse = SyncResponse.fromJson(response.data);
-      
-      if (syncResponse.success) {
-        // Clear successfully synced actions
-        final successfulActionIds = syncResponse.processedActions ?? [];
-        final remainingActions = pendingActions
-            .where((action) => !successfulActionIds.contains(action.id))
-            .toList();
-        
-        await _syncBox.put(_pendingActionsKey, remainingActions.map((a) => a.toJson()).toList());
-        
-        // Store conflicts for resolution
-        if (syncResponse.conflicts?.isNotEmpty == true) {
-          await _storeConflicts(syncResponse.conflicts!);
+      for (final patient in localPatients) {
+        try {
+          await apiService.updatePatient(patient['id'], patient);
+          synced++;
+        } catch (e) {
+          failed++;
+          errors.add('Failed to sync patient ${patient['id']}: $e');
         }
-        
-        // Update last sync timestamp
-        await _syncBox.put(_lastSyncKey, DateTime.now().millisecondsSinceEpoch);
-        
-        Logger.info('Sync completed: ${successfulActionIds.length} actions synced, ${syncResponse.conflicts?.length ?? 0} conflicts');
-        
-        return SyncResult(
-          success: true,
-          message: 'Sync completed successfully',
-          syncedCount: successfulActionIds.length,
-          conflictCount: syncResponse.conflicts?.length ?? 0,
-          conflicts: syncResponse.conflicts,
-        );
-      } else {
-        Logger.error('Sync failed: ${syncResponse.message}');
-        return SyncResult(
-          success: false,
-          message: syncResponse.message ?? 'Sync failed',
-          syncedCount: 0,
-          conflictCount: 0,
-        );
       }
-    } catch (e) {
-      Logger.error('Sync error', e);
+
       return SyncResult(
-        success: false,
-        message: 'Sync error: ${e.toString()}',
-        syncedCount: 0,
-        conflictCount: 0,
+        success: failed == 0,
+        syncedItems: synced,
+        failedItems: failed,
+        errors: errors,
       );
-    }
-  }
-
-  /// Download updates from server
-  Future<SyncDownloadResult> downloadUpdates() async {
-    if (!await _isOnline()) {
-      return SyncDownloadResult(
-        success: false,
-        message: 'No internet connection',
-        updates: [],
-      );
-    }
-
-    try {
-      final deviceId = await _getDeviceId();
-      final lastSync = await _getLastSyncTimestamp();
-      
-      final response = await _dio.get(
-        '/sync/download/$deviceId',
-        queryParameters: {'lastSyncTimestamp': lastSync},
-      );
-
-      final downloadResponse = SyncDownloadResponse.fromJson(response.data);
-      
-      if (downloadResponse.success) {
-        // Update last sync timestamp
-        await _syncBox.put(_lastSyncKey, DateTime.now().millisecondsSinceEpoch);
-        
-        Logger.info('Downloaded ${downloadResponse.updates?.length ?? 0} updates');
-        
-        return SyncDownloadResult(
-          success: true,
-          message: 'Updates downloaded successfully',
-          updates: downloadResponse.updates ?? [],
-        );
-      } else {
-        return SyncDownloadResult(
-          success: false,
-          message: downloadResponse.message ?? 'Download failed',
-          updates: [],
-        );
-      }
     } catch (e) {
-      Logger.error('Download error', e);
-      return SyncDownloadResult(
-        success: false,
-        message: 'Download error: ${e.toString()}',
-        updates: [],
-      );
+      return SyncResult.failure('Patient data sync failed: $e');
     }
   }
 
-  /// Get pending conflicts that need resolution
-  Future<List<DataConflict>> getPendingConflicts() async {
+  Future<SyncResult> _syncMedications() async {
     try {
-      final conflictsData = _conflictsBox.get('conflicts', defaultValue: <Map<String, dynamic>>[]);
-      return (conflictsData as List)
-          .map((data) => DataConflict.fromJson(Map<String, dynamic>.from(data)))
-          .toList();
-    } catch (e) {
-      Logger.error('Failed to get pending conflicts', e);
-      return [];
-    }
-  }
+      final localMedications = await offlineDataService.getMedicationsLocally();
 
-  /// Resolve a conflict with user's choice
-  Future<bool> resolveConflict(String conflictId, ConflictResolution resolution) async {
-    try {
-      if (!await _isOnline()) {
-        // Store resolution for later sync
-        await _storeConflictResolution(conflictId, resolution);
-        return true;
+      if (localMedications == null || localMedications.isEmpty) {
+        return SyncResult.success('No medications to sync');
       }
 
-      final request = ConflictResolutionRequest(
-        conflictId: conflictId,
-        resolution: resolution,
-        deviceId: await _getDeviceId(),
-      );
+      // Sync medications with server
+      await apiService.post('/medications/sync', data: {
+        'medications': localMedications,
+      });
 
-      final response = await _dio.post(
-        '/sync/resolve-conflicts',
-        data: request.toJson(),
-      );
-
-      final resolutionResponse = ConflictResolutionResponse.fromJson(response.data);
-      
-      if (resolutionResponse.success) {
-        // Remove resolved conflict from local storage
-        await _removeConflict(conflictId);
-        Logger.info('Conflict resolved: $conflictId');
-        return true;
-      } else {
-        Logger.error('Failed to resolve conflict: ${resolutionResponse.message}');
-        return false;
-      }
+      return SyncResult.success('Medications synced successfully');
     } catch (e) {
-      Logger.error('Error resolving conflict', e);
-      return false;
+      return SyncResult.failure('Medications sync failed: $e');
     }
   }
 
-  /// Send heartbeat to server
-  Future<void> sendHeartbeat() async {
-    if (!await _isOnline()) return;
-
+  Future<SyncResult> _syncAppointments() async {
     try {
-      final deviceId = await _getDeviceId();
-      final pendingActions = await _getPendingActions();
-      
-      final request = DeviceHeartbeatRequest(
-        deviceId: deviceId,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        pendingActionsCount: pendingActions.length,
-        appVersion: _config.version,
-      );
+      final localAppointments =
+          await offlineDataService.getAppointmentsLocally();
 
-      await _dio.post('/sync/heartbeat', data: request.toJson());
-      Logger.debug('Heartbeat sent');
+      if (localAppointments == null || localAppointments.isEmpty) {
+        return SyncResult.success('No appointments to sync');
+      }
+
+      // Sync appointments with server
+      await apiService.post('/appointments/sync', data: {
+        'appointments': localAppointments,
+      });
+
+      return SyncResult.success('Appointments synced successfully');
     } catch (e) {
-      Logger.error('Heartbeat failed', e);
+      return SyncResult.failure('Appointments sync failed: $e');
     }
   }
 
-  /// Get sync status
-  Future<SyncStatus> getSyncStatus() async {
-    final pendingActions = await _getPendingActions();
-    final pendingConflicts = await getPendingConflicts();
-    final lastSync = await _getLastSyncTimestamp();
-    final isOnline = await _isOnline();
-
-    return SyncStatus(
-      isOnline: isOnline,
-      pendingActionsCount: pendingActions.length,
-      pendingConflictsCount: pendingConflicts.length,
-      lastSyncTimestamp: lastSync,
-      deviceId: await _getDeviceId(),
+  Future<SyncResult> _syncOfflineActions() async {
+    final result = await offlineDataService.syncData();
+    return SyncResult(
+      success: result.success,
+      message: result.message,
+      syncedItems: result.syncedItems,
+      failedItems: result.failedItems,
+      errors: result.errors ?? [],
     );
   }
 
-  // Private helper methods
-
-  Future<List<SyncAction>> _getPendingActions() async {
-    try {
-      final actionsData = _syncBox.get(_pendingActionsKey, defaultValue: <Map<String, dynamic>>[]);
-      return (actionsData as List)
-          .map((data) => SyncAction.fromJson(Map<String, dynamic>.from(data)))
-          .toList();
-    } catch (e) {
-      Logger.error('Failed to get pending actions', e);
-      return [];
-    }
+  Future<List<Map<String, dynamic>>> _getLocalPatientData() async {
+    // This would typically query a local database
+    // For now, return empty list as we don't have local patient storage implemented
+    return [];
   }
 
-  Future<String> _getDeviceId() async {
-    String? deviceId = _syncBox.get(_deviceIdKey);
-    if (deviceId == null) {
-      deviceId = _generateDeviceId();
-      await _syncBox.put(_deviceIdKey, deviceId);
-    }
-    return deviceId;
+  Future<void> schedulePeriodicSync(
+      {Duration interval = const Duration(minutes: 15)}) async {
+    // This would typically use a background task scheduler
+    // For now, it's a placeholder
   }
 
-  String _generateDeviceId() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (timestamp * 1000 + (timestamp % 1000)).toString();
-    return 'device_$random';
+  Future<void> cancelPeriodicSync() async {
+    // Cancel any scheduled sync tasks
   }
 
-  Future<int> _getLastSyncTimestamp() async {
-    return _syncBox.get(_lastSyncKey, defaultValue: 0);
+  Future<SyncStatus> getSyncStatus() async {
+    final isOnline = await connectivityService.isConnected;
+    final lastSyncTime = offlineDataService.lastSyncTime;
+    final pendingActions = offlineDataService.getOfflineQueue().length;
+
+    return SyncStatus(
+      isOnline: isOnline,
+      lastSyncTime: lastSyncTime,
+      pendingActions: pendingActions,
+      isSyncing: false, // This would be tracked separately
+    );
   }
 
-  Future<bool> _isOnline() async {
-    try {
-      final connectivityResult = await Connectivity().checkConnectivity();
-      return connectivityResult != ConnectivityResult.none;
-    } catch (e) {
-      return false;
-    }
+  Stream<SyncStatus> get syncStatusStream {
+    // This would provide real-time sync status updates
+    // For now, return empty stream
+    return const Stream.empty();
   }
 
-  Future<void> _storeConflicts(List<DataConflict> conflicts) async {
-    final existingConflicts = await getPendingConflicts();
-    final allConflicts = [...existingConflicts, ...conflicts];
-    
-    // Remove duplicates based on conflict ID
-    final uniqueConflicts = <String, DataConflict>{};
-    for (final conflict in allConflicts) {
-      uniqueConflicts[conflict.id] = conflict;
-    }
-    
-    await _conflictsBox.put('conflicts', uniqueConflicts.values.map((c) => c.toJson()).toList());
+  Future<void> forceSync() async {
+    await performFullSync();
   }
 
-  Future<void> _removeConflict(String conflictId) async {
-    final conflicts = await getPendingConflicts();
-    final updatedConflicts = conflicts.where((c) => c.id != conflictId).toList();
-    await _conflictsBox.put('conflicts', updatedConflicts.map((c) => c.toJson()).toList());
-  }
-
-  Future<void> _storeConflictResolution(String conflictId, ConflictResolution resolution) async {
-    // Store for later sync when online
-    final resolutions = _conflictsBox.get('pending_resolutions', defaultValue: <String, dynamic>{});
-    resolutions[conflictId] = resolution.toJson();
-    await _conflictsBox.put('pending_resolutions', resolutions);
+  Future<void> clearSyncData() async {
+    // Clear any cached sync data
   }
 }
 
-// Provider
-final syncServiceProvider = Provider<SyncService>((ref) {
-  throw UnimplementedError('SyncService must be initialized in main()');
-});
+class SyncResult {
+  final bool success;
+  final String message;
+  final int syncedItems;
+  final int failedItems;
+  final List<String> errors;
+
+  SyncResult({
+    required this.success,
+    this.message = '',
+    this.syncedItems = 0,
+    this.failedItems = 0,
+    this.errors = const [],
+  });
+
+  factory SyncResult.success(String message, {int syncedItems = 0}) {
+    return SyncResult(
+      success: true,
+      message: message,
+      syncedItems: syncedItems,
+    );
+  }
+
+  factory SyncResult.failure(String message, {int failedItems = 0}) {
+    return SyncResult(
+      success: false,
+      message: message,
+      failedItems: failedItems,
+    );
+  }
+}
+
+class SyncStatus {
+  final bool isOnline;
+  final DateTime? lastSyncTime;
+  final int pendingActions;
+  final bool isSyncing;
+
+  SyncStatus({
+    required this.isOnline,
+    this.lastSyncTime,
+    required this.pendingActions,
+    required this.isSyncing,
+  });
+
+  bool get hasPendingActions => pendingActions > 0;
+  bool get needsSync => hasPendingActions && isOnline;
+}

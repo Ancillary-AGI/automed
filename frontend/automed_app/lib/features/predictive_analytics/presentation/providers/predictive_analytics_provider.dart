@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/services/api_service.dart';
 
 // Predictive Analytics State
@@ -28,17 +29,19 @@ class PredictiveAnalyticsState {
 }
 
 // Predictive Analytics Notifier
-class PredictiveAnalyticsNotifier extends StateNotifier<AsyncValue<PredictiveAnalyticsData>> {
+class PredictiveAnalyticsNotifier
+    extends StateNotifier<AsyncValue<PredictiveAnalyticsData>> {
   final ApiService _apiService;
   String _currentTimeRange = '7d';
   String _currentPatientFilter = 'all';
 
-  PredictiveAnalyticsNotifier(this._apiService) : super(const AsyncValue.loading());
+  PredictiveAnalyticsNotifier(this._apiService)
+      : super(const AsyncValue.loading());
 
   // Load predictive data
   Future<void> loadPredictiveData() async {
     state = const AsyncValue.loading();
-    
+
     try {
       final data = await _fetchPredictiveData();
       state = AsyncValue.data(data);
@@ -69,10 +72,11 @@ class PredictiveAnalyticsNotifier extends StateNotifier<AsyncValue<PredictiveAna
     try {
       // Call API to dismiss alert
       // await _apiService.dismissAlert(alertId);
-      
+
       // Update local state
       state.whenData((data) {
-        final updatedAlerts = data.activeAlerts.where((alert) => alert.id != alertId).toList();
+        final updatedAlerts =
+            data.activeAlerts.where((alert) => alert.id != alertId).toList();
         final updatedData = data.copyWith(activeAlerts: updatedAlerts);
         state = AsyncValue.data(updatedData);
       });
@@ -83,232 +87,276 @@ class PredictiveAnalyticsNotifier extends StateNotifier<AsyncValue<PredictiveAna
 
   // Fetch predictive data from API
   Future<PredictiveAnalyticsData> _fetchPredictiveData() async {
-    // Simulate API calls - replace with actual API integration
-    await Future.delayed(const Duration(seconds: 1));
-    
-    return PredictiveAnalyticsData(
-      keyMetrics: _generateKeyMetrics(),
-      earlyWarnings: _generateEarlyWarnings(),
-      populationHealth: _generatePopulationHealth(),
-      recentPredictions: _generateRecentPredictions(),
-      riskDistribution: _generateRiskDistribution(),
-      highRiskPatients: _generateHighRiskPatients(),
-      riskFactors: _generateRiskFactors(),
-      accuracyTrends: _generateAccuracyTrends(),
-      healthOutcomeTrends: _generateHealthOutcomeTrends(),
-      seasonalPatterns: _generateSeasonalPatterns(),
-      alertSummary: _generateAlertSummary(),
-      activeAlerts: _generateActiveAlerts(),
-      alertHistory: _generateAlertHistory(),
-    );
+    // Attempt to fetch predictive analytics from backend API.
+    // Assumption: backend exposes an endpoint at `/analytics/predictive` that
+    // accepts `range` and `filter` query params and returns a JSON object
+    // matching the fields used by PredictiveAnalyticsData. If the call fails
+    // or the response is missing fields, fall back to local generators.
+    try {
+      final endpoint =
+          '/analytics/predictive?range=${Uri.encodeComponent(_currentTimeRange)}&filter=${Uri.encodeComponent(_currentPatientFilter)}';
+      final resp = await _apiService.get(endpoint);
+
+      if (resp.isEmpty) {
+        throw Exception('Empty response');
+      }
+
+      // Parse response into model; fall back to generators for missing parts
+      return _parsePredictiveAnalytics(resp);
+    } catch (e) {
+      // Surface errors to the caller so the UI/state can present an error state.
+      // Do not return mock data.
+      // ignore: avoid_print
+      print('Failed to fetch predictive analytics from API: $e');
+      throw Exception('Failed to fetch predictive analytics: $e');
+    }
   }
 
-  // Generate mock data methods
-  KeyMetrics _generateKeyMetrics() {
-    return KeyMetrics(
-      highRiskPatients: 23,
-      predictedAdmissions: 45,
-      earlyWarnings: 8,
-      accuracyScore: 0.87,
-      highRiskChange: 12.5,
-      admissionChange: -8.3,
-      warningChange: 15.2,
-      accuracyChange: 2.1,
-    );
-  }
+  // Parse backend response into PredictiveAnalyticsData
+  PredictiveAnalyticsData _parsePredictiveAnalytics(Map<String, dynamic> json) {
+    try {
+      // Validate required top-level sections
+      final keyMetricsJson = json['keyMetrics'] as Map<String, dynamic>?;
+      final populationJson = json['populationHealth'] as Map<String, dynamic>?;
+      final riskDistJson = json['riskDistribution'] as Map<String, dynamic>?;
+      final alertSummaryJson = json['alertSummary'] as Map<String, dynamic>?;
 
-  List<EarlyWarning> _generateEarlyWarnings() {
-    return [
-      EarlyWarning(
-        id: '1',
-        patientId: 'P001',
-        patientName: 'John Doe',
-        warningType: 'Sepsis Risk',
-        severity: WarningSeverity.high,
-        score: 0.85,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-        recommendations: ['Immediate physician notification', 'Blood cultures'],
-      ),
-      EarlyWarning(
-        id: '2',
-        patientId: 'P002',
-        patientName: 'Jane Smith',
-        warningType: 'Fall Risk',
-        severity: WarningSeverity.medium,
-        score: 0.65,
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        recommendations: ['Implement fall precautions', 'Frequent monitoring'],
-      ),
-    ];
-  }
+      if (keyMetricsJson == null) {
+        throw Exception('Missing keyMetrics in predictive analytics payload');
+      }
+      if (populationJson == null) {
+        throw Exception(
+            'Missing populationHealth in predictive analytics payload');
+      }
+      if (riskDistJson == null) {
+        throw Exception(
+            'Missing riskDistribution in predictive analytics payload');
+      }
+      if (alertSummaryJson == null) {
+        throw Exception('Missing alertSummary in predictive analytics payload');
+      }
 
-  PopulationHealthData _generatePopulationHealth() {
-    return PopulationHealthData(
-      totalPopulation: 1250,
-      atRiskCount: 187,
-      trends: _generatePopulationTrends(),
-    );
-  }
-
-  List<PopulationTrend> _generatePopulationTrends() {
-    return List.generate(30, (index) {
-      return PopulationTrend(
-        date: DateTime.now().subtract(Duration(days: 29 - index)),
-        totalPatients: 1200 + (index * 2),
-        atRiskPatients: 180 + (index % 5),
-        criticalPatients: 15 + (index % 3),
+      // Parse required key metrics
+      final keyMetrics = KeyMetrics(
+        highRiskPatients: (keyMetricsJson['highRiskPatients'] ?? 0) as int,
+        predictedAdmissions:
+            (keyMetricsJson['predictedAdmissions'] ?? 0) as int,
+        earlyWarnings: (keyMetricsJson['earlyWarnings'] ?? 0) as int,
+        accuracyScore: (keyMetricsJson['accuracyScore'] ?? 0.0) as double,
+        highRiskChange: (keyMetricsJson['highRiskChange'] ?? 0.0) as double,
+        admissionChange: (keyMetricsJson['admissionChange'] ?? 0.0) as double,
+        warningChange: (keyMetricsJson['warningChange'] ?? 0.0) as double,
+        accuracyChange: (keyMetricsJson['accuracyChange'] ?? 0.0) as double,
       );
-    });
-  }
 
-  List<PredictionResult> _generateRecentPredictions() {
-    return [
-      PredictionResult(
-        id: '1',
-        patientId: 'P001',
-        patientName: 'John Doe',
-        predictionType: 'Readmission Risk',
-        probability: 0.78,
-        confidence: 0.92,
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-        factors: ['Previous readmission', 'Comorbidities', 'Age'],
-      ),
-      PredictionResult(
-        id: '2',
-        patientId: 'P003',
-        patientName: 'Bob Johnson',
-        predictionType: 'Length of Stay',
-        probability: 0.65,
-        confidence: 0.88,
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-        factors: ['Procedure complexity', 'Patient age', 'Comorbidities'],
-      ),
-    ];
-  }
-
-  RiskDistribution _generateRiskDistribution() {
-    return RiskDistribution(
-      lowRisk: 850,
-      moderateRisk: 300,
-      highRisk: 100,
-    );
-  }
-
-  List<HighRiskPatient> _generateHighRiskPatients() {
-    return [
-      HighRiskPatient(
-        id: 'P001',
-        name: 'John Doe',
-        age: 72,
-        riskScore: 0.89,
-        primaryRisk: 'Sepsis',
-        lastAssessment: DateTime.now().subtract(const Duration(hours: 2)),
-        interventions: ['Antibiotic therapy', 'Frequent monitoring'],
-      ),
-      HighRiskPatient(
-        id: 'P004',
-        name: 'Mary Wilson',
-        age: 68,
-        riskScore: 0.82,
-        primaryRisk: 'Cardiac Event',
-        lastAssessment: DateTime.now().subtract(const Duration(hours: 4)),
-        interventions: ['Cardiac monitoring', 'Medication adjustment'],
-      ),
-    ];
-  }
-
-  List<RiskFactor> _generateRiskFactors() {
-    return [
-      RiskFactor(name: 'Age > 65', prevalence: 0.68),
-      RiskFactor(name: 'Diabetes', prevalence: 0.45),
-      RiskFactor(name: 'Hypertension', prevalence: 0.52),
-      RiskFactor(name: 'Previous Admission', prevalence: 0.38),
-      RiskFactor(name: 'Multiple Medications', prevalence: 0.41),
-    ];
-  }
-
-  List<AccuracyTrend> _generateAccuracyTrends() {
-    return List.generate(30, (index) {
-      return AccuracyTrend(
-        date: DateTime.now().subtract(Duration(days: 29 - index)),
-        accuracy: 0.80 + (0.1 * (index / 30)) + (0.05 * (index % 3 - 1)),
+      // Parse population health
+      final populationHealth = PopulationHealthData(
+        totalPopulation: (populationJson['totalPopulation'] ?? 0) as int,
+        atRiskCount: (populationJson['atRiskCount'] ?? 0) as int,
+        trends: (populationJson['trends'] as List<dynamic>?)
+                ?.map((t) => PopulationTrend(
+                      date: DateTime.tryParse(t['date']?.toString() ?? '') ??
+                          DateTime.now(),
+                      totalPatients: (t['totalPatients'] ?? 0) as int,
+                      atRiskPatients: (t['atRiskPatients'] ?? 0) as int,
+                      criticalPatients: (t['criticalPatients'] ?? 0) as int,
+                    ))
+                .toList() ??
+            [],
       );
-    });
-  }
 
-  List<HealthOutcomeTrend> _generateHealthOutcomeTrends() {
-    return List.generate(12, (index) {
-      return HealthOutcomeTrend(
-        period: 'Month ${index + 1}',
-        value: 85 + (index * 2) + (index % 3),
+      // Parse lists (optional; if missing, default to empty lists)
+      final recentPredictions = (json['recentPredictions'] as List<dynamic>?)
+              ?.map((p) => PredictionResult(
+                    id: p['id'].toString(),
+                    patientId: p['patientId'].toString(),
+                    patientName: p['patientName'].toString(),
+                    predictionType: p['predictionType'].toString(),
+                    probability: (p['probability'] ?? 0.0) as double,
+                    confidence: (p['confidence'] ?? 0.0) as double,
+                    timestamp:
+                        DateTime.tryParse(p['timestamp']?.toString() ?? '') ??
+                            DateTime.now(),
+                    factors: (p['factors'] as List<dynamic>?)
+                            ?.map((f) => f.toString())
+                            .toList() ??
+                        [],
+                  ))
+              .toList() ??
+          [];
+
+      final highRiskPatients = (json['highRiskPatients'] as List<dynamic>?)
+              ?.map((h) => HighRiskPatient(
+                    id: h['id'].toString(),
+                    name: h['name'].toString(),
+                    age: (h['age'] ?? 0) as int,
+                    riskScore: (h['riskScore'] ?? 0.0) as double,
+                    primaryRisk: h['primaryRisk']?.toString() ?? '',
+                    lastAssessment: DateTime.tryParse(
+                            h['lastAssessment']?.toString() ?? '') ??
+                        DateTime.now(),
+                    interventions: (h['interventions'] as List<dynamic>?)
+                            ?.map((i) => i.toString())
+                            .toList() ??
+                        [],
+                  ))
+              .toList() ??
+          [];
+
+      final riskFactors = (json['riskFactors'] as List<dynamic>?)
+              ?.map((r) => RiskFactor(
+                  name: r['name'].toString(),
+                  prevalence: (r['prevalence'] ?? 0.0) as double))
+              .toList() ??
+          [];
+
+      final accuracyTrends = (json['accuracyTrends'] as List<dynamic>?)
+              ?.map((t) => AccuracyTrend(
+                  date: DateTime.tryParse(t['date']?.toString() ?? '') ??
+                      DateTime.now(),
+                  accuracy: (t['accuracy'] ?? 0.0) as double))
+              .toList() ??
+          [];
+
+      final healthOutcomeTrends =
+          (json['healthOutcomeTrends'] as List<dynamic>?)
+                  ?.map((t) => HealthOutcomeTrend(
+                      period: t['period'].toString(),
+                      value: (t['value'] ?? 0.0) as double))
+                  .toList() ??
+              [];
+
+      final seasonalPatterns = (json['seasonalPatterns'] as List<dynamic>?)
+              ?.map((s) => SeasonalPattern(
+                  condition: s['condition'].toString(),
+                  season: s['season'].toString(),
+                  increase: (s['increase'] ?? 0.0) as double,
+                  description: s['description']?.toString() ?? ''))
+              .toList() ??
+          [];
+
+      final riskDistribution = RiskDistribution(
+        lowRisk: (riskDistJson['lowRisk'] ?? 0) as int,
+        moderateRisk: (riskDistJson['moderateRisk'] ?? 0) as int,
+        highRisk: (riskDistJson['highRisk'] ?? 0) as int,
       );
-    });
+
+      final alertSummary = AlertSummary(
+        critical: (alertSummaryJson['critical'] ?? 0) as int,
+        high: (alertSummaryJson['high'] ?? 0) as int,
+        medium: (alertSummaryJson['medium'] ?? 0) as int,
+        low: (alertSummaryJson['low'] ?? 0) as int,
+      );
+
+      final activeAlerts = (json['activeAlerts'] as List<dynamic>?)
+              ?.map((a) => PredictiveAlert(
+                    id: a['id'].toString(),
+                    patientId: a['patientId'].toString(),
+                    patientName: a['patientName'].toString(),
+                    alertType: a['alertType'].toString(),
+                    severity: _parseAlertSeverity(a['severity']),
+                    message: a['message']?.toString() ?? '',
+                    timestamp:
+                        DateTime.tryParse(a['timestamp']?.toString() ?? '') ??
+                            DateTime.now(),
+                    actions: (a['actions'] as List<dynamic>?)
+                            ?.map((ac) => ac.toString())
+                            .toList() ??
+                        [],
+                  ))
+              .toList() ??
+          [];
+
+      final alertHistory = (json['alertHistory'] as List<dynamic>?)
+              ?.map((a) => PredictiveAlert(
+                    id: a['id'].toString(),
+                    patientId: a['patientId'].toString(),
+                    patientName: a['patientName'].toString(),
+                    alertType: a['alertType'].toString(),
+                    severity: _parseAlertSeverity(a['severity']),
+                    message: a['message']?.toString() ?? '',
+                    timestamp:
+                        DateTime.tryParse(a['timestamp']?.toString() ?? '') ??
+                            DateTime.now(),
+                    actions: (a['actions'] as List<dynamic>?)
+                            ?.map((ac) => ac.toString())
+                            .toList() ??
+                        [],
+                  ))
+              .toList() ??
+          [];
+
+      return PredictiveAnalyticsData(
+        keyMetrics: keyMetrics,
+        earlyWarnings: (json['earlyWarnings'] as List<dynamic>?)
+                ?.map((e) => EarlyWarning(
+                      id: e['id'].toString(),
+                      patientId: e['patientId'].toString(),
+                      patientName: e['patientName'].toString(),
+                      warningType: e['warningType'].toString(),
+                      severity: _parseWarningSeverity(e['severity']),
+                      score: (e['score'] ?? 0.0) as double,
+                      timestamp:
+                          DateTime.tryParse(e['timestamp']?.toString() ?? '') ??
+                              DateTime.now(),
+                      recommendations: (e['recommendations'] as List<dynamic>?)
+                              ?.map((r) => r.toString())
+                              .toList() ??
+                          [],
+                    ))
+                .toList() ??
+            [],
+        populationHealth: populationHealth,
+        recentPredictions: recentPredictions,
+        riskDistribution: riskDistribution,
+        highRiskPatients: highRiskPatients,
+        riskFactors: riskFactors,
+        accuracyTrends: accuracyTrends,
+        healthOutcomeTrends: healthOutcomeTrends,
+        seasonalPatterns: seasonalPatterns,
+        alertSummary: alertSummary,
+        activeAlerts: activeAlerts,
+        alertHistory: alertHistory,
+      );
+    } catch (e) {
+      // Parsing errors should be surfaced to the caller so the UI can show an error.
+      // Do not synthesize or generate mock data.
+      // ignore: avoid_print
+      print('Failed to parse predictive analytics payload: $e');
+      throw Exception('Failed to parse predictive analytics payload: $e');
+    }
   }
 
-  List<SeasonalPattern> _generateSeasonalPatterns() {
-    return [
-      SeasonalPattern(
-        condition: 'Respiratory Infections',
-        season: 'Winter',
-        increase: 45.2,
-        description: 'Significant increase during winter months',
-      ),
-      SeasonalPattern(
-        condition: 'Allergic Reactions',
-        season: 'Spring',
-        increase: 32.1,
-        description: 'Peak during spring allergy season',
-      ),
-    ];
+  WarningSeverity _parseWarningSeverity(dynamic input) {
+    final s = (input?.toString() ?? '').toLowerCase();
+    switch (s) {
+      case 'low':
+        return WarningSeverity.low;
+      case 'medium':
+        return WarningSeverity.medium;
+      case 'high':
+        return WarningSeverity.high;
+      case 'critical':
+        return WarningSeverity.critical;
+      default:
+        return WarningSeverity.low;
+    }
   }
 
-  AlertSummary _generateAlertSummary() {
-    return AlertSummary(
-      critical: 3,
-      high: 8,
-      medium: 15,
-      low: 22,
-    );
-  }
-
-  List<PredictiveAlert> _generateActiveAlerts() {
-    return [
-      PredictiveAlert(
-        id: '1',
-        patientId: 'P001',
-        patientName: 'John Doe',
-        alertType: 'Sepsis Risk',
-        severity: AlertSeverity.critical,
-        message: 'High probability of sepsis development',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        actions: ['Immediate assessment', 'Blood cultures', 'Antibiotic consideration'],
-      ),
-      PredictiveAlert(
-        id: '2',
-        patientId: 'P005',
-        patientName: 'Sarah Brown',
-        alertType: 'Readmission Risk',
-        severity: AlertSeverity.high,
-        message: 'High risk of 30-day readmission',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-        actions: ['Discharge planning review', 'Follow-up scheduling'],
-      ),
-    ];
-  }
-
-  List<PredictiveAlert> _generateAlertHistory() {
-    return [
-      PredictiveAlert(
-        id: '3',
-        patientId: 'P002',
-        patientName: 'Jane Smith',
-        alertType: 'Fall Risk',
-        severity: AlertSeverity.medium,
-        message: 'Moderate fall risk identified',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        actions: ['Fall precautions implemented'],
-      ),
-    ];
+  AlertSeverity _parseAlertSeverity(dynamic input) {
+    final s = (input?.toString() ?? '').toLowerCase();
+    switch (s) {
+      case 'low':
+        return AlertSeverity.low;
+      case 'medium':
+        return AlertSeverity.medium;
+      case 'high':
+        return AlertSeverity.high;
+      case 'critical':
+        return AlertSeverity.critical;
+      default:
+        return AlertSeverity.low;
+    }
   }
 }
 
@@ -575,7 +623,8 @@ class PredictiveAlert {
 enum AlertSeverity { low, medium, high, critical }
 
 // Provider
-final predictiveAnalyticsProvider = StateNotifierProvider<PredictiveAnalyticsNotifier, AsyncValue<PredictiveAnalyticsData>>((ref) {
+final predictiveAnalyticsProvider = StateNotifierProvider<
+    PredictiveAnalyticsNotifier, AsyncValue<PredictiveAnalyticsData>>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return PredictiveAnalyticsNotifier(apiService);
 });

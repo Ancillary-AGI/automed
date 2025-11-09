@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
-import 'dart:math' as math;
+import '../../../../core/di/injection.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
 class RealTimeVitalsWidget extends ConsumerStatefulWidget {
   final String patientId;
   final bool isFullScreen;
-  
+
   const RealTimeVitalsWidget({
     super.key,
     required this.patientId,
@@ -17,32 +17,31 @@ class RealTimeVitalsWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<RealTimeVitalsWidget> createState() => _RealTimeVitalsWidgetState();
+  ConsumerState<RealTimeVitalsWidget> createState() =>
+      _RealTimeVitalsWidgetState();
 }
 
 class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     with TickerProviderStateMixin {
-  
   late AnimationController _heartbeatController;
   late AnimationController _pulseController;
   late Animation<double> _heartbeatAnimation;
   late Animation<double> _pulseAnimation;
-  
+
   Timer? _dataUpdateTimer;
   List<VitalSignData> _heartRateData = [];
   List<VitalSignData> _bloodPressureData = [];
   List<VitalSignData> _oxygenSatData = [];
   List<VitalSignData> _temperatureData = [];
-  
+
   VitalSigns _currentVitals = VitalSigns.normal();
   List<VitalAlert> _activeAlerts = [];
-  
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _startRealTimeUpdates();
-    _generateInitialData();
   }
 
   @override
@@ -58,12 +57,12 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _heartbeatAnimation = Tween<double>(
       begin: 1.0,
       end: 1.3,
@@ -71,7 +70,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
       parent: _heartbeatController,
       curve: Curves.easeInOut,
     ));
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -79,82 +78,92 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
       parent: _pulseController,
       curve: Curves.easeOut,
     ));
-    
+
     _heartbeatController.repeat(reverse: true);
     _pulseController.repeat();
   }
 
   void _startRealTimeUpdates() {
-    _dataUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _updateVitalSigns();
+    // Poll backend for latest vitals periodically. No synthetic/mock data used.
+    _dataUpdateTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) async {
+      await _fetchVitalsFromApi();
       _checkForAlerts();
     });
   }
 
-  void _generateInitialData() {
-    final now = DateTime.now();
-    for (int i = 0; i < 60; i++) {
-      final time = now.subtract(Duration(seconds: 60 - i));
-      _heartRateData.add(VitalSignData(
-        timestamp: time,
-        value: 70 + math.sin(i * 0.1) * 5 + (math.Random().nextDouble() - 0.5) * 3,
-      ));
-      _bloodPressureData.add(VitalSignData(
-        timestamp: time,
-        value: 120 + (math.Random().nextDouble() - 0.5) * 10,
-      ));
-      _oxygenSatData.add(VitalSignData(
-        timestamp: time,
-        value: 98 + (math.Random().nextDouble() - 0.5) * 2,
-      ));
-      _temperatureData.add(VitalSignData(
-        timestamp: time,
-        value: 98.6 + (math.Random().nextDouble() - 0.5) * 1,
-      ));
-    }
-  }
+  Future<void> _fetchVitalsFromApi() async {
+    try {
+      final api = ref.read(apiServiceProvider);
+      final resp =
+          await api.get('/patients/${Uri.encodeComponent(widget.patientId)}');
+      final vitals = resp['vitals'] as Map<String, dynamic>?;
+      if (vitals == null) return;
 
-  void _updateVitalSigns() {
-    if (!mounted) return;
-    
-    setState(() {
-      final now = DateTime.now();
-      final random = math.Random();
-      
-      // Simulate realistic vital sign variations
-      final newHeartRate = _currentVitals.heartRate + (random.nextDouble() - 0.5) * 4;
-      final newSystolic = _currentVitals.systolicBP + (random.nextDouble() - 0.5) * 6;
-      final newOxygenSat = _currentVitals.oxygenSaturation + (random.nextDouble() - 0.5) * 1;
-      final newTemperature = _currentVitals.temperature + (random.nextDouble() - 0.5) * 0.3;
-      
-      _currentVitals = VitalSigns(
-        heartRate: newHeartRate.clamp(60, 100),
-        systolicBP: newSystolic.clamp(110, 140),
-        diastolicBP: _currentVitals.diastolicBP + (random.nextDouble() - 0.5) * 4,
-        oxygenSaturation: newOxygenSat.clamp(95, 100),
-        temperature: newTemperature.clamp(97.5, 99.5),
-        respiratoryRate: _currentVitals.respiratoryRate + (random.nextDouble() - 0.5) * 2,
-      );
-      
-      // Add new data points
-      _heartRateData.add(VitalSignData(timestamp: now, value: _currentVitals.heartRate));
-      _bloodPressureData.add(VitalSignData(timestamp: now, value: _currentVitals.systolicBP));
-      _oxygenSatData.add(VitalSignData(timestamp: now, value: _currentVitals.oxygenSaturation));
-      _temperatureData.add(VitalSignData(timestamp: now, value: _currentVitals.temperature));
-      
-      // Keep only last 60 data points
-      if (_heartRateData.length > 60) {
-        _heartRateData.removeAt(0);
-        _bloodPressureData.removeAt(0);
-        _oxygenSatData.removeAt(0);
-        _temperatureData.removeAt(0);
-      }
-    });
+      if (!mounted) return;
+      setState(() {
+        final now = DateTime.now();
+
+        _currentVitals = VitalSigns(
+          heartRate: (vitals['heartRate'] as num?)?.toDouble() ??
+              _currentVitals.heartRate,
+          systolicBP: (vitals['systolicBP'] as num?)?.toDouble() ??
+              _currentVitals.systolicBP,
+          diastolicBP: (vitals['diastolicBP'] as num?)?.toDouble() ??
+              _currentVitals.diastolicBP,
+          oxygenSaturation: (vitals['oxygenSaturation'] as num?)?.toDouble() ??
+              _currentVitals.oxygenSaturation,
+          temperature: (vitals['temperature'] as num?)?.toDouble() ??
+              _currentVitals.temperature,
+          respiratoryRate: (vitals['respiratoryRate'] as num?)?.toDouble() ??
+              _currentVitals.respiratoryRate,
+        );
+
+        // Append to time series if provided
+        final hrSeries = (vitals['heartRateSeries'] as List<dynamic>?)
+            ?.map((e) => (e as num).toDouble())
+            .toList();
+        if (hrSeries != null && hrSeries.isNotEmpty) {
+          _heartRateData = hrSeries
+              .map((v) => VitalSignData(timestamp: now, value: v))
+              .toList();
+        } else {
+          // If single value present, append it
+          final hr = (vitals['heartRate'] as num?)?.toDouble();
+          if (hr != null) {
+            _heartRateData.add(VitalSignData(timestamp: now, value: hr));
+          }
+        }
+
+        final bpValue = (vitals['systolicBP'] as num?)?.toDouble();
+        if (bpValue != null) {
+          _bloodPressureData.add(VitalSignData(timestamp: now, value: bpValue));
+        }
+
+        final oxy = (vitals['oxygenSaturation'] as num?)?.toDouble();
+        if (oxy != null)
+          _oxygenSatData.add(VitalSignData(timestamp: now, value: oxy));
+
+        final temp = (vitals['temperature'] as num?)?.toDouble();
+        if (temp != null)
+          _temperatureData.add(VitalSignData(timestamp: now, value: temp));
+
+        // Keep only last 60 data points
+        if (_heartRateData.length > 60) _heartRateData.removeAt(0);
+        if (_bloodPressureData.length > 60) _bloodPressureData.removeAt(0);
+        if (_oxygenSatData.length > 60) _oxygenSatData.removeAt(0);
+        if (_temperatureData.length > 60) _temperatureData.removeAt(0);
+      });
+    } catch (e) {
+      // Surface errors quietly; do not synthesize data
+      // ignore: avoid_print
+      print('Failed to fetch realtime vitals for ${widget.patientId}: $e');
+    }
   }
 
   void _checkForAlerts() {
     final alerts = <VitalAlert>[];
-    
+
     if (_currentVitals.heartRate > 100) {
       alerts.add(VitalAlert(
         type: VitalAlertType.tachycardia,
@@ -163,25 +172,27 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
         timestamp: DateTime.now(),
       ));
     }
-    
+
     if (_currentVitals.oxygenSaturation < 95) {
       alerts.add(VitalAlert(
         type: VitalAlertType.hypoxemia,
         severity: AlertSeverity.critical,
-        message: 'Low oxygen saturation: ${_currentVitals.oxygenSaturation.toStringAsFixed(1)}%',
+        message:
+            'Low oxygen saturation: ${_currentVitals.oxygenSaturation.toStringAsFixed(1)}%',
         timestamp: DateTime.now(),
       ));
     }
-    
+
     if (_currentVitals.systolicBP > 140) {
       alerts.add(VitalAlert(
         type: VitalAlertType.hypertension,
         severity: AlertSeverity.warning,
-        message: 'Blood pressure elevated: ${_currentVitals.systolicBP.toInt()}/${_currentVitals.diastolicBP.toInt()}',
+        message:
+            'Blood pressure elevated: ${_currentVitals.systolicBP.toInt()}/${_currentVitals.diastolicBP.toInt()}',
         timestamp: DateTime.now(),
       ));
     }
-    
+
     setState(() {
       _activeAlerts = alerts;
     });
@@ -243,7 +254,8 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
                 const Spacer(),
                 if (_activeAlerts.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.error,
                       borderRadius: BorderRadius.circular(12),
@@ -293,24 +305,24 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
           ),
           const SizedBox(height: 12),
           ..._activeAlerts.map((alert) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(
-                  _getAlertIcon(alert.type),
-                  color: _getAlertColor(alert.severity),
-                  size: 16,
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getAlertIcon(alert.type),
+                      color: _getAlertColor(alert.severity),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        alert.message,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    alert.message,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -329,7 +341,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
           _currentVitals.heartRate.toInt().toString(),
           'bpm',
           Icons.favorite,
-          AppColors.heartRate,
+          AppColors.vitalSigns,
           isAnimated: true,
         ),
         _buildVitalSignCard(
@@ -337,21 +349,21 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
           '${_currentVitals.systolicBP.toInt()}/${_currentVitals.diastolicBP.toInt()}',
           'mmHg',
           Icons.bloodtype,
-          AppColors.bloodPressure,
+          AppColors.vitalSigns,
         ),
         _buildVitalSignCard(
           'Oxygen Sat',
           _currentVitals.oxygenSaturation.toStringAsFixed(1),
           '%',
           Icons.air,
-          AppColors.oxygenSaturation,
+          AppColors.vitalSigns,
         ),
         _buildVitalSignCard(
           'Temperature',
           _currentVitals.temperature.toStringAsFixed(1),
           '°F',
           Icons.thermostat,
-          AppColors.temperature,
+          AppColors.vitalSigns,
         ),
       ],
     );
@@ -399,7 +411,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     bool isAnimated = false,
   }) {
     Widget iconWidget = Icon(icon, color: color, size: 32);
-    
+
     if (isAnimated) {
       iconWidget = AnimatedBuilder(
         animation: _heartbeatAnimation,
@@ -450,7 +462,8 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     );
   }
 
-  Widget _buildCompactVitalCard(String label, String value, String unit, Color color) {
+  Widget _buildCompactVitalCard(
+      String label, String value, String unit, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -491,16 +504,19 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
   Widget _buildRealTimeCharts() {
     return Column(
       children: [
-        _buildChart('Heart Rate', _heartRateData, AppColors.heartRate, 'bpm'),
+        _buildChart('Heart Rate', _heartRateData, AppColors.vitalSigns, 'bpm'),
         const SizedBox(height: 16),
-        _buildChart('Blood Pressure', _bloodPressureData, AppColors.bloodPressure, 'mmHg'),
+        _buildChart(
+            'Blood Pressure', _bloodPressureData, AppColors.vitalSigns, 'mmHg'),
         const SizedBox(height: 16),
-        _buildChart('Oxygen Saturation', _oxygenSatData, AppColors.oxygenSaturation, '%'),
+        _buildChart(
+            'Oxygen Saturation', _oxygenSatData, AppColors.vitalSigns, '%'),
       ],
     );
   }
 
-  Widget _buildChart(String title, List<VitalSignData> data, Color color, String unit) {
+  Widget _buildChart(
+      String title, List<VitalSignData> data, Color color, String unit) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
