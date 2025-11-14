@@ -170,10 +170,10 @@ class AppColors {
   }
 
   static Color blend(Color color1, Color color2, double ratio) {
-    final r = (color1.red * (1 - ratio) + color2.red * ratio).round();
-    final g = (color1.green * (1 - ratio) + color2.green * ratio).round();
-    final b = (color1.blue * (1 - ratio) + color2.blue * ratio).round();
-    final a = (color1.alpha * (1 - ratio) + color2.alpha * ratio).round();
+    final r = ((color1.r * (1 - ratio) + color2.r * ratio) * 255).round();
+    final g = ((color1.g * (1 - ratio) + color2.g * ratio) * 255).round();
+    final b = ((color1.b * (1 - ratio) + color2.b * ratio) * 255).round();
+    final a = ((color1.a * (1 - ratio) + color2.a * ratio) * 255).round();
     return Color.fromARGB(a, r, g, b);
   }
 
@@ -272,4 +272,10 @@ class AppColors {
   static const Color inverseOnSurface = Color(0xFFF4F0EF);
   static const Color inversePrimary = Color(0xFFA4C8FF);
   static const Color surfaceTint = Color(0xFF1976D2);
+
+  // Additional colors needed by the app
+  static const Color grey100 = Color(0xFFF5F5F5);
+  static const Color grey200 = Color(0xFFEEEEEE);
+  static const Color grey400 = Color(0xFFBDBDBD);
+  static const Color grey600 = Color(0xFF757575);
 }

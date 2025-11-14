@@ -1,13 +1,9 @@
 import 'dart:convert';
 import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 /// Advanced Internationalization Service for Healthcare Applications
 /// Supports ICU message formatting, RTL languages, medical terminology,
@@ -187,11 +183,15 @@ class InternationalizationService {
   // RTL language configurations
   final List<String> _rtlLanguages = ['ar', 'he', 'fa', 'ur'];
   final Map<String, TextDirection> _textDirections = {
-    'ar': TextDirection.rtl,
-    'he': TextDirection.rtl,
-    'fa': TextDirection.rtl,
-    'ur': TextDirection.rtl,
+    'ar': TextDirection.RTL,
+    'he': TextDirection.RTL,
+    'fa': TextDirection.RTL,
+    'ur': TextDirection.RTL,
   };
+
+  // TextDirection getters for compatibility
+  TextDirection get rtl => TextDirection.RTL;
+  TextDirection get ltr => TextDirection.LTR;
 
   // Voice synthesis configurations
   final Map<String, Map<String, dynamic>> _voiceConfigs = {
@@ -413,7 +413,7 @@ class InternationalizationService {
   }
 
   TextDirection getTextDirection() {
-    return _textDirections[_currentLocale.languageCode] ?? TextDirection.ltr;
+    return _textDirections[_currentLocale.languageCode] ?? TextDirection.LTR;
   }
 
   // Voice Synthesis and Recognition

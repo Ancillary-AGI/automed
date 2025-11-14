@@ -35,6 +35,8 @@ data class UpdatePatientRequest(
 
     val medicalConditions: Set<String>? = null,
 
+    val medicalHistory: String? = null,
+
     val status: PatientStatus? = null
 ) {
     fun getUpdatedFields(): Map<String, Any?> {
@@ -49,6 +51,7 @@ data class UpdatePatientRequest(
         bloodType?.let { fields["bloodType"] = it }
         allergies?.let { fields["allergies"] = it }
         medicalConditions?.let { fields["medicalConditions"] = it }
+        medicalHistory?.let { fields["medicalHistory"] = it }
         status?.let { fields["status"] = it }
         return fields
     }

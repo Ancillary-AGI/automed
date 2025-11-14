@@ -55,3 +55,27 @@ ai:
       llama-2: false
     api-keys:
       anthropic: ${ANTHROPIC_API_KEY:}
+  causal:
+    enabled: true
+    default-model-type: BAYESIAN_NETWORK
+    confidence-threshold: 0.7
+    min-data-points: 5
+    max-model-cache-size: 100
+    cache-ttl-hours: 24
+    uncertainty:
+      default-level: MEDIUM
+      beta-prior-alpha: 1.0
+      beta-prior-beta: 1.0
+    optimization:
+      max-pathways: 50
+      default-time-horizon: 30
+      criteria-weights:
+        efficacy: 0.4
+        safety: 0.3
+        cost: 0.1
+        quality-of-life: 0.15
+        clinical-guidelines: 0.05
+    counterfactual:
+      max-scenarios: 10
+      similarity-threshold: 0.3
+      nearest-neighbors: 10

@@ -1,0 +1,27 @@
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Install necessary packages for development
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Gradle wrapper and build files
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+# Copy source code
+COPY src src
+
+# Make gradlew executable
+RUN chmod +x gradlew
+
+# Build the application
+RUN ./gradlew build -x test
+
+EXPOSE 8085
+
+CMD ["./gradlew", "bootRun"]

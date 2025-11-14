@@ -21,6 +21,20 @@ class AiService {
 
     fun predictDiagnosis(request: DiagnosisPredictionRequest): Mono<DiagnosisPredictionResponse> {
         return Mono.fromCallable {
+            // Input validation
+            if (request.patientId.isBlank()) {
+                logError("predictDiagnosis", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.symptoms.isEmpty()) {
+                logError("predictDiagnosis", "Symptoms list is empty")
+                throw IllegalArgumentException("Symptoms list must not be empty")
+            }
+            if (request.vitals.isEmpty()) {
+                logError("predictDiagnosis", "Vitals map is empty")
+                throw IllegalArgumentException("Vitals map must not be empty")
+            }
+
             // Simulate AI prediction logic
             val predictions = listOf(
                 DiagnosisPrediction(
@@ -45,6 +59,8 @@ class AiService {
                 "Consult healthcare provider if symptoms worsen"
             )
 
+            logInfo("predictDiagnosis", "Diagnosis prediction completed for patientId=${request.patientId}")
+
             DiagnosisPredictionResponse(
                 predictions = predictions,
                 confidence = 0.85,
@@ -55,8 +71,31 @@ class AiService {
         }
     }
 
+    private fun logError(method: String, message: String) {
+        println("[ERROR] [$method] $message")
+    }
+
+    private fun logInfo(method: String, message: String) {
+        println("[INFO] [$method] $message")
+    }
+
     fun analyzeSymptoms(request: SymptomAnalysisRequest): Mono<SymptomAnalysisResponse> {
         return Mono.fromCallable {
+            if (request.symptoms.isEmpty()) {
+                logError("analyzeSymptoms", "Symptoms list is empty")
+                throw IllegalArgumentException("Symptoms list must not be empty")
+            }
+            if (request.duration < 1) {
+                logError("analyzeSymptoms", "Duration is less than 1")
+                throw IllegalArgumentException("Duration must be at least 1")
+            }
+            if (request.severity.isBlank()) {
+                logError("analyzeSymptoms", "Severity is blank")
+                throw IllegalArgumentException("Severity must not be blank")
+            }
+
+            logInfo("analyzeSymptoms", "Symptom analysis started for patientId=${request.patientId}")
+
             SymptomAnalysisResponse(
                 relatedSymptoms = listOf("Fever", "Cough", "Fatigue"),
                 possibleCauses = listOf("Viral Infection", "Allergic Reaction"),
@@ -69,6 +108,21 @@ class AiService {
 
     fun performTriage(request: TriageRequest): Mono<TriageResponse> {
         return Mono.fromCallable {
+            if (request.patientId.isBlank()) {
+                logError("performTriage", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.symptoms.isEmpty()) {
+                logError("performTriage", "Symptoms list is empty")
+                throw IllegalArgumentException("Symptoms list must not be empty")
+            }
+            if (request.vitals.isEmpty()) {
+                logError("performTriage", "Vitals map is empty")
+                throw IllegalArgumentException("Vitals map must not be empty")
+            }
+
+            logInfo("performTriage", "Triage started for patientId=${request.patientId}")
+
             TriageResponse(
                 priority = "Medium",
                 estimatedWaitTime = 30,
@@ -81,6 +135,13 @@ class AiService {
 
     fun analyzeVitals(request: VitalsAnalysisRequest): Mono<VitalsAnalysisResponse> {
         return Mono.fromCallable {
+            if (request.vitals.isEmpty()) {
+                logError("analyzeVitals", "Vitals map is empty")
+                throw IllegalArgumentException("Vitals map must not be empty")
+            }
+
+            logInfo("analyzeVitals", "Vitals analysis started for patientId=${request.patientId}")
+
             val abnormalValues = mutableListOf<AbnormalVital>()
 
             request.vitals.forEach { (key, value) ->
@@ -161,6 +222,13 @@ class AiService {
 
     fun checkDrugInteractions(request: DrugInteractionRequest): Mono<DrugInteractionResponse> {
         return Mono.fromCallable {
+            if (request.medications.isEmpty()) {
+                logError("checkDrugInteractions", "Medications list is empty")
+                throw IllegalArgumentException("Medications list must not be empty")
+            }
+
+            logInfo("checkDrugInteractions", "Drug interaction check started for patientId=${request.patientId}")
+
             val interactions = listOf(
                 DrugInteraction(
                     drug1 = "Aspirin",
@@ -472,6 +540,21 @@ class AiService {
 
     fun analyzeMedicalImage(request: MedicalImageAnalysisRequest): Mono<MedicalImageAnalysisResponse> {
         return Mono.fromCallable {
+            if (request.patientId.isBlank()) {
+                logError("analyzeMedicalImage", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.imageType.name.isBlank()) {
+                logError("analyzeMedicalImage", "Image type is blank")
+                throw IllegalArgumentException("Image type must not be blank")
+            }
+            if (request.imageData.isBlank()) {
+                logError("analyzeMedicalImage", "Image data is blank")
+                throw IllegalArgumentException("Image data must not be blank")
+            }
+
+            logInfo("analyzeMedicalImage", "Medical image analysis started for patientId=${request.patientId}")
+
             // Simulate medical image analysis
             val findings = listOf(
                 ImageFinding(
@@ -522,6 +605,21 @@ class AiService {
 
     fun analyzeWearableData(request: WearableDataRequest): Mono<WearableDataResponse> {
         return Mono.fromCallable {
+            if (request.patientId.isBlank()) {
+                logError("analyzeWearableData", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.dataPoints.isEmpty()) {
+                logError("analyzeWearableData", "Data points list is empty")
+                throw IllegalArgumentException("Data points list must not be empty")
+            }
+            if (request.timeRange == null) {
+                logError("analyzeWearableData", "Time range is null")
+                throw IllegalArgumentException("Time range must not be null")
+            }
+
+            logInfo("analyzeWearableData", "Wearable data analysis started for patientId=${request.patientId}")
+
             // Simulate wearable data analysis
             val avgHeartRate = request.dataPoints.mapNotNull { it.heartRate }.average()
             val avgSystolic = request.dataPoints.mapNotNull { it.bloodPressureSystolic }.average()
@@ -584,6 +682,21 @@ class AiService {
 
     fun analyzeVoice(request: VoiceAnalysisRequest): Mono<VoiceAnalysisResponse> {
         return Mono.fromCallable {
+            if (request.patientId.isBlank()) {
+                logError("analyzeVoice", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.audioData.isBlank()) {
+                logError("analyzeVoice", "Audio data is blank")
+                throw IllegalArgumentException("Audio data must not be blank")
+            }
+            if (request.analysisType.name.isBlank()) {
+                logError("analyzeVoice", "Analysis type is blank")
+                throw IllegalArgumentException("Analysis type must not be blank")
+            }
+
+            logInfo("analyzeVoice", "Voice analysis started for patientId=${request.patientId}")
+
             VoiceAnalysisResponse(
                 patientId = request.patientId,
                 analysisType = request.analysisType,
@@ -625,6 +738,21 @@ class AiService {
 
     fun analyzePopulationHealth(request: PopulationHealthRequest): Mono<PopulationHealthResponse> {
         return Mono.fromCallable {
+            if (request.region.isBlank()) {
+                logError("analyzePopulationHealth", "Region is blank")
+                throw IllegalArgumentException("Region must not be blank")
+            }
+            if (request.condition.isBlank()) {
+                logError("analyzePopulationHealth", "Condition is blank")
+                throw IllegalArgumentException("Condition must not be blank")
+            }
+            if (request.timeRangeDays < 1) {
+                logError("analyzePopulationHealth", "Time range days is less than 1")
+                throw IllegalArgumentException("Time range days must be at least 1")
+            }
+
+            logInfo("analyzePopulationHealth", "Population health analysis started for region=${request.region}")
+
             PopulationHealthResponse(
                 region = request.region,
                 condition = request.condition,
@@ -665,6 +793,21 @@ class AiService {
 
     fun detectOutbreak(request: OutbreakDetectionRequest): Mono<OutbreakDetectionResponse> {
         return Mono.fromCallable {
+            if (request.region.isBlank()) {
+                logError("detectOutbreak", "Region is blank")
+                throw IllegalArgumentException("Region must not be blank")
+            }
+            if (request.symptoms.isEmpty()) {
+                logError("detectOutbreak", "Symptoms list is empty")
+                throw IllegalArgumentException("Symptoms list must not be empty")
+            }
+            if (request.caseCount < 1) {
+                logError("detectOutbreak", "Case count is less than 1")
+                throw IllegalArgumentException("Case count must be at least 1")
+            }
+
+            logInfo("detectOutbreak", "Outbreak detection started for region=${request.region}")
+
             OutbreakDetectionResponse(
                 region = request.region,
                 outbreakProbability = 0.75,
@@ -697,6 +840,21 @@ class AiService {
 
     fun initiateRoboticProcedure(request: RoboticProcedureRequest): Mono<RoboticProcedureResponse> {
         return Mono.fromCallable {
+            if (request.patientId.isBlank()) {
+                logError("initiateRoboticProcedure", "Missing patientId")
+                throw IllegalArgumentException("Patient ID must not be blank")
+            }
+            if (request.procedureType.name.isBlank()) {
+                logError("initiateRoboticProcedure", "Procedure type is blank")
+                throw IllegalArgumentException("Procedure type must not be blank")
+            }
+            if (request.robotType.name.isBlank()) {
+                logError("initiateRoboticProcedure", "Robot type is blank")
+                throw IllegalArgumentException("Robot type must not be blank")
+            }
+
+            logInfo("initiateRoboticProcedure", "Robotic procedure started for patientId=${request.patientId}")
+
             RoboticProcedureResponse(
                 procedureId = UUID.randomUUID().toString(),
                 patientId = request.patientId,
@@ -719,6 +877,21 @@ class AiService {
 
     fun startVRTraining(request: VRTrainingRequest): Mono<VRTrainingResponse> {
         return Mono.fromCallable {
+            if (request.traineeId.isBlank()) {
+                logError("startVRTraining", "Missing traineeId")
+                throw IllegalArgumentException("Trainee ID must not be blank")
+            }
+            if (request.scenarioType.name.isBlank()) {
+                logError("startVRTraining", "Scenario type is blank")
+                throw IllegalArgumentException("Scenario type must not be blank")
+            }
+            if (request.difficultyLevel.name.isBlank()) {
+                logError("startVRTraining", "Difficulty level is blank")
+                throw IllegalArgumentException("Difficulty level must not be blank")
+            }
+
+            logInfo("startVRTraining", "VR training started for traineeId=${request.traineeId}")
+
             VRTrainingResponse(
                 sessionId = UUID.randomUUID().toString(),
                 traineeId = request.traineeId,

@@ -5,7 +5,6 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../providers/predictive_analytics_provider.dart';
-import '../widgets/health_risk_card.dart';
 import '../widgets/prediction_chart.dart';
 import '../widgets/early_warning_panel.dart';
 
@@ -710,7 +709,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
               height: 300,
               child: SfCartesianChart(
                 primaryXAxis: CategoryAxis(),
-                series: <ChartSeries>[
+                series: <CartesianSeries<dynamic, dynamic>>[
                   LineSeries<HealthOutcomeTrend, String>(
                     dataSource: trends,
                     xValueMapper: (trend, _) => trend.period,

@@ -8,11 +8,18 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - eureka-server
       - redis
     networks:
       - automed-network
+    mem_limit: 512m
+    cpus: 0.5
 
   # Service Discovery
   eureka-server:
@@ -27,39 +34,85 @@ services:
     build: ./backend/patient-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - postgres-patients
       - kafka
     networks:
       - automed-network
+    mem_limit: 512m
+    cpus: 0.5
 
   hospital-service:
     build: ./backend/hospital-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - postgres-hospitals
       - kafka
     networks:
       - automed-network
+    mem_limit: 512m
+    cpus: 0.5
 
   ai-service:
     build: ./backend/ai-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - redis
       - kafka
     networks:
       - automed-network
+    mem_limit: 512m
+    cpus: 0.5
+
+  multimodal-ai-service:
+    build: ./backend/multimodal-ai-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - redis
+      - kafka
+      - ai-service
+    networks:
+      - automed-network
+    mem_limit: 1g
+    cpus: 1.0
 
   # Databases
   postgres-patients:
     image: postgres:15-alpine
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: patients
       POSTGRES_USER: automed
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U automed"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - postgres-patients-data:/var/lib/postgresql/data
     networks:
@@ -67,10 +120,17 @@ services:
 
   postgres-hospitals:
     image: postgres:15-alpine
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: hospitals
       POSTGRES_USER: automed
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U automed"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - postgres-hospitals-data:/var/lib/postgresql/data
     networks:

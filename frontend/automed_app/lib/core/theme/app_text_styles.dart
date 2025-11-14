@@ -132,27 +132,6 @@ class AppTextStyles {
   static const TextStyle caption = bodySmall;
   static const TextStyle overline = labelSmall;
 
-  // Helper methods for dynamic styling
-  static TextStyle get headline1 => displayLarge;
-  static TextStyle get headline2 => displayMedium;
-  static TextStyle get headline3 => displaySmall;
-  static TextStyle get headline4 => headlineLarge;
-  static TextStyle get headline5 => headlineMedium;
-  static TextStyle get headline6 => headlineSmall;
-
-  static TextStyle get subtitle1 => titleLarge;
-  static TextStyle get subtitle2 => titleMedium;
-
-  static TextStyle get bodyText1 => bodyLarge;
-  static TextStyle get bodyText2 => bodyMedium;
-
-  static TextStyle get body1 => bodyLarge;
-  static TextStyle get body2 => bodyMedium;
-
-  static TextStyle get button => labelLarge;
-  static TextStyle get caption => bodySmall;
-  static TextStyle get overline => labelSmall;
-
   // Custom healthcare-specific styles
   static const TextStyle vitalSigns = TextStyle(
     fontSize: 18,

@@ -65,8 +65,8 @@ class _WelcomeCard extends StatelessWidget {
             Text(
               'How are you feeling today?',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+                    color: AppColors.textSecondary,
+                  ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -119,8 +119,9 @@ class _HealthStatusChip extends StatelessWidget {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('$title Status'),
-              content: Text('Current status: $title\nLast updated: ${DateTime.now().toString().substring(0, 16)}'),
+              title: Text('$label Status'),
+              content: Text(
+                  'Current status: $label\nLast updated: ${DateTime.now().toString().substring(0, 16)}'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -131,8 +132,8 @@ class _HealthStatusChip extends StatelessWidget {
           );
         }
       },
-      backgroundColor: color.withOpacity(0.1),
-      selectedColor: color.withOpacity(0.2),
+      backgroundColor: color.withValues(alpha: 0.1),
+      selectedColor: color.withValues(alpha: 0.2),
       checkmarkColor: color,
     );
   }
@@ -244,14 +245,14 @@ class _QuickActionCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                      color: AppColors.textSecondary,
+                    ),
               ),
             ],
           ),
@@ -288,14 +289,14 @@ class _UpcomingAppointments extends StatelessWidget {
         Card(
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.person, color: AppColors.primary),
             ),
             title: const Text('Dr. Sarah Johnson'),
             subtitle: const Text('General Consultation • Tomorrow 2:00 PM'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.pushNamed(context, '/appointment-details', arguments: appointment);
+              Navigator.pushNamed(context, '/appointment-details');
             },
           ),
         ),
@@ -324,7 +325,8 @@ class _RecentActivity extends StatelessWidget {
                 leading: const Icon(Icons.medication, color: AppColors.success),
                 title: const Text('Medication taken'),
                 subtitle: const Text('Aspirin 100mg • 2 hours ago'),
-                trailing: const Icon(Icons.check_circle, color: AppColors.success),
+                trailing:
+                    const Icon(Icons.check_circle, color: AppColors.success),
               ),
               const Divider(height: 1),
               ListTile(

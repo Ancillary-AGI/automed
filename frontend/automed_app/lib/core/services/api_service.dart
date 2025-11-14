@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../core/config/app_config.dart';
+import '../models/api_response.dart';
 
 class ApiService {
   final Dio dio;
@@ -97,15 +98,30 @@ class ApiService {
     return get('/patients/dashboard');
   }
 
+  // Typed GET that returns ApiResponse<T>
+  Future<ApiResponse<T>> getTyped<T>(
+      String endpoint, T Function(Object? json) fromJsonT) async {
+    final raw = await get(endpoint);
+    return ApiResponse<T>(
+      success: raw['success'] ?? true,
+      data: fromJsonT(raw['data'] ?? raw),
+      message: raw['message'],
+      statusCode: raw['statusCode'],
+      timestamp: raw['timestamp'],
+    );
+  }
+
   Future<Map<String, dynamic>> getPatient(String patientId) async {
     return get('/patients/$patientId');
   }
 
-  Future<Map<String, dynamic>> createPatient(Map<String, dynamic> patientData) async {
+  Future<Map<String, dynamic>> createPatient(
+      Map<String, dynamic> patientData) async {
     return post('/patients', data: patientData);
   }
 
-  Future<Map<String, dynamic>> updatePatient(String patientId, Map<String, dynamic> patientData) async {
+  Future<Map<String, dynamic>> updatePatient(
+      String patientId, Map<String, dynamic> patientData) async {
     return put('/patients/$patientId', data: patientData);
   }
 
@@ -114,7 +130,8 @@ class ApiService {
     return get('/consultations');
   }
 
-  Future<Map<String, dynamic>> createConsultation(Map<String, dynamic> consultationData) async {
+  Future<Map<String, dynamic>> createConsultation(
+      Map<String, dynamic> consultationData) async {
     return post('/consultations', data: consultationData);
   }
 
@@ -128,16 +145,32 @@ class ApiService {
   }
 
   // AI endpoints
-  Future<Map<String, dynamic>> analyzeSymptoms(Map<String, dynamic> symptomsData) async {
+  Future<Map<String, dynamic>> analyzeSymptoms(
+      Map<String, dynamic> symptomsData) async {
     return post('/ai/analyze-symptoms', data: symptomsData);
   }
 
-  Future<Map<String, dynamic>> predictDiagnosis(Map<String, dynamic> diagnosisData) async {
+  // Typed POST that returns ApiResponse<T>
+  Future<ApiResponse<T>> postTyped<T>(String endpoint,
+      {dynamic data, required T Function(Object? json) fromJsonT}) async {
+    final raw = await post(endpoint, data: data);
+    return ApiResponse<T>(
+      success: raw['success'] ?? true,
+      data: fromJsonT(raw['data'] ?? raw),
+      message: raw['message'],
+      statusCode: raw['statusCode'],
+      timestamp: raw['timestamp'],
+    );
+  }
+
+  Future<Map<String, dynamic>> predictDiagnosis(
+      Map<String, dynamic> diagnosisData) async {
     return post('/ai/predict-diagnosis', data: diagnosisData);
   }
 
   // Emergency endpoints
-  Future<Map<String, dynamic>> createEmergencyAlert(Map<String, dynamic> emergencyData) async {
+  Future<Map<String, dynamic>> createEmergencyAlert(
+      Map<String, dynamic> emergencyData) async {
     return post('/emergency/alert', data: emergencyData);
   }
 
@@ -146,7 +179,8 @@ class ApiService {
     return get('/medications');
   }
 
-  Future<Map<String, dynamic>> createMedication(Map<String, dynamic> medicationData) async {
+  Future<Map<String, dynamic>> createMedication(
+      Map<String, dynamic> medicationData) async {
     return post('/medications', data: medicationData);
   }
 
@@ -158,5 +192,59 @@ class ApiService {
   // Sync endpoints
   Future<Map<String, dynamic>> syncData(Map<String, dynamic> syncData) async {
     return post('/sync', data: syncData);
+  }
+
+  // Additional methods needed by providers
+  Future<Map<String, dynamic>> getPatients(
+      int page, int limit, String? search) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+    final queryString =
+        queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return get('/patients?$queryString');
+  }
+
+  Future<Map<String, dynamic>> getEmergencyAlerts() async {
+    return get('/emergency/alerts');
+  }
+
+  // Additional methods needed by providers
+  Future<Map<String, dynamic>> getHospitalsPaginated(
+      int page, int limit, String? search) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+    final queryString =
+        queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return get('/hospitals?$queryString');
+  }
+
+  Future<Map<String, dynamic>> getConsultationsPaginated(
+      int page, int limit, String? search) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+    final queryString =
+        queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return get('/consultations?$queryString');
+  }
+
+  Future<Map<String, dynamic>> getMedicationsPaginated(
+      int page, int limit, String? search) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+    final queryString =
+        queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return get('/medications?$queryString');
   }
 }

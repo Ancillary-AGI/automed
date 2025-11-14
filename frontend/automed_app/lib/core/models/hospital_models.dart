@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'patient_models.dart' show Address;
 
 part 'hospital_models.g.dart';
 
@@ -36,39 +37,13 @@ class Hospital {
     required this.updatedAt,
   });
 
-  factory Hospital.fromJson(Map<String, dynamic> json) => 
+  factory Hospital.fromJson(Map<String, dynamic> json) =>
       _$HospitalFromJson(json);
   Map<String, dynamic> toJson() => _$HospitalToJson(this);
 
-  double get occupancyRate => capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
+  double get occupancyRate =>
+      capacity > 0 ? (currentOccupancy / capacity) * 100 : 0;
   int get availableBeds => capacity - currentOccupancy;
-}
-
-@JsonSerializable()
-class Address {
-  final String street;
-  final String city;
-  final String state;
-  final String country;
-  final String zipCode;
-  final double? latitude;
-  final double? longitude;
-
-  Address({
-    required this.street,
-    required this.city,
-    required this.state,
-    required this.country,
-    required this.zipCode,
-    this.latitude,
-    this.longitude,
-  });
-
-  factory Address.fromJson(Map<String, dynamic> json) => 
-      _$AddressFromJson(json);
-  Map<String, dynamic> toJson() => _$AddressToJson(this);
-
-  String get fullAddress => '$street, $city, $state $zipCode, $country';
 }
 
 @JsonSerializable()
@@ -101,8 +76,7 @@ class Staff {
     required this.certifications,
   });
 
-  factory Staff.fromJson(Map<String, dynamic> json) => 
-      _$StaffFromJson(json);
+  factory Staff.fromJson(Map<String, dynamic> json) => _$StaffFromJson(json);
   Map<String, dynamic> toJson() => _$StaffToJson(this);
 
   String get fullName => '$firstName $lastName';
@@ -140,7 +114,7 @@ class Equipment {
     this.specifications,
   });
 
-  factory Equipment.fromJson(Map<String, dynamic> json) => 
+  factory Equipment.fromJson(Map<String, dynamic> json) =>
       _$EquipmentFromJson(json);
   Map<String, dynamic> toJson() => _$EquipmentToJson(this);
 
@@ -180,7 +154,7 @@ class EmergencyAlert {
     this.metadata,
   });
 
-  factory EmergencyAlert.fromJson(Map<String, dynamic> json) => 
+  factory EmergencyAlert.fromJson(Map<String, dynamic> json) =>
       _$EmergencyAlertFromJson(json);
   Map<String, dynamic> toJson() => _$EmergencyAlertToJson(this);
 }
@@ -205,7 +179,7 @@ class EmergencyAlertRequest {
     this.metadata,
   });
 
-  factory EmergencyAlertRequest.fromJson(Map<String, dynamic> json) => 
+  factory EmergencyAlertRequest.fromJson(Map<String, dynamic> json) =>
       _$EmergencyAlertRequestFromJson(json);
   Map<String, dynamic> toJson() => _$EmergencyAlertRequestToJson(this);
 }
@@ -226,9 +200,60 @@ class EmergencyResponse {
     this.actions,
   });
 
-  factory EmergencyResponse.fromJson(Map<String, dynamic> json) => 
+  factory EmergencyResponse.fromJson(Map<String, dynamic> json) =>
       _$EmergencyResponseFromJson(json);
   Map<String, dynamic> toJson() => _$EmergencyResponseToJson(this);
+}
+
+@JsonSerializable()
+class HospitalCapacity {
+  final int totalBeds;
+  final int availableBeds;
+  final int icuBeds;
+  final int emergencyBeds;
+  final int operatingRooms;
+  final DateTime lastUpdated;
+
+  HospitalCapacity({
+    required this.totalBeds,
+    required this.availableBeds,
+    required this.icuBeds,
+    required this.emergencyBeds,
+    required this.operatingRooms,
+    required this.lastUpdated,
+  });
+
+  factory HospitalCapacity.fromJson(Map<String, dynamic> json) =>
+      _$HospitalCapacityFromJson(json);
+  Map<String, dynamic> toJson() => _$HospitalCapacityToJson(this);
+
+  double get occupancyRate =>
+      totalBeds > 0 ? ((totalBeds - availableBeds) / totalBeds) * 100 : 0;
+
+  bool get isAtCapacity => availableBeds <= 0;
+}
+
+@JsonSerializable()
+class Department {
+  final String id;
+  final String name;
+  final String? description;
+  final String? headOfDepartment;
+  final int staffCount;
+  final List<String> services;
+
+  Department({
+    required this.id,
+    required this.name,
+    this.description,
+    this.headOfDepartment,
+    required this.staffCount,
+    required this.services,
+  });
+
+  factory Department.fromJson(Map<String, dynamic> json) =>
+      _$DepartmentFromJson(json);
+  Map<String, dynamic> toJson() => _$DepartmentToJson(this);
 }
 
 // Enums
@@ -241,6 +266,19 @@ enum HospitalStatus {
   maintenance,
   @JsonValue('EMERGENCY_ONLY')
   emergencyOnly,
+}
+
+enum HospitalType {
+  @JsonValue('GENERAL')
+  general,
+  @JsonValue('SPECIALTY')
+  specialty,
+  @JsonValue('TEACHING')
+  teaching,
+  @JsonValue('PRIVATE')
+  private,
+  @JsonValue('GOVERNMENT')
+  government,
 }
 
 enum StaffStatus {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/advanced_analytics_provider.dart';
+import '../../domain/models/analytics_models.dart';
 
 class PerformanceKpiWidget extends ConsumerWidget {
   const PerformanceKpiWidget({super.key});
@@ -19,7 +20,7 @@ class PerformanceKpiWidget extends ConsumerWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           // KPI Overview Cards
           GridView.count(
             shrinkWrap: true,
@@ -36,7 +37,16 @@ class PerformanceKpiWidget extends ConsumerWidget {
                 Colors.green,
                 data.performanceKpis.trends.firstWhere(
                   (t) => t.kpiName == 'Patient Satisfaction',
-                  orElse: () => null,
+                  orElse: () => KpiTrend(
+                    kpiName: 'Patient Satisfaction',
+                    currentValue:
+                        data.performanceKpis.patientSatisfaction * 100,
+                    previousValue:
+                        data.performanceKpis.patientSatisfaction * 100,
+                    changePercentage: 0.0,
+                    trendDirection: 'stable',
+                    timeframe: 'current',
+                  ),
                 ),
               ),
               _buildKpiCard(
@@ -46,7 +56,14 @@ class PerformanceKpiWidget extends ConsumerWidget {
                 Colors.blue,
                 data.performanceKpis.trends.firstWhere(
                   (t) => t.kpiName == 'Staff Efficiency',
-                  orElse: () => null,
+                  orElse: () => KpiTrend(
+                    kpiName: 'Staff Efficiency',
+                    currentValue: data.performanceKpis.staffEfficiency * 100,
+                    previousValue: data.performanceKpis.staffEfficiency * 100,
+                    changePercentage: 0.0,
+                    trendDirection: 'stable',
+                    timeframe: 'current',
+                  ),
                 ),
               ),
               _buildKpiCard(
@@ -56,7 +73,14 @@ class PerformanceKpiWidget extends ConsumerWidget {
                 Colors.orange,
                 data.performanceKpis.trends.firstWhere(
                   (t) => t.kpiName == 'Cost per Patient',
-                  orElse: () => null,
+                  orElse: () => KpiTrend(
+                    kpiName: 'Cost per Patient',
+                    currentValue: data.performanceKpis.costPerPatient,
+                    previousValue: data.performanceKpis.costPerPatient,
+                    changePercentage: 0.0,
+                    trendDirection: 'stable',
+                    timeframe: 'current',
+                  ),
                 ),
               ),
               _buildKpiCard(
@@ -66,13 +90,20 @@ class PerformanceKpiWidget extends ConsumerWidget {
                 Colors.red,
                 data.performanceKpis.trends.firstWhere(
                   (t) => t.kpiName == 'Readmission Rate',
-                  orElse: () => null,
+                  orElse: () => KpiTrend(
+                    kpiName: 'Readmission Rate',
+                    currentValue: data.performanceKpis.readmissionRate * 100,
+                    previousValue: data.performanceKpis.readmissionRate * 100,
+                    changePercentage: 0.0,
+                    trendDirection: 'stable',
+                    timeframe: 'current',
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // KPI Trends Chart
           Card(
             child: Padding(
@@ -96,7 +127,7 @@ class PerformanceKpiWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Benchmarking
           Card(
             child: Padding(
@@ -150,9 +181,10 @@ class PerformanceKpiWidget extends ConsumerWidget {
                 const Spacer(),
                 if (trend != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: trendColor.withOpacity(0.1),
+                      color: trendColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -195,8 +227,14 @@ class PerformanceKpiWidget extends ConsumerWidget {
   }
 
   LineChartData _buildKpiTrendsChart(List<dynamic> trends) {
-    final colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple];
-    
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.red,
+      Colors.purple
+    ];
+
     return LineChartData(
       gridData: FlGridData(show: true),
       titlesData: FlTitlesData(
@@ -224,13 +262,14 @@ class PerformanceKpiWidget extends ConsumerWidget {
       borderData: FlBorderData(show: true),
       lineBarsData: trends.asMap().entries.map((entry) {
         final color = colors[entry.key % colors.length];
-        
+
         return LineChartBarData(
           spots: List.generate(12, (index) {
             // Generate sample trend data
             final baseValue = entry.value.currentValue;
             final variation = (index - 6) * 2;
-            return FlSpot(index.toDouble(), (baseValue + variation).clamp(0, 100));
+            return FlSpot(
+                index.toDouble(), (baseValue + variation).clamp(0, 100));
           }),
           isCurved: true,
           color: color,
@@ -245,10 +284,10 @@ class PerformanceKpiWidget extends ConsumerWidget {
     final ourValue = benchmark.ourValue;
     final industryAvg = benchmark.industryAverage;
     final bestPractice = benchmark.bestPractice;
-    
+
     final ourPercentage = (ourValue / bestPractice).clamp(0.0, 1.0);
     final industryPercentage = (industryAvg / bestPractice).clamp(0.0, 1.0);
-    
+
     Color performanceColor;
     if (ourValue >= bestPractice * 0.9) {
       performanceColor = Colors.green;

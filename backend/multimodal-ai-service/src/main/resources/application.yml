@@ -1,0 +1,156 @@
+spring:
+  application:
+    name: multimodal-ai-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/automed
+    username: automed
+    password: automed123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: multimodal-ai-service
+      auto-offset-reset: earliest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/automed
+  cloud:
+    discovery:
+      enabled: true
+  websocket:
+    stomp:
+      enabled: true
+
+server:
+  port: 8086
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.automed.multimodalai: DEBUG
+    org.springframework.security: DEBUG
+    ai.djl: INFO
+
+# Multimodal AI Configuration
+multimodal:
+  models:
+    text:
+      model-path: models/bert-base-uncased
+      max-sequence-length: 512
+      embedding-dim: 768
+    vision:
+      model-path: models/resnet50
+      input-size: 224
+      embedding-dim: 2048
+    fusion:
+      strategy: hybrid
+      hidden-dim: 512
+      num-heads: 8
+      num-layers: 6
+  processing:
+    batch-size: 16
+    max-concurrent-requests: 10
+    timeout-seconds: 30
+  uncertainty:
+    enabled: true
+    confidence-threshold: 0.8
+    calibration-method: temperature-scaling
+  synthetic-data:
+    generation-method: gan
+    quality-threshold: 0.85
+    max-generation-size: 10000
+  realtime:
+    session-timeout-minutes: 60
+    max-active-sessions: 100
+    update-frequency-ms: 1000
+
+# Service URLs
+services:
+  patient-service:
+    url: http://localhost:8081
+  hospital-service:
+    url: http://localhost:8082
+  ai-service:
+    url: http://localhost:8084
+  eureka-server:
+    url: http://localhost:8761
+
+# External AI Services
+ai-services:
+  huggingface:
+    api-key: ${HUGGINGFACE_API_KEY:}
+    models:
+      text-generation: gpt2
+      image-classification: google/vit-base-patch16-224
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    models:
+      gpt-4: gpt-4
+      dalle: dall-e-3
+
+# Monitoring and Observability
+metrics:
+  enabled: true
+  export:
+    prometheus: true
+    influxdb: false
+  tags:
+    service: multimodal-ai-service
+    version: 1.0.0
+
+# Resilience Configuration
+resilience:
+  circuit-breaker:
+    failure-rate-threshold: 50
+    wait-duration-in-open-state: 30s
+    sliding-window-size: 20
+  retry:
+    max-attempts: 3
+    wait-duration: 2s
+  rate-limiter:
+    limit-for-period: 10
+    limit-refresh-period: 1s
+    timeout-duration: 500ms
+
+# Cache Configuration
+cache:
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    model-cache-ttl: 3600s
+    prediction-cache-ttl: 300s
+
+# WebSocket Configuration
+websocket:
+  broker:
+    enabled: true
+    relay:
+      enabled: false
+  stomp:
+    command-timeout: 10000
+    heartbeat:
+      client: 10000
+      server: 10000

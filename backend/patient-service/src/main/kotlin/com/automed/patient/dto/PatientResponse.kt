@@ -21,6 +21,7 @@ data class PatientResponse(
     val bloodType: BloodType,
     val allergies: Set<String>,
     val medicalConditions: Set<String>,
+    val medicalHistory: String?,
     val status: PatientStatus,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/text_theme_compat.dart';
 
 /// Advanced App Card with comprehensive features for healthcare applications
 /// Supports accessibility, responsive design, and healthcare-specific styling
@@ -452,7 +453,7 @@ class AppointmentCard extends AppCard {
   }
 }
 
-class MedicationCard extends AppCard {
+class MedicationInfoCard extends AppCard {
   final String medicationName;
   final String dosage;
   final String frequency;
@@ -460,7 +461,7 @@ class MedicationCard extends AppCard {
   final DateTime? nextDose;
   final Color statusColor;
 
-  const MedicationCard({
+  const MedicationInfoCard({
     super.key,
     required this.medicationName,
     required this.dosage,
@@ -542,16 +543,16 @@ class EmergencyAlertCard extends AppCard {
   final String severity;
   final Color severityColor;
   final DateTime timestamp;
-  final List<String>? actions;
+  final List<String>? actionLabels;
 
-  const EmergencyAlertCard({
+  EmergencyAlertCard({
     super.key,
     required this.alertType,
     required this.message,
     required this.severity,
     required this.severityColor,
     required this.timestamp,
-    this.actions,
+    this.actionLabels,
     super.onTap,
   }) : super(
           backgroundColor: severityColor.withValues(alpha: 0.05),
@@ -627,13 +628,13 @@ class EmergencyAlertCard extends AppCard {
             ),
           ),
 
-          // Actions
-          if (actions != null && actions!.isNotEmpty) ...[
+          // Actions (labels mapped to buttons)
+          if (actionLabels != null && actionLabels!.isNotEmpty) ...[
             const SizedBox(height: 12.0),
             Wrap(
               spacing: 8.0,
-              children: actions!
-                  .map((action) => OutlinedButton(
+              children: actionLabels!
+                  .map((label) => OutlinedButton(
                         onPressed: () {
                           // Handle action
                         },
@@ -641,7 +642,7 @@ class EmergencyAlertCard extends AppCard {
                           side: BorderSide(color: severityColor),
                         ),
                         child: Text(
-                          action,
+                          label,
                           style: TextStyle(color: severityColor),
                         ),
                       ))

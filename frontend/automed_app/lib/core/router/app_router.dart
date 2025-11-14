@@ -12,12 +12,12 @@ import '../../features/medication/presentation/pages/medication_page.dart';
 import '../../features/patient/presentation/pages/patient_dashboard_page.dart';
 import '../../features/patient/presentation/pages/patient_profile_page.dart';
 import '../../features/patient/presentation/pages/patients_list_page.dart';
-import '../services/auth_service.dart';
+import '../di/injection.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authService = ref.watch(authServiceProvider);
-  
+
   return GoRouter(
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
@@ -25,20 +25,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = await authService.isLoggedIn();
       final isLoggingIn = state.matchedLocation == RouteNames.login ||
           state.matchedLocation == RouteNames.register;
-      
+
       // If not logged in and not on login/register page, redirect to login
       if (!isLoggedIn && !isLoggingIn) {
         return RouteNames.login;
       }
-      
+
       // If logged in and on login/register page, redirect to dashboard
       if (isLoggedIn && isLoggingIn) {
         final userType = await authService.getUserType();
-        return userType == 'patient' 
-            ? RouteNames.patientDashboard 
+        return userType == 'patient'
+            ? RouteNames.patientDashboard
             : RouteNames.hospitalDashboard;
       }
-      
+
       return null;
     },
     routes: [
@@ -48,7 +48,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'splash',
         builder: (context, state) => const SplashPage(),
       ),
-      
+
       // Authentication Routes
       GoRoute(
         path: RouteNames.login,
@@ -60,7 +60,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'register',
         builder: (context, state) => const RegisterPage(),
       ),
-      
+
       // Patient Routes
       GoRoute(
         path: RouteNames.patientDashboard,
@@ -99,7 +99,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      
+
       // Hospital/Healthcare Provider Routes
       GoRoute(
         path: RouteNames.hospitalDashboard,
@@ -128,7 +128,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      
+
       // AI Features Routes
       GoRoute(
         path: '/ai',
@@ -152,7 +152,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      
+
       // Settings Routes
       GoRoute(
         path: '/settings',
@@ -309,7 +309,7 @@ class PrivacySettingsPage extends StatelessWidget {
 
 class ErrorPage extends StatelessWidget {
   final Exception? error;
-  
+
   const ErrorPage({super.key, this.error});
 
   @override

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../providers/advanced_analytics_provider.dart';
 import '../widgets/real_time_metrics_widget.dart';
 import '../widgets/predictive_charts_widget.dart';
@@ -11,10 +10,12 @@ class AdvancedAnalyticsDashboard extends ConsumerStatefulWidget {
   const AdvancedAnalyticsDashboard({super.key});
 
   @override
-  ConsumerState<AdvancedAnalyticsDashboard> createState() => _AdvancedAnalyticsDashboardState();
+  ConsumerState<AdvancedAnalyticsDashboard> createState() =>
+      _AdvancedAnalyticsDashboardState();
 }
 
-class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDashboard>
+class _AdvancedAnalyticsDashboardState
+    extends ConsumerState<AdvancedAnalyticsDashboard>
     with TickerProviderStateMixin {
   late TabController _tabController;
   String selectedTimeRange = '24h';
@@ -41,7 +42,8 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
               setState(() {
                 selectedTimeRange = value;
               });
-              ref.read(advancedAnalyticsProvider.notifier)
+              ref
+                  .read(advancedAnalyticsProvider.notifier)
                   .updateTimeRange(value);
             },
             itemBuilder: (context) => [
@@ -155,11 +157,11 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // Real-time charts
           const RealTimeMetricsWidget(),
           const SizedBox(height: 24),
-          
+
           // System status
           _buildSystemStatusSection(data),
         ],
@@ -174,7 +176,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PredictiveChartsWidget(),
           SizedBox(height: 24),
-          
+
           // Risk Assessment Matrix
           Card(
             child: Padding(
@@ -187,7 +189,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 16),
-                  Container(
+                  SizedBox(
                     height: 200,
                     child: const Center(
                       child: Text('Risk assessment visualization'),
@@ -209,7 +211,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PerformanceKpiWidget(),
           SizedBox(height: 24),
-          
+
           // Resource Utilization Chart
           Card(
             child: Padding(
@@ -222,7 +224,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 16),
-                  Container(
+                  SizedBox(
                     height: 200,
                     child: const Center(
                       child: Text('Resource utilization charts'),
@@ -244,7 +246,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
         children: [
           PopulationHealthWidget(),
           SizedBox(height: 24),
-          
+
           // Community Health Metrics
           Card(
             child: Padding(
@@ -257,7 +259,7 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 16),
-                  Container(
+                  SizedBox(
                     height: 200,
                     child: const Center(
                       child: Text('Community health visualization'),
@@ -294,9 +296,10 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
                 Icon(icon, color: color, size: 24),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: trendColor.withOpacity(0.1),
+                    color: trendColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -343,9 +346,10 @@ class _AdvancedAnalyticsDashboardState extends ConsumerState<AdvancedAnalyticsDa
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            ...data.systemServices.map<Widget>((service) => 
-              _buildServiceStatus(service.name, service.status, service.responseTime)
-            ).toList(),
+            ...data.systemServices
+                .map<Widget>((service) => _buildServiceStatus(
+                    service.name, service.status, service.responseTime))
+                .toList(),
           ],
         ),
       ),

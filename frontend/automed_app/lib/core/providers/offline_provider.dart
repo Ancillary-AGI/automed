@@ -1,11 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import '../di/injection.dart';
 import '../services/offline_data_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/api_service.dart';
-import '../services/notification_service.dart';
+import '../services/notification_service.dart' as notification_service;
+import '../models/sync_models.dart' as sync_models;
 
-final offlineProvider = StateNotifierProvider<OfflineNotifier, OfflineState>((ref) {
+enum ConnectivityStatus {
+  unknown,
+  connected,
+  disconnected,
+}
+
+enum SyncStatus {
+  unknown,
+  syncing,
+  success,
+  failed,
+  offline,
+  pending,
+}
+
+final offlineProvider =
+    StateNotifierProvider<OfflineNotifier, OfflineState>((ref) {
   return OfflineNotifier(
     ref.read(offlineDataServiceProvider),
     ref.read(connectivityServiceProvider),
@@ -18,7 +37,7 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   final OfflineDataService _offlineDataService;
   final ConnectivityService _connectivityService;
   final ApiService _apiService;
-  final NotificationService _notificationService;
+  final notification_service.NotificationService _notificationService;
 
   OfflineNotifier(
     this._offlineDataService,
@@ -43,12 +62,15 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     await _syncIfConnected();
   }
 
-  void _handleConnectivityChange(ConnectivityStatus status) {
+  void _handleConnectivityChange(List<ConnectivityResult> results) {
     final wasOffline = state.isOffline;
-    final isNowOffline = status == ConnectivityStatus.disconnected;
+    final isNowOffline =
+        results.any((result) => result == ConnectivityResult.none);
 
     state = state.copyWith(
-      connectivityStatus: status,
+      connectivityStatus: isNowOffline
+          ? ConnectivityStatus.disconnected
+          : ConnectivityStatus.connected,
       isOffline: isNowOffline,
       lastConnectivityChange: DateTime.now(),
     );
@@ -68,10 +90,10 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     try {
       // Sync offline actions
       await _offlineDataService.syncOfflineActions();
-      
+
       // Refresh critical data
       await _refreshCriticalData();
-      
+
       // Update sync status
       state = state.copyWith(
         lastSyncTime: DateTime.now(),
@@ -81,11 +103,11 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
       // Show success notification
       await _notificationService.showNotification(
+        id: 'sync_success_${DateTime.now().millisecondsSinceEpoch}',
         title: 'Back Online',
         body: 'Data synchronized successfully',
-        type: NotificationType.success,
+        type: notification_service.NotificationType.success,
       );
-
     } catch (e) {
       state = state.copyWith(
         syncStatus: SyncStatus.failed,
@@ -95,9 +117,10 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
       // Show error notification
       await _notificationService.showNotification(
+        id: 'sync_error_${DateTime.now().millisecondsSinceEpoch}',
         title: 'Sync Failed',
         body: 'Failed to synchronize data: ${e.toString()}',
-        type: NotificationType.error,
+        type: notification_service.NotificationType.error,
       );
     }
   }
@@ -108,30 +131,32 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
     // Show offline notification
     await _notificationService.showNotification(
+      id: 'offline_mode_${DateTime.now().millisecondsSinceEpoch}',
       title: 'Offline Mode',
       body: 'Working offline with cached data',
-      type: NotificationType.warning,
+      type: notification_service.NotificationType.warning,
     );
 
     state = state.copyWith(
-      syncStatus: SyncStatus.offline,
+      syncStatus: SyncStatus.failed,
     );
   }
 
   Future<void> _checkDataIntegrity() async {
     try {
-      final report = await _offlineDataService.verifyDataIntegrity();
-      
+      final report = await _offlineDataService.checkDataIntegrity();
+
       state = state.copyWith(
         dataIntegrityReport: report,
         hasCorruptedData: report.corruptedItems > 0,
       );
 
-      if (!report.isHealthy) {
+      if (report.hasIssues) {
         await _notificationService.showNotification(
+          id: 'data_integrity_warning_${DateTime.now().millisecondsSinceEpoch}',
           title: 'Data Integrity Warning',
           body: 'Some cached data may be corrupted or expired',
-          type: NotificationType.warning,
+          type: notification_service.NotificationType.warning,
         );
       }
     } catch (e) {
@@ -140,7 +165,8 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   Future<void> _syncIfConnected() async {
-    if (_connectivityService.isConnected) {
+    final isConnected = await _connectivityService.isConnected;
+    if (isConnected) {
       await _handleBackOnline();
     }
   }
@@ -150,26 +176,18 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     try {
       // Refresh emergency protocols
       final protocols = await _apiService.get('/emergency/protocols');
-      if (protocols != null) {
-        final protocolList = (protocols['data'] as List)
-            .map((p) => EmergencyProtocol.fromJson(p))
-            .toList();
-        await _offlineDataService.cacheEmergencyProtocols(protocolList);
-      }
-
+      final protocolList = protocols['data'] as List<Map<String, dynamic>>;
+      await _offlineDataService.cacheEmergencyProtocols(protocolList);
+    
       // Refresh medication safety data
       final medications = await _apiService.get('/medications/safety-data');
-      if (medications != null) {
-        for (final med in medications['data']) {
-          final safetyData = MedicationSafetyData.fromJson(med);
-          await _offlineDataService.cacheMedicationSafetyData(
-            safetyData.medicationId,
-            safetyData,
-          );
-        }
+      for (final med in medications['data'] as List<Map<String, dynamic>>) {
+        await _offlineDataService.cacheMedicationSafetyData(
+          med['medicationId'] as String,
+          med,
+        );
       }
-
-    } catch (e) {
+        } catch (e) {
       debugPrint('Error refreshing critical data: $e');
     }
   }
@@ -177,9 +195,13 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   // Public methods for UI interaction
 
   /// Get critical patient data (works offline)
-  Future<CriticalPatientData?> getCriticalPatientData(String patientId) async {
+  Future<sync_models.CriticalPatientData?> getCriticalPatientData(
+      String patientId) async {
     try {
-      return await _offlineDataService.getCriticalPatientData(patientId);
+      final json = await _offlineDataService.getCriticalPatientData(patientId);
+      return json != null
+          ? sync_models.CriticalPatientData.fromJson(json)
+          : null;
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
       return null;
@@ -187,18 +209,22 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   /// Cache critical patient data for offline access
-  Future<void> cacheCriticalPatientData(String patientId, CriticalPatientData data) async {
+  Future<void> cacheCriticalPatientData(
+      String patientId, sync_models.CriticalPatientData data) async {
     try {
-      await _offlineDataService.cacheCriticalPatientData(patientId, data);
+      await _offlineDataService.cacheCriticalPatientData(
+          patientId, data.toJson());
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
     }
   }
 
   /// Get emergency protocol (works offline)
-  Future<EmergencyProtocol?> getEmergencyProtocol(String protocolType) async {
+  Future<sync_models.EmergencyProtocol?> getEmergencyProtocol(
+      String protocolType) async {
     try {
-      return await _offlineDataService.getEmergencyProtocol(protocolType);
+      final json = await _offlineDataService.getEmergencyProtocol(protocolType);
+      return json != null ? sync_models.EmergencyProtocol.fromJson(json) : null;
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
       return null;
@@ -206,9 +232,14 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   /// Check medication interactions offline
-  Future<List<DrugInteraction>> checkMedicationInteractions(List<String> medicationIds) async {
+  Future<List<sync_models.DrugInteraction>> checkMedicationInteractions(
+      List<String> medicationIds) async {
     try {
-      return await _offlineDataService.checkMedicationInteractionsOffline(medicationIds);
+      final jsonList = await _offlineDataService
+          .checkMedicationInteractionsOffline(medicationIds);
+      return jsonList
+          .map((json) => sync_models.DrugInteraction.fromJson(json))
+          .toList();
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
       return [];
@@ -216,9 +247,14 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   /// Validate vital signs against cached thresholds
-  Future<List<VitalSignAlert>> validateVitalSigns(String patientId, VitalSigns vitalSigns) async {
+  Future<List<sync_models.VitalSignAlert>> validateVitalSigns(
+      String patientId, sync_models.VitalSigns vitalSigns) async {
     try {
-      return await _offlineDataService.validateVitalSignsOffline(patientId, vitalSigns);
+      final jsonList = await _offlineDataService.validateVitalSignsOffline(
+          patientId, vitalSigns.toJson());
+      return jsonList
+          .map((json) => sync_models.VitalSignAlert.fromJson(json))
+          .toList();
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
       return [];
@@ -226,13 +262,13 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   }
 
   /// Queue an action to be performed when online
-  Future<void> queueOfflineAction(OfflineAction action) async {
+  Future<void> queueOfflineAction(sync_models.OfflineAction action) async {
     try {
-      await _offlineDataService.queueOfflineAction(action);
-      
-      final pendingActions = await _offlineDataService.getPendingOfflineActions();
+      await _offlineDataService.queueOfflineAction(action.toJson());
+
+      final pendingActions =
+          await _offlineDataService.getPendingOfflineActions();
       state = state.copyWith(pendingActionsCount: pendingActions.length);
-      
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
     }
@@ -240,11 +276,13 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
   /// Manually trigger sync (if online)
   Future<void> manualSync() async {
-    if (!_connectivityService.isConnected) {
+    final isConnected = await _connectivityService.isConnected;
+    if (!isConnected) {
       await _notificationService.showNotification(
+        id: 'sync_failed_${DateTime.now().millisecondsSinceEpoch}',
         title: 'Sync Failed',
         body: 'No internet connection available',
-        type: NotificationType.error,
+        type: notification_service.NotificationType.error,
       );
       return;
     }
@@ -261,18 +299,19 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
   Future<bool> restoreFromBackup() async {
     try {
       final success = await _offlineDataService.restoreCriticalDataFromBackup();
-      
+
       if (success) {
         await _notificationService.showNotification(
+          id: 'data_restored_${DateTime.now().millisecondsSinceEpoch}',
           title: 'Data Restored',
           body: 'Critical data restored from backup',
-          type: NotificationType.success,
+          type: notification_service.NotificationType.success,
         );
-        
+
         // Refresh data integrity report
         await _checkDataIntegrity();
       }
-      
+
       return success;
     } catch (e) {
       state = state.copyWith(lastError: e.toString());
@@ -282,8 +321,9 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
   /// Get offline capabilities status
   OfflineCapabilities getOfflineCapabilities() {
+    final hasCriticalData = (state.dataIntegrityReport?.criticalItems ?? 0) > 0;
     return OfflineCapabilities(
-      canAccessPatientData: state.dataIntegrityReport?.criticalItems ?? 0 > 0,
+      canAccessPatientData: hasCriticalData,
       canCheckMedications: true, // Always available if cached
       canAccessEmergencyProtocols: true, // Always available if cached
       canValidateVitalSigns: true, // Always available if thresholds cached
@@ -298,9 +338,9 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     if (report == null || report.criticalItems == 0) {
       return const Duration(hours: 1); // Minimal offline time
     }
-    
+
     // Estimate based on data freshness and amount
-    if (report.criticalItems > 10 && report.expiredItems < report.totalItems * 0.1) {
+    if (report.criticalItems > 10 && !report.hasIssues) {
       return const Duration(days: 7); // Good offline capability
     } else if (report.criticalItems > 5) {
       return const Duration(days: 3); // Moderate offline capability
@@ -326,7 +366,7 @@ class OfflineState {
     this.connectivityStatus = ConnectivityStatus.unknown,
     this.isOffline = false,
     this.isSyncing = false,
-    this.syncStatus = SyncStatus.unknown,
+    this.syncStatus = SyncStatus.pending,
     this.lastSyncTime,
     this.lastConnectivityChange,
     this.dataIntegrityReport,
@@ -353,7 +393,8 @@ class OfflineState {
       isSyncing: isSyncing ?? this.isSyncing,
       syncStatus: syncStatus ?? this.syncStatus,
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
-      lastConnectivityChange: lastConnectivityChange ?? this.lastConnectivityChange,
+      lastConnectivityChange:
+          lastConnectivityChange ?? this.lastConnectivityChange,
       dataIntegrityReport: dataIntegrityReport ?? this.dataIntegrityReport,
       hasCorruptedData: hasCorruptedData ?? this.hasCorruptedData,
       pendingActionsCount: pendingActionsCount ?? this.pendingActionsCount,
@@ -361,17 +402,10 @@ class OfflineState {
     );
   }
 
-  bool get canWorkOffline => dataIntegrityReport?.isHealthy ?? false;
-  bool get hasRecentSync => lastSyncTime != null && 
+  bool get canWorkOffline => !(dataIntegrityReport?.hasIssues ?? true);
+  bool get hasRecentSync =>
+      lastSyncTime != null &&
       DateTime.now().difference(lastSyncTime!).inHours < 24;
-}
-
-enum SyncStatus {
-  unknown,
-  syncing,
-  success,
-  failed,
-  offline,
 }
 
 class OfflineCapabilities {
@@ -391,9 +425,11 @@ class OfflineCapabilities {
     required this.estimatedOfflineTime,
   });
 
-  bool get hasBasicCapabilities => 
-      canAccessPatientData && canCheckMedications && canAccessEmergencyProtocols;
-  
-  bool get hasFullCapabilities => 
+  bool get hasBasicCapabilities =>
+      canAccessPatientData &&
+      canCheckMedications &&
+      canAccessEmergencyProtocols;
+
+  bool get hasFullCapabilities =>
       hasBasicCapabilities && canValidateVitalSigns && canQueueActions;
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -9,102 +8,87 @@ class QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actions = [
-      _QuickAction(
-        icon: Icons.video_call,
-        label: 'Video Call',
-        color: Colors.blue,
-        onTap: () => context.push('/consultation/video'),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      _QuickAction(
-        icon: Icons.chat,
-        label: 'Chat',
-        color: Colors.green,
-        onTap: () => context.push('/consultation/chat'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quick Actions',
+              style: AppTextStyles.headline6.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              children: [
+                _buildActionButton(
+                  icon: Icons.calendar_today,
+                  label: 'Book Appointment',
+                  onTap: () {},
+                ),
+                _buildActionButton(
+                  icon: Icons.medical_services,
+                  label: 'View Records',
+                  onTap: () {},
+                ),
+                _buildActionButton(
+                  icon: Icons.local_hospital,
+                  label: 'Find Hospital',
+                  onTap: () {},
+                ),
+                _buildActionButton(
+                  icon: Icons.chat,
+                  label: 'AI Assistant',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      _QuickAction(
-        icon: Icons.local_hospital,
-        label: 'Find Hospital',
-        color: Colors.red,
-        onTap: () => context.push('/hospital/search'),
-      ),
-      _QuickAction(
-        icon: Icons.medication,
-        label: 'Medications',
-        color: Colors.orange,
-        onTap: () => context.push('/medication'),
-      ),
-      _QuickAction(
-        icon: Icons.emergency,
-        label: 'Emergency',
-        color: Colors.purple,
-        onTap: () => context.push('/emergency'),
-      ),
-      _QuickAction(
-        icon: Icons.analytics,
-        label: 'Health Analytics',
-        color: Colors.teal,
-        onTap: () => context.push('/analytics'),
-      ),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (context, index) => actions[index],
     );
   }
-}
 
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1,
-          ),
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
+              color: AppColors.primary,
               size: 32,
-              color: color,
             ),
             const SizedBox(height: 8),
             Text(
               label,
               style: AppTextStyles.bodyText2.copyWith(
                 color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),

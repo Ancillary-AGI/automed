@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 
+import '../di/injection.dart';
 import '../services/api_service.dart';
 import '../models/patient_models.dart';
 import '../models/hospital_models.dart';
 import '../models/consultation_models.dart';
-import '../models/ai_models.dart';
 import '../models/medication_models.dart';
 
 // Healthcare Ecosystem State
@@ -50,15 +49,17 @@ class HealthcareEcosystemState {
 }
 
 // Healthcare Ecosystem Provider
-class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState> {
+class HealthcareEcosystemNotifier
+    extends StateNotifier<HealthcareEcosystemState> {
   final ApiService _apiService;
 
-  HealthcareEcosystemNotifier(this._apiService) : super(const HealthcareEcosystemState());
+  HealthcareEcosystemNotifier(this._apiService)
+      : super(const HealthcareEcosystemState());
 
   // Load all healthcare data
   Future<void> loadHealthcareData() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // Load data in parallel
       final futures = await Future.wait([
@@ -89,8 +90,13 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   Future<List<Patient>> _loadPatients() async {
     try {
       final response = await _apiService.getPatients(0, 100, null);
-      if (response.success && response.data != null) {
-        return response.data!.content;
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        if (data is Map && data['content'] != null) {
+          return (data['content'] as List)
+              .map((item) => Patient.fromJson(item))
+              .toList();
+        }
       }
       return [];
     } catch (e) {
@@ -101,9 +107,14 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Load hospitals
   Future<List<Hospital>> _loadHospitals() async {
     try {
-      final response = await _apiService.getHospitals(0, 100, null);
-      if (response.success && response.data != null) {
-        return response.data!.content;
+      final response = await _apiService.getHospitalsPaginated(0, 100, null);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        if (data is Map && data['content'] != null) {
+          return (data['content'] as List)
+              .map((item) => Hospital.fromJson(item))
+              .toList();
+        }
       }
       return [];
     } catch (e) {
@@ -114,9 +125,15 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Load consultations
   Future<List<Consultation>> _loadConsultations() async {
     try {
-      final response = await _apiService.getConsultations(0, 100, null);
-      if (response.success && response.data != null) {
-        return response.data!.content;
+      final response =
+          await _apiService.getConsultationsPaginated(0, 100, null);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        if (data is Map && data['content'] != null) {
+          return (data['content'] as List)
+              .map((item) => Consultation.fromJson(item))
+              .toList();
+        }
       }
       return [];
     } catch (e) {
@@ -127,9 +144,14 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Load medications
   Future<List<Medication>> _loadMedications() async {
     try {
-      final response = await _apiService.getMedications(0, 100, null);
-      if (response.success && response.data != null) {
-        return response.data!.content;
+      final response = await _apiService.getMedicationsPaginated(0, 100, null);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        if (data is Map && data['content'] != null) {
+          return (data['content'] as List)
+              .map((item) => Medication.fromJson(item))
+              .toList();
+        }
       }
       return [];
     } catch (e) {
@@ -141,8 +163,10 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   Future<List<EmergencyAlert>> _loadEmergencyAlerts() async {
     try {
       final response = await _apiService.getEmergencyAlerts();
-      if (response.success && response.data != null) {
-        return response.data!;
+      if (response['success'] == true && response['data'] != null) {
+        return (response['data'] as List)
+            .map((item) => EmergencyAlert.fromJson(item))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -153,10 +177,11 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Create new patient
   Future<void> createPatient(CreatePatientRequest request) async {
     try {
-      final response = await _apiService.createPatient(request);
-      if (response.success && response.data != null) {
+      final response = await _apiService.createPatient(request.toJson());
+      if (response['success'] == true && response['data'] != null) {
+        final patient = Patient.fromJson(response['data']);
         state = state.copyWith(
-          patients: [...state.patients, response.data!],
+          patients: [...state.patients, patient],
         );
       }
     } catch (e) {
@@ -167,12 +192,13 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Update patient
   Future<void> updatePatient(String id, UpdatePatientRequest request) async {
     try {
-      final response = await _apiService.updatePatient(id, request);
-      if (response.success && response.data != null) {
+      final response = await _apiService.updatePatient(id, request.toJson());
+      if (response['success'] == true && response['data'] != null) {
+        final updatedPatient = Patient.fromJson(response['data']);
         final updatedPatients = state.patients.map((patient) {
-          return patient.id == id ? response.data! : patient;
+          return patient.id == id ? updatedPatient : patient;
         }).toList();
-        
+
         state = state.copyWith(patients: updatedPatients);
       }
     } catch (e) {
@@ -183,10 +209,11 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Create consultation
   Future<void> createConsultation(CreateConsultationRequest request) async {
     try {
-      final response = await _apiService.createConsultation(request);
-      if (response.success && response.data != null) {
+      final response = await _apiService.createConsultation(request.toJson());
+      if (response['success'] == true && response['data'] != null) {
+        final consultation = Consultation.fromJson(response['data']);
         state = state.copyWith(
-          consultations: [...state.consultations, response.data!],
+          consultations: [...state.consultations, consultation],
         );
       }
     } catch (e) {
@@ -197,10 +224,11 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Create medication
   Future<void> createMedication(CreateMedicationRequest request) async {
     try {
-      final response = await _apiService.createMedication(request);
-      if (response.success && response.data != null) {
+      final response = await _apiService.createMedication(request.toJson());
+      if (response['success'] == true && response['data'] != null) {
+        final medication = Medication.fromJson(response['data']);
         state = state.copyWith(
-          medications: [...state.medications, response.data!],
+          medications: [...state.medications, medication],
         );
       }
     } catch (e) {
@@ -211,10 +239,11 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
   // Create emergency alert
   Future<void> createEmergencyAlert(EmergencyAlertRequest request) async {
     try {
-      final response = await _apiService.createEmergencyAlert(request);
-      if (response.success && response.data != null) {
+      final response = await _apiService.createEmergencyAlert(request.toJson());
+      if (response['success'] == true && response['data'] != null) {
+        final alert = EmergencyAlert.fromJson(response['data']);
         state = state.copyWith(
-          emergencyAlerts: [...state.emergencyAlerts, response.data!],
+          emergencyAlerts: [...state.emergencyAlerts, alert],
         );
       }
     } catch (e) {
@@ -234,7 +263,8 @@ class HealthcareEcosystemNotifier extends StateNotifier<HealthcareEcosystemState
 }
 
 // Provider
-final healthcareEcosystemProvider = StateNotifierProvider<HealthcareEcosystemNotifier, HealthcareEcosystemState>((ref) {
+final healthcareEcosystemProvider = StateNotifierProvider<
+    HealthcareEcosystemNotifier, HealthcareEcosystemState>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return HealthcareEcosystemNotifier(apiService);
 });

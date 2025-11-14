@@ -108,7 +108,7 @@ class AppTheme {
           color: AppColors.onSurfaceVariant,
         ),
         hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.onSurfaceVariant.withOpacity(0.6),
+          color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
         ),
       ),
 
@@ -257,7 +257,7 @@ class AppTheme {
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.darkSurfaceVariant.withOpacity(0.3),
+        fillColor: AppColors.darkSurfaceVariant.withValues(alpha: 0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.darkBorderColor),
@@ -284,7 +284,7 @@ class AppTheme {
           color: AppColors.darkOnSurfaceVariant,
         ),
         hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.darkOnSurfaceVariant.withOpacity(0.6),
+          color: AppColors.darkOnSurfaceVariant.withValues(alpha: 0.6),
         ),
       ),
 

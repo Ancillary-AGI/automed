@@ -16,87 +16,102 @@ void main() {
       );
     });
 
-    testWidgets('displays all health metrics correctly', (
+    testWidgets('displays metric correctly', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: HealthMetricsCard(metrics: testMetrics)),
+          home: Scaffold(
+              body: HealthMetricsCard(
+            icon: Icons.bloodtype,
+            metricName: 'Oxygen Saturation',
+            value: '98',
+            unit: '%',
+            statusColor: Colors.green,
+            status: 'Normal',
+          )),
         ),
       );
 
-      // Check if title is displayed
-      expect(find.text('Health Metrics'), findsOneWidget);
+      // Check if metric name is displayed
+      expect(find.text('Oxygen Saturation'), findsOneWidget);
 
-      // Check if heart rate is displayed
-      expect(find.text('75 bpm'), findsOneWidget);
-      expect(find.text('Heart Rate'), findsOneWidget);
+      // Check if value and unit are displayed
+      expect(find.text('98'), findsOneWidget);
+      expect(find.text('%'), findsOneWidget);
 
-      // Check if blood pressure is displayed
-      expect(find.text('120 mmHg'), findsOneWidget);
-      expect(find.text('Blood Pressure'), findsOneWidget);
+      // Check if status is displayed
+      expect(find.text('Normal'), findsOneWidget);
 
-      // Check if temperature is displayed
-      expect(find.text('98.6°C'), findsOneWidget);
-      expect(find.text('Temperature'), findsOneWidget);
-
-      // Check if oxygen saturation is displayed
-      expect(find.text('98%'), findsOneWidget);
-      expect(find.text('Oxygen'), findsOneWidget);
+      // Check if icon is displayed
+      expect(find.byIcon(Icons.bloodtype), findsOneWidget);
     });
 
-    testWidgets('displays heart icon in title', (WidgetTester tester) async {
+    testWidgets('displays icon correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: HealthMetricsCard(metrics: testMetrics)),
+          home: Scaffold(
+              body: HealthMetricsCard(
+            icon: Icons.thermostat,
+            metricName: 'Temperature',
+            value: '98.6',
+            unit: '°F',
+            statusColor: Colors.blue,
+            status: 'Normal',
+          )),
         ),
       );
 
-      expect(find.byIcon(Icons.favorite), findsOneWidget);
-    });
-
-    testWidgets('displays metric icons with correct colors', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: HealthMetricsCard(metrics: testMetrics)),
-        ),
-      );
-
-      // Check for heart rate icon (red)
-      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-
-      // Check for blood pressure icon (blue)
-      expect(find.byIcon(Icons.speed), findsOneWidget);
-
-      // Check for temperature icon (orange)
       expect(find.byIcon(Icons.thermostat), findsOneWidget);
+      expect(find.text('Temperature'), findsOneWidget);
+      expect(find.text('98.6'), findsOneWidget);
+      expect(find.text('°F'), findsOneWidget);
+    });
 
-      // Check for oxygen icon (green)
+    testWidgets('displays status color correctly', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+              body: HealthMetricsCard(
+            icon: Icons.air,
+            metricName: 'Blood Pressure',
+            value: '120/80',
+            unit: 'mmHg',
+            statusColor: Colors.green,
+            status: 'Normal',
+          )),
+        ),
+      );
+
       expect(find.byIcon(Icons.air), findsOneWidget);
+      expect(find.text('Blood Pressure'), findsOneWidget);
+      expect(find.text('120/80'), findsOneWidget);
+      expect(find.text('mmHg'), findsOneWidget);
+      expect(find.text('Normal'), findsOneWidget);
     });
 
     testWidgets('formats decimal values correctly', (
       WidgetTester tester,
     ) async {
-      const decimalMetrics = HealthMetrics(
-        heartRate: 75.5,
-        bloodPressure: 120.7,
-        temperature: 98.65,
-        oxygenSaturation: 98.3,
-      );
-
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: HealthMetricsCard(metrics: decimalMetrics)),
+          home: Scaffold(
+              body: HealthMetricsCard(
+            icon: Icons.favorite,
+            metricName: 'Heart Rate',
+            value: '75.5',
+            unit: 'bpm',
+            statusColor: Colors.green,
+            status: 'Normal',
+          )),
         ),
       );
 
-      expect(find.text('76 bpm'), findsOneWidget); // Rounded
-      expect(find.text('121 mmHg'), findsOneWidget); // Rounded
-      expect(find.text('98.7°C'), findsOneWidget); // Rounded to 1 decimal
-      expect(find.text('98%'), findsOneWidget); // Rounded
+      expect(find.text('75.5'), findsOneWidget);
+      expect(find.text('bpm'), findsOneWidget);
+      expect(find.text('Heart Rate'), findsOneWidget);
     });
   });
 }

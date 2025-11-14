@@ -1,0 +1,146 @@
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Consultation _$ConsultationFromJson(Map<String, dynamic> json) => Consultation(
+      id: json['id'] as String,
+      patientId: json['patientId'] as String,
+      providerId: json['providerId'] as String,
+      type: json['type'] as String,
+      status: $enumDecode(_$ConsultationStatusEnumMap, json['status']),
+      scheduledTime: DateTime.parse(json['scheduledTime'] as String),
+      startTime: json['startTime'] == null
+          ? null
+          : DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null
+          ? null
+          : DateTime.parse(json['endTime'] as String),
+      notes: json['notes'] as String?,
+      attachments: (json['attachments'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+
+Map<String, dynamic> _$ConsultationToJson(Consultation instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'patientId': instance.patientId,
+      'providerId': instance.providerId,
+      'type': instance.type,
+      'status': _$ConsultationStatusEnumMap[instance.status]!,
+      'scheduledTime': instance.scheduledTime.toIso8601String(),
+      'startTime': instance.startTime?.toIso8601String(),
+      'endTime': instance.endTime?.toIso8601String(),
+      'notes': instance.notes,
+      'attachments': instance.attachments,
+      'metadata': instance.metadata,
+    };
+
+const _$ConsultationStatusEnumMap = {
+  ConsultationStatus.scheduled: 'SCHEDULED',
+  ConsultationStatus.inProgress: 'IN_PROGRESS',
+  ConsultationStatus.completed: 'COMPLETED',
+  ConsultationStatus.cancelled: 'CANCELLED',
+  ConsultationStatus.noShow: 'NO_SHOW',
+};
+
+ConsultationSession _$ConsultationSessionFromJson(Map<String, dynamic> json) =>
+    ConsultationSession(
+      sessionId: json['sessionId'] as String,
+      consultationId: json['consultationId'] as String,
+      roomId: json['roomId'] as String,
+      participants: (json['participants'] as List<dynamic>)
+          .map((e) => Participant.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      status: $enumDecode(_$SessionStatusEnumMap, json['status']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      settings: json['settings'] as Map<String, dynamic>?,
+    );
+
+Map<String, dynamic> _$ConsultationSessionToJson(
+        ConsultationSession instance) =>
+    <String, dynamic>{
+      'sessionId': instance.sessionId,
+      'consultationId': instance.consultationId,
+      'roomId': instance.roomId,
+      'participants': instance.participants,
+      'status': _$SessionStatusEnumMap[instance.status]!,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'settings': instance.settings,
+    };
+
+const _$SessionStatusEnumMap = {
+  SessionStatus.waiting: 'WAITING',
+  SessionStatus.active: 'ACTIVE',
+  SessionStatus.ended: 'ENDED',
+};
+
+Participant _$ParticipantFromJson(Map<String, dynamic> json) => Participant(
+      userId: json['userId'] as String,
+      name: json['name'] as String,
+      role: $enumDecode(_$ParticipantRoleEnumMap, json['role']),
+      isConnected: json['isConnected'] as bool,
+      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      leftAt: json['leftAt'] == null
+          ? null
+          : DateTime.parse(json['leftAt'] as String),
+    );
+
+Map<String, dynamic> _$ParticipantToJson(Participant instance) =>
+    <String, dynamic>{
+      'userId': instance.userId,
+      'name': instance.name,
+      'role': _$ParticipantRoleEnumMap[instance.role]!,
+      'isConnected': instance.isConnected,
+      'joinedAt': instance.joinedAt.toIso8601String(),
+      'leftAt': instance.leftAt?.toIso8601String(),
+    };
+
+const _$ParticipantRoleEnumMap = {
+  ParticipantRole.patient: 'PATIENT',
+  ParticipantRole.provider: 'PROVIDER',
+  ParticipantRole.observer: 'OBSERVER',
+};
+
+CreateConsultationRequest _$CreateConsultationRequestFromJson(
+        Map<String, dynamic> json) =>
+    CreateConsultationRequest(
+      patientId: json['patientId'] as String,
+      providerId: json['providerId'] as String,
+      type: json['type'] as String,
+      scheduledTime: DateTime.parse(json['scheduledTime'] as String),
+      notes: json['notes'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+
+Map<String, dynamic> _$CreateConsultationRequestToJson(
+        CreateConsultationRequest instance) =>
+    <String, dynamic>{
+      'patientId': instance.patientId,
+      'providerId': instance.providerId,
+      'type': instance.type,
+      'scheduledTime': instance.scheduledTime.toIso8601String(),
+      'notes': instance.notes,
+      'metadata': instance.metadata,
+    };
+
+UpdateConsultationRequest _$UpdateConsultationRequestFromJson(
+        Map<String, dynamic> json) =>
+    UpdateConsultationRequest(
+      scheduledTime: json['scheduledTime'] == null
+          ? null
+          : DateTime.parse(json['scheduledTime'] as String),
+      notes: json['notes'] as String?,
+      status: $enumDecodeNullable(_$ConsultationStatusEnumMap, json['status']),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+
+Map<String, dynamic> _$UpdateConsultationRequestToJson(
+        UpdateConsultationRequest instance) =>
+    <String, dynamic>{
+      'scheduledTime': instance.scheduledTime?.toIso8601String(),
+      'notes': instance.notes,
+      'status': _$ConsultationStatusEnumMap[instance.status],
+      'metadata': instance.metadata,
+    };

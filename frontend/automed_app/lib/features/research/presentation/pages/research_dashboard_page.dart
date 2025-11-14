@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../models/research_models.dart';
-import '../providers/research_providers.dart';
+import '../../models/research_models.dart';
+import '../../providers/research_providers.dart';
 
 class ResearchDashboardPage extends ConsumerWidget {
   const ResearchDashboardPage({super.key});
@@ -304,7 +304,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              project.name,
+                              project.title,
                               style: AppTextStyles.titleSmall.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -681,6 +681,11 @@ class ResearchDashboardPage extends ConsumerWidget {
       ProjectType.robotics => Icons.precision_manufacturing,
       ProjectType.biology => Icons.analytics,
       ProjectType.drug => Icons.medication,
+      ProjectType.cancerResearch => Icons.biotech,
+      ProjectType.computationalBiology => Icons.analytics,
+      ProjectType.medicalRobotics => Icons.precision_manufacturing,
+      ProjectType.molecularSimulation => Icons.science,
+      ProjectType.tissueEngineering => Icons.healing,
     };
   }
 
@@ -690,6 +695,8 @@ class ResearchDashboardPage extends ConsumerWidget {
       ProjectStatus.paused => Colors.orange,
       ProjectStatus.completed => Colors.blue,
       ProjectStatus.failed => Colors.red,
+      ProjectStatus.planning => Colors.grey,
+      ProjectStatus.cancelled => Colors.red,
     };
   }
 
@@ -699,6 +706,11 @@ class ResearchDashboardPage extends ConsumerWidget {
       ResultType.analysis => Icons.analytics,
       ResultType.prediction => Icons.trending_up,
       ResultType.visualization => Icons.visibility,
+      ResultType.publication => Icons.article,
+      ResultType.patent => Icons.lightbulb,
+      ResultType.clinicalTrial => Icons.medical_services,
+      ResultType.software => Icons.computer,
+      ResultType.data => Icons.table_chart,
     };
   }
 

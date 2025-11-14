@@ -19,10 +19,47 @@ import '../services/sync_service.dart';
 
 // External dependencies providers
 final dioProvider = Provider<Dio>((ref) {
-  final dio = Dio();
-  // Configure Dio with interceptors, timeouts, etc.
-  dio.options.connectTimeout = const Duration(seconds: 30);
-  dio.options.receiveTimeout = const Duration(seconds: 30);
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    sendTimeout: const Duration(seconds: 30),
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  ));
+
+  // Add interceptors for logging, authentication, error handling
+  dio.interceptors.addAll([
+    LogInterceptor(
+      request: true,
+      requestHeader: false,
+      requestBody: false,
+      responseHeader: false,
+      responseBody: true,
+      error: true,
+    ),
+    InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Add authentication token if available
+        final secureStorage = ref.read(secureStorageProvider);
+        final token = await secureStorage.read(key: 'auth_token');
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        return handler.next(options);
+      },
+      onError: (error, handler) async {
+        // Handle token refresh on 401
+        if (error.response?.statusCode == 401) {
+          // Attempt token refresh logic here
+          // For now, just pass through
+        }
+        return handler.next(error);
+      },
+    ),
+  ]);
+
   return dio;
 });
 

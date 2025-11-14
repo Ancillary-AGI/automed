@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -44,41 +43,26 @@ class _MedicationTrackerScreenState
     final theme = Theme.of(context);
 
     return AppScaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).medicationTracker),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddMedicationDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.sync),
-            onPressed: () => _syncMedications(),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white.withOpacity(0.7),
-          tabs: [
-            Tab(text: S.of(context).today),
-            Tab(text: S.of(context).allMedications),
-            Tab(text: S.of(context).history),
-          ],
+      title: S.of(context).medicationTracker,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () => _showAddMedicationDialog(context),
         ),
-      ),
+        IconButton(
+          icon: const Icon(Icons.sync),
+          onPressed: () => _syncMedications(),
+        ),
+      ],
       body: TabBarView(
         controller: _tabController,
         children: [
           // Today's Schedule
           _buildTodayTab(todayScheduleAsync),
-          
+
           // All Medications
           _buildAllMedicationsTab(medicationsAsync),
-          
+
           // History
           _buildHistoryTab(),
         ],
@@ -93,7 +77,9 @@ class _MedicationTrackerScreenState
 
   Widget _buildTodayTab(AsyncValue<List<dynamic>> todayScheduleAsync) {
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(todayMedicationScheduleProvider.future),
+      onRefresh: () async {
+        ref.invalidate(todayMedicationScheduleProvider);
+      },
       child: todayScheduleAsync.when(
         data: (schedule) => schedule.isEmpty
             ? _buildEmptyState(S.of(context).noMedicationsToday)
@@ -104,11 +90,7 @@ class _MedicationTrackerScreenState
                   final medicationSchedule = schedule[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: MedicationScheduleWidget(
-                      schedule: medicationSchedule,
-                      onTaken: (scheduleId) => _markAsTaken(scheduleId),
-                      onSkipped: (scheduleId) => _markAsSkipped(scheduleId),
-                    ),
+                    child: MedicationScheduleWidget(),
                   );
                 },
               ),
@@ -120,7 +102,9 @@ class _MedicationTrackerScreenState
 
   Widget _buildAllMedicationsTab(AsyncValue<List<dynamic>> medicationsAsync) {
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(medicationsProvider.future),
+      onRefresh: () async {
+        ref.invalidate(medicationsProvider);
+      },
       child: medicationsAsync.when(
         data: (medications) => medications.isEmpty
             ? _buildEmptyState(S.of(context).noMedicationsAdded)
@@ -149,9 +133,11 @@ class _MedicationTrackerScreenState
 
   Widget _buildHistoryTab() {
     final historyAsync = ref.watch(medicationHistoryProvider);
-    
+
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(medicationHistoryProvider.future),
+      onRefresh: () async {
+        ref.invalidate(medicationHistoryProvider);
+      },
       child: historyAsync.when(
         data: (history) => history.isEmpty
             ? _buildEmptyState(S.of(context).noMedicationHistory)
@@ -193,7 +179,10 @@ class _MedicationTrackerScreenState
                           Text(
                             _formatDate(entry.date),
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.6),
                             ),
                           ),
                         ],
@@ -310,7 +299,7 @@ class _MedicationTrackerScreenState
   void _editMedication(dynamic medication) {
     showDialog(
       context: context,
-      builder: (context) => AddMedicationDialog(medication: medication),
+      builder: (context) => const AddMedicationDialog(),
     );
   }
 
@@ -327,7 +316,9 @@ class _MedicationTrackerScreenState
           ),
           TextButton(
             onPressed: () {
-              ref.read(medicationProvider.notifier).deleteMedication(medicationId);
+              ref
+                  .read(medicationProvider.notifier)
+                  .deleteMedication(medicationId);
               Navigator.of(context).pop();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -339,7 +330,9 @@ class _MedicationTrackerScreenState
   }
 
   void _toggleMedicationActive(String medicationId, bool isActive) {
-    ref.read(medicationProvider.notifier).toggleMedicationActive(medicationId, isActive);
+    ref
+        .read(medicationProvider.notifier)
+        .toggleMedicationActive(medicationId, isActive);
   }
 
   void _showNotesDialog(String notes) {

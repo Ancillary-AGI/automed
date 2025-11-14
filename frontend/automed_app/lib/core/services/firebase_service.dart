@@ -1,9 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class FirebaseService {
   static FirebaseService? _instance;
   FirebaseMessaging? _messaging;
+  FirebaseAnalytics? _analytics;
+  FirebaseCrashlytics? _crashlytics;
 
   FirebaseService._();
 
@@ -15,6 +19,14 @@ class FirebaseService {
   static Future<void> initializeFirebase() async {
     await Firebase.initializeApp();
   }
+
+  Future<void> initializeServices() async {
+    _analytics = FirebaseAnalytics.instance;
+    _crashlytics = FirebaseCrashlytics.instance;
+    await initializeMessaging();
+  }
+
+  bool get isInitialized => _analytics != null;
 
   Future<void> initializeMessaging() async {
     _messaging = FirebaseMessaging.instance;
@@ -36,7 +48,7 @@ class FirebaseService {
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_handleBackgroundMessage);
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
 
   Future<void> _requestPermission() async {
@@ -49,7 +61,8 @@ class FirebaseService {
 
     if (settings?.authorizationStatus == AuthorizationStatus.authorized) {
       // Permission granted
-    } else if (settings?.authorizationStatus == AuthorizationStatus.provisional) {
+    } else if (settings?.authorizationStatus ==
+        AuthorizationStatus.provisional) {
       // Provisional permission granted
     } else {
       // Permission denied
@@ -73,6 +86,10 @@ class FirebaseService {
 
   Future<String?> getToken() async {
     return await _messaging?.getToken();
+  }
+
+  Future<String?> getFCMToken() async {
+    return await getToken();
   }
 
   Future<void> deleteToken() async {
@@ -108,10 +125,29 @@ class FirebaseService {
     bool badge = true,
     bool sound = true,
   }) async {
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
       alert: alert,
       badge: badge,
       sound: sound,
     );
   }
+
+  // Analytics methods
+  Future<void> logEvent(String name, {Map<String, Object?>? parameters}) async {
+    await _analytics?.logEvent(name: name, parameters: parameters);
+  }
+
+  // Crashlytics methods
+  Future<void> recordError(dynamic exception, StackTrace? stackTrace,
+      {String? reason, Iterable<Object> information = const []}) async {
+    await _crashlytics?.recordError(exception, stackTrace,
+        reason: reason, information: information);
+  }
+}
+
+/// Top-level background message handler used by `FirebaseMessaging.onBackgroundMessage`.
+/// This wrapper calls the internal static handler.
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await FirebaseService._handleBackgroundMessage(message);
 }

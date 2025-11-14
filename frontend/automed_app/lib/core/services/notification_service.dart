@@ -95,29 +95,13 @@ class NotificationService {
     String? payload,
     NotificationType type = NotificationType.general,
   }) async {
-    final androidDetails = AndroidNotificationDetails(
-      _getChannelId(type),
-      _getChannelName(type),
-      channelDescription: _getChannelDescription(type),
-    );
-
-    const iosDetails = DarwinNotificationDetails();
-
-    final details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.zonedSchedule(
-      int.parse(id),
-      title,
-      body,
-      scheduledDate,
-      details,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: payload,
+    // For now, just show the notification immediately
+    // TODO: Implement proper scheduled notifications with timezone handling
+    await showNotification(
+      id: id,
+      title: title,
+      body: body,
+      type: type,
     );
   }
 
@@ -275,4 +259,7 @@ enum NotificationType {
   medication,
   appointment,
   vitals,
+  success,
+  error,
+  warning,
 }

@@ -4,7 +4,7 @@ part 'sync_models.g.dart';
 
 // Additional models used by SyncService
 @JsonSerializable()
-class SyncAction {
+class SyncActionRecord {
   final String id;
   final String type;
   final String entityId;
@@ -12,7 +12,7 @@ class SyncAction {
   final DateTime timestamp;
   final ActionType actionType;
 
-  SyncAction({
+  SyncActionRecord({
     required this.id,
     required this.type,
     required this.entityId,
@@ -21,15 +21,15 @@ class SyncAction {
     required this.actionType,
   });
 
-  factory SyncAction.fromJson(Map<String, dynamic> json) => 
-      _$SyncActionFromJson(json);
-  Map<String, dynamic> toJson() => _$SyncActionToJson(this);
+  factory SyncActionRecord.fromJson(Map<String, dynamic> json) =>
+      _$SyncActionRecordFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncActionRecordToJson(this);
 }
 
 @JsonSerializable()
 class OfflineDataUploadRequest {
   final String deviceId;
-  final List<SyncAction> actions;
+  final List<SyncActionRecord> actions;
   final int timestamp;
 
   OfflineDataUploadRequest({
@@ -38,7 +38,7 @@ class OfflineDataUploadRequest {
     required this.timestamp,
   });
 
-  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) => 
+  factory OfflineDataUploadRequest.fromJson(Map<String, dynamic> json) =>
       _$OfflineDataUploadRequestFromJson(json);
   Map<String, dynamic> toJson() => _$OfflineDataUploadRequestToJson(this);
 }
@@ -57,7 +57,7 @@ class SyncResponse {
     this.conflicts,
   });
 
-  factory SyncResponse.fromJson(Map<String, dynamic> json) => 
+  factory SyncResponse.fromJson(Map<String, dynamic> json) =>
       _$SyncResponseFromJson(json);
   Map<String, dynamic> toJson() => _$SyncResponseToJson(this);
 }
@@ -80,7 +80,7 @@ class DataConflict {
     required this.timestamp,
   });
 
-  factory DataConflict.fromJson(Map<String, dynamic> json) => 
+  factory DataConflict.fromJson(Map<String, dynamic> json) =>
       _$DataConflictFromJson(json);
   Map<String, dynamic> toJson() => _$DataConflictToJson(this);
 }
@@ -95,7 +95,7 @@ class ConflictResolution {
     this.mergedData,
   });
 
-  factory ConflictResolution.fromJson(Map<String, dynamic> json) => 
+  factory ConflictResolution.fromJson(Map<String, dynamic> json) =>
       _$ConflictResolutionFromJson(json);
   Map<String, dynamic> toJson() => _$ConflictResolutionToJson(this);
 }
@@ -112,7 +112,7 @@ class ConflictResolutionRequest {
     required this.deviceId,
   });
 
-  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) => 
+  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) =>
       _$ConflictResolutionRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ConflictResolutionRequestToJson(this);
 }
@@ -127,7 +127,7 @@ class ConflictResolutionResponse {
     this.message,
   });
 
-  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) => 
+  factory ConflictResolutionResponse.fromJson(Map<String, dynamic> json) =>
       _$ConflictResolutionResponseFromJson(json);
   Map<String, dynamic> toJson() => _$ConflictResolutionResponseToJson(this);
 }
@@ -144,7 +144,7 @@ class SyncDownloadResponse {
     this.updates,
   });
 
-  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) => 
+  factory SyncDownloadResponse.fromJson(Map<String, dynamic> json) =>
       _$SyncDownloadResponseFromJson(json);
   Map<String, dynamic> toJson() => _$SyncDownloadResponseToJson(this);
 }
@@ -167,7 +167,7 @@ class SyncUpdate {
     required this.timestamp,
   });
 
-  factory SyncUpdate.fromJson(Map<String, dynamic> json) => 
+  factory SyncUpdate.fromJson(Map<String, dynamic> json) =>
       _$SyncUpdateFromJson(json);
   Map<String, dynamic> toJson() => _$SyncUpdateToJson(this);
 }
@@ -186,20 +186,20 @@ class DeviceHeartbeatRequest {
     required this.appVersion,
   });
 
-  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) => 
+  factory DeviceHeartbeatRequest.fromJson(Map<String, dynamic> json) =>
       _$DeviceHeartbeatRequestFromJson(json);
   Map<String, dynamic> toJson() => _$DeviceHeartbeatRequestToJson(this);
 }
 
 @JsonSerializable()
-class SyncStatus {
+class SyncStatusData {
   final bool isOnline;
   final int pendingActionsCount;
   final int pendingConflictsCount;
   final int lastSyncTimestamp;
   final String deviceId;
 
-  SyncStatus({
+  SyncStatusData({
     required this.isOnline,
     required this.pendingActionsCount,
     required this.pendingConflictsCount,
@@ -207,9 +207,9 @@ class SyncStatus {
     required this.deviceId,
   });
 
-  factory SyncStatus.fromJson(Map<String, dynamic> json) => 
-      _$SyncStatusFromJson(json);
-  Map<String, dynamic> toJson() => _$SyncStatusToJson(this);
+  factory SyncStatusData.fromJson(Map<String, dynamic> json) =>
+      _$SyncStatusDataFromJson(json);
+  Map<String, dynamic> toJson() => _$SyncStatusDataToJson(this);
 }
 
 @JsonSerializable()
@@ -224,7 +224,7 @@ class SyncDownloadResult {
     required this.updates,
   });
 
-  factory SyncDownloadResult.fromJson(Map<String, dynamic> json) => 
+  factory SyncDownloadResult.fromJson(Map<String, dynamic> json) =>
       _$SyncDownloadResultFromJson(json);
   Map<String, dynamic> toJson() => _$SyncDownloadResultToJson(this);
 }
@@ -265,7 +265,7 @@ class SyncResult {
     required this.timestamp,
   });
 
-  factory SyncResult.fromJson(Map<String, dynamic> json) => 
+  factory SyncResult.fromJson(Map<String, dynamic> json) =>
       _$SyncResultFromJson(json);
   Map<String, dynamic> toJson() => _$SyncResultToJson(this);
 }
@@ -286,7 +286,7 @@ class SyncData {
     required this.hasMore,
   });
 
-  factory SyncData.fromJson(Map<String, dynamic> json) => 
+  factory SyncData.fromJson(Map<String, dynamic> json) =>
       _$SyncDataFromJson(json);
   Map<String, dynamic> toJson() => _$SyncDataToJson(this);
 }
@@ -309,7 +309,7 @@ class SyncItem {
     required this.status,
   });
 
-  factory SyncItem.fromJson(Map<String, dynamic> json) => 
+  factory SyncItem.fromJson(Map<String, dynamic> json) =>
       _$SyncItemFromJson(json);
   Map<String, dynamic> toJson() => _$SyncItemToJson(this);
 }
@@ -328,7 +328,7 @@ class SyncError {
     required this.timestamp,
   });
 
-  factory SyncError.fromJson(Map<String, dynamic> json) => 
+  factory SyncError.fromJson(Map<String, dynamic> json) =>
       _$SyncErrorFromJson(json);
   Map<String, dynamic> toJson() => _$SyncErrorToJson(this);
 }
@@ -347,7 +347,7 @@ class OfflineDataUpload {
     this.metadata,
   });
 
-  factory OfflineDataUpload.fromJson(Map<String, dynamic> json) => 
+  factory OfflineDataUpload.fromJson(Map<String, dynamic> json) =>
       _$OfflineDataUploadFromJson(json);
   Map<String, dynamic> toJson() => _$OfflineDataUploadToJson(this);
 }
@@ -370,26 +370,26 @@ class OfflineItem {
     this.retryCount = 0,
   });
 
-  factory OfflineItem.fromJson(Map<String, dynamic> json) => 
+  factory OfflineItem.fromJson(Map<String, dynamic> json) =>
       _$OfflineItemFromJson(json);
   Map<String, dynamic> toJson() => _$OfflineItemToJson(this);
 }
 
 @JsonSerializable()
-class ConflictResolution {
+class ConflictResolutionResult {
   final List<ResolvedConflict> resolvedConflicts;
   final int totalConflicts;
   final DateTime timestamp;
 
-  ConflictResolution({
+  ConflictResolutionResult({
     required this.resolvedConflicts,
     required this.totalConflicts,
     required this.timestamp,
   });
 
-  factory ConflictResolution.fromJson(Map<String, dynamic> json) => 
-      _$ConflictResolutionFromJson(json);
-  Map<String, dynamic> toJson() => _$ConflictResolutionToJson(this);
+  factory ConflictResolutionResult.fromJson(Map<String, dynamic> json) =>
+      _$ConflictResolutionResultFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionResultToJson(this);
 }
 
 @JsonSerializable()
@@ -406,26 +406,26 @@ class ResolvedConflict {
     required this.resolvedAt,
   });
 
-  factory ResolvedConflict.fromJson(Map<String, dynamic> json) => 
+  factory ResolvedConflict.fromJson(Map<String, dynamic> json) =>
       _$ResolvedConflictFromJson(json);
   Map<String, dynamic> toJson() => _$ResolvedConflictToJson(this);
 }
 
 @JsonSerializable()
-class ConflictResolutionRequest {
+class ConflictResolutionBatchRequest {
   final List<ConflictItem> conflicts;
   final String deviceId;
   final DateTime timestamp;
 
-  ConflictResolutionRequest({
+  ConflictResolutionBatchRequest({
     required this.conflicts,
     required this.deviceId,
     required this.timestamp,
   });
 
-  factory ConflictResolutionRequest.fromJson(Map<String, dynamic> json) => 
-      _$ConflictResolutionRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$ConflictResolutionRequestToJson(this);
+  factory ConflictResolutionBatchRequest.fromJson(Map<String, dynamic> json) =>
+      _$ConflictResolutionBatchRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$ConflictResolutionBatchRequestToJson(this);
 }
 
 @JsonSerializable()
@@ -442,7 +442,7 @@ class ConflictItem {
     required this.strategy,
   });
 
-  factory ConflictItem.fromJson(Map<String, dynamic> json) => 
+  factory ConflictItem.fromJson(Map<String, dynamic> json) =>
       _$ConflictItemFromJson(json);
   Map<String, dynamic> toJson() => _$ConflictItemToJson(this);
 }
@@ -461,7 +461,7 @@ class HeartbeatRequest {
     required this.syncStatus,
   });
 
-  factory HeartbeatRequest.fromJson(Map<String, dynamic> json) => 
+  factory HeartbeatRequest.fromJson(Map<String, dynamic> json) =>
       _$HeartbeatRequestFromJson(json);
   Map<String, dynamic> toJson() => _$HeartbeatRequestToJson(this);
 }
@@ -484,7 +484,7 @@ class FileUploadResult {
     required this.uploadedAt,
   });
 
-  factory FileUploadResult.fromJson(Map<String, dynamic> json) => 
+  factory FileUploadResult.fromJson(Map<String, dynamic> json) =>
       _$FileUploadResultFromJson(json);
   Map<String, dynamic> toJson() => _$FileUploadResultToJson(this);
 }
@@ -551,5 +551,311 @@ extension SyncStatusExtension on SyncStatus {
       case SyncStatus.conflict:
         return 'Conflict';
     }
+  }
+}
+
+class CriticalPatientData {
+  final String patientId;
+  final String name;
+  final String bloodType;
+  final List<String> allergies;
+  final List<String> medications;
+  final Map<String, dynamic> vitalSigns;
+  final String emergencyContact;
+  final String medicalHistory;
+
+  CriticalPatientData({
+    required this.patientId,
+    required this.name,
+    required this.bloodType,
+    required this.allergies,
+    required this.medications,
+    required this.vitalSigns,
+    required this.emergencyContact,
+    required this.medicalHistory,
+  });
+
+  factory CriticalPatientData.fromJson(Map<String, dynamic> json) {
+    return CriticalPatientData(
+      patientId: json['patientId'] ?? '',
+      name: json['name'] ?? '',
+      bloodType: json['bloodType'] ?? '',
+      allergies: List<String>.from(json['allergies'] ?? []),
+      medications: List<String>.from(json['medications'] ?? []),
+      vitalSigns: json['vitalSigns'] ?? {},
+      emergencyContact: json['emergencyContact'] ?? '',
+      medicalHistory: json['medicalHistory'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'patientId': patientId,
+      'name': name,
+      'bloodType': bloodType,
+      'allergies': allergies,
+      'medications': medications,
+      'vitalSigns': vitalSigns,
+      'emergencyContact': emergencyContact,
+      'medicalHistory': medicalHistory,
+    };
+  }
+}
+
+class EmergencyProtocol {
+  final String id;
+  final String type;
+  final String title;
+  final String description;
+  final List<String> steps;
+  final List<String> requiredEquipment;
+  final String priority;
+
+  EmergencyProtocol({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.description,
+    required this.steps,
+    required this.requiredEquipment,
+    required this.priority,
+  });
+
+  factory EmergencyProtocol.fromJson(Map<String, dynamic> json) {
+    return EmergencyProtocol(
+      id: json['id'] ?? '',
+      type: json['type'] ?? '',
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      steps: List<String>.from(json['steps'] ?? []),
+      requiredEquipment: List<String>.from(json['requiredEquipment'] ?? []),
+      priority: json['priority'] ?? 'normal',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'title': title,
+      'description': description,
+      'steps': steps,
+      'requiredEquipment': requiredEquipment,
+      'priority': priority,
+    };
+  }
+}
+
+class MedicationSafetyData {
+  final String medicationId;
+  final String name;
+  final List<String> interactions;
+  final List<String> contraindications;
+  final String dosageGuidelines;
+  final List<String> sideEffects;
+
+  MedicationSafetyData({
+    required this.medicationId,
+    required this.name,
+    required this.interactions,
+    required this.contraindications,
+    required this.dosageGuidelines,
+    required this.sideEffects,
+  });
+
+  factory MedicationSafetyData.fromJson(Map<String, dynamic> json) {
+    return MedicationSafetyData(
+      medicationId: json['medicationId'] ?? '',
+      name: json['name'] ?? '',
+      interactions: List<String>.from(json['interactions'] ?? []),
+      contraindications: List<String>.from(json['contraindications'] ?? []),
+      dosageGuidelines: json['dosageGuidelines'] ?? '',
+      sideEffects: List<String>.from(json['sideEffects'] ?? []),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'medicationId': medicationId,
+      'name': name,
+      'interactions': interactions,
+      'contraindications': contraindications,
+      'dosageGuidelines': dosageGuidelines,
+      'sideEffects': sideEffects,
+    };
+  }
+}
+
+class DrugInteraction {
+  final String id;
+  final String medication1;
+  final String medication2;
+  final String severity;
+  final String description;
+  final String recommendation;
+
+  DrugInteraction({
+    required this.id,
+    required this.medication1,
+    required this.medication2,
+    required this.severity,
+    required this.description,
+    required this.recommendation,
+  });
+
+  factory DrugInteraction.fromJson(Map<String, dynamic> json) {
+    return DrugInteraction(
+      id: json['id'] ?? '',
+      medication1: json['medication1'] ?? '',
+      medication2: json['medication2'] ?? '',
+      severity: json['severity'] ?? 'unknown',
+      description: json['description'] ?? '',
+      recommendation: json['recommendation'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'medication1': medication1,
+      'medication2': medication2,
+      'severity': severity,
+      'description': description,
+      'recommendation': recommendation,
+    };
+  }
+}
+
+class VitalSignAlert {
+  final String id;
+  final String patientId;
+  final String vitalType;
+  final String alertType;
+  final String message;
+  final DateTime timestamp;
+
+  VitalSignAlert({
+    required this.id,
+    required this.patientId,
+    required this.vitalType,
+    required this.alertType,
+    required this.message,
+    required this.timestamp,
+  });
+
+  factory VitalSignAlert.fromJson(Map<String, dynamic> json) {
+    return VitalSignAlert(
+      id: json['id'] ?? '',
+      patientId: json['patientId'] ?? '',
+      vitalType: json['vitalType'] ?? '',
+      alertType: json['alertType'] ?? '',
+      message: json['message'] ?? '',
+      timestamp:
+          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'patientId': patientId,
+      'vitalType': vitalType,
+      'alertType': alertType,
+      'message': message,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+}
+
+class VitalSigns {
+  final String patientId;
+  final double heartRate;
+  final String bloodPressure;
+  final double temperature;
+  final double oxygenSaturation;
+  final double respiratoryRate;
+  final DateTime timestamp;
+
+  VitalSigns({
+    required this.patientId,
+    required this.heartRate,
+    required this.bloodPressure,
+    required this.temperature,
+    required this.oxygenSaturation,
+    required this.respiratoryRate,
+    required this.timestamp,
+  });
+
+  factory VitalSigns.fromJson(Map<String, dynamic> json) {
+    return VitalSigns(
+      patientId: json['patientId'] ?? '',
+      heartRate: (json['heartRate'] ?? 0.0).toDouble(),
+      bloodPressure: json['bloodPressure'] ?? '',
+      temperature: (json['temperature'] ?? 0.0).toDouble(),
+      oxygenSaturation: (json['oxygenSaturation'] ?? 0.0).toDouble(),
+      respiratoryRate: (json['respiratoryRate'] ?? 0.0).toDouble(),
+      timestamp:
+          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'patientId': patientId,
+      'heartRate': heartRate,
+      'bloodPressure': bloodPressure,
+      'temperature': temperature,
+      'oxygenSaturation': oxygenSaturation,
+      'respiratoryRate': respiratoryRate,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+}
+
+enum OfflineActionType {
+  patientUpdate,
+  vitalsRecording,
+  medicationAdministration,
+  appointmentBooking,
+  emergencyReport,
+}
+
+class OfflineAction {
+  final String id;
+  final OfflineActionType type;
+  final Map<String, dynamic> data;
+  final DateTime timestamp;
+  final bool synced;
+
+  OfflineAction({
+    required this.id,
+    required this.type,
+    required this.data,
+    required this.timestamp,
+    this.synced = false,
+  });
+
+  factory OfflineAction.fromJson(Map<String, dynamic> json) {
+    return OfflineAction(
+      id: json['id'] ?? '',
+      type: OfflineActionType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => OfflineActionType.patientUpdate,
+      ),
+      data: json['data'] ?? {},
+      timestamp:
+          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      synced: json['synced'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.name,
+      'data': data,
+      'timestamp': timestamp.toIso8601String(),
+      'synced': synced,
+    };
   }
 }

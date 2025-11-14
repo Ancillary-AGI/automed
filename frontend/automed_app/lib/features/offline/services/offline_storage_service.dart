@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,7 +24,7 @@ class OfflineStorageService {
       _medicationsBox = await Hive.openBox(_medicationsBoxName);
       _consultationsBox = await Hive.openBox(_consultationsBoxName);
       _syncActionsBox = await Hive.openBox(_syncActionsBoxName);
-      
+
       Logger.info('Offline storage initialized successfully');
     } catch (e) {
       Logger.error('Failed to initialize offline storage', e);
@@ -65,7 +64,8 @@ class OfflineStorageService {
     }
   }
 
-  Future<void> updatePatient(String patientId, Map<String, dynamic> updates) async {
+  Future<void> updatePatient(
+      String patientId, Map<String, dynamic> updates) async {
     try {
       final existingPatient = _patientsBox.get(patientId);
       if (existingPatient != null) {
@@ -98,9 +98,10 @@ class OfflineStorageService {
           .map((vital) => Map<String, dynamic>.from(vital))
           .where((vital) => vital['patientId'] == patientId)
           .toList();
-      
+
       // Sort by timestamp (most recent first)
-      allVitals.sort((a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
+      allVitals.sort(
+          (a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
       return allVitals;
     } catch (e) {
       Logger.error('Failed to get patient vitals from offline storage', e);
@@ -112,14 +113,16 @@ class OfflineStorageService {
   Future<void> saveMedication(Map<String, dynamic> medication) async {
     try {
       await _medicationsBox.put(medication['id'], medication);
-      await _queueSyncAction('CREATE', 'medication', medication['id'], medication);
+      await _queueSyncAction(
+          'CREATE', 'medication', medication['id'], medication);
       Logger.info('Medication saved offline: ${medication['id']}');
     } catch (e) {
       Logger.error('Failed to save medication offline', e);
     }
   }
 
-  Future<List<Map<String, dynamic>>> getPatientMedications(String patientId) async {
+  Future<List<Map<String, dynamic>>> getPatientMedications(
+      String patientId) async {
     try {
       return _medicationsBox.values
           .map((medication) => Map<String, dynamic>.from(medication))
@@ -131,17 +134,20 @@ class OfflineStorageService {
     }
   }
 
-  Future<void> updateMedicationStatus(String medicationId, String status) async {
+  Future<void> updateMedicationStatus(
+      String medicationId, String status) async {
     try {
       final medication = _medicationsBox.get(medicationId);
       if (medication != null) {
         final updatedMedication = Map<String, dynamic>.from(medication)
           ..['status'] = status
           ..['lastUpdated'] = DateTime.now().millisecondsSinceEpoch;
-        
+
         await _medicationsBox.put(medicationId, updatedMedication);
-        await _queueSyncAction('UPDATE', 'medication', medicationId, {'status': status});
-        Logger.info('Medication status updated offline: $medicationId -> $status');
+        await _queueSyncAction(
+            'UPDATE', 'medication', medicationId, {'status': status});
+        Logger.info(
+            'Medication status updated offline: $medicationId -> $status');
       }
     } catch (e) {
       Logger.error('Failed to update medication status offline', e);
@@ -152,21 +158,24 @@ class OfflineStorageService {
   Future<void> saveConsultation(Map<String, dynamic> consultation) async {
     try {
       await _consultationsBox.put(consultation['id'], consultation);
-      await _queueSyncAction('CREATE', 'consultation', consultation['id'], consultation);
+      await _queueSyncAction(
+          'CREATE', 'consultation', consultation['id'], consultation);
       Logger.info('Consultation saved offline: ${consultation['id']}');
     } catch (e) {
       Logger.error('Failed to save consultation offline', e);
     }
   }
 
-  Future<List<Map<String, dynamic>>> getPatientConsultations(String patientId) async {
+  Future<List<Map<String, dynamic>>> getPatientConsultations(
+      String patientId) async {
     try {
       return _consultationsBox.values
           .map((consultation) => Map<String, dynamic>.from(consultation))
           .where((consultation) => consultation['patientId'] == patientId)
           .toList();
     } catch (e) {
-      Logger.error('Failed to get patient consultations from offline storage', e);
+      Logger.error(
+          'Failed to get patient consultations from offline storage', e);
       return [];
     }
   }
@@ -179,13 +188,13 @@ class OfflineStorageService {
     Map<String, dynamic> data,
   ) async {
     try {
-      final syncAction = SyncAction(
+      final syncAction = SyncActionRecord(
         id: '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}',
         type: operation,
-        entityType: entityType,
         entityId: entityId,
         data: data,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
+        timestamp: DateTime.now(),
+        actionType: _getActionType(operation),
       );
 
       await _syncActionsBox.put(syncAction.id, syncAction.toJson());
@@ -195,10 +204,24 @@ class OfflineStorageService {
     }
   }
 
-  Future<List<SyncAction>> getPendingSyncActions() async {
+  ActionType _getActionType(String operation) {
+    switch (operation.toUpperCase()) {
+      case 'CREATE':
+        return ActionType.create;
+      case 'UPDATE':
+        return ActionType.update;
+      case 'DELETE':
+        return ActionType.delete;
+      default:
+        return ActionType.create;
+    }
+  }
+
+  Future<List<SyncActionRecord>> getPendingSyncActions() async {
     try {
       return _syncActionsBox.values
-          .map((action) => SyncAction.fromJson(Map<String, dynamic>.from(action)))
+          .map((action) =>
+              SyncActionRecord.fromJson(Map<String, dynamic>.from(action)))
           .toList();
     } catch (e) {
       Logger.error('Failed to get pending sync actions', e);
@@ -229,17 +252,17 @@ class OfflineStorageService {
     try {
       final allPatients = await getAllPatients();
       final lowercaseQuery = query.toLowerCase();
-      
+
       return allPatients.where((patient) {
         final firstName = (patient['firstName'] as String? ?? '').toLowerCase();
         final lastName = (patient['lastName'] as String? ?? '').toLowerCase();
         final email = (patient['email'] as String? ?? '').toLowerCase();
         final patientId = (patient['patientId'] as String? ?? '').toLowerCase();
-        
+
         return firstName.contains(lowercaseQuery) ||
-               lastName.contains(lowercaseQuery) ||
-               email.contains(lowercaseQuery) ||
-               patientId.contains(lowercaseQuery);
+            lastName.contains(lowercaseQuery) ||
+            email.contains(lowercaseQuery) ||
+            patientId.contains(lowercaseQuery);
       }).toList();
     } catch (e) {
       Logger.error('Failed to search patients', e);
@@ -291,7 +314,7 @@ class OfflineStorageService {
           vitalsToRemove.add(entry.key.toString());
         }
       }
-      
+
       for (final key in vitalsToRemove) {
         await _vitalsBox.delete(key);
       }
@@ -318,5 +341,6 @@ class OfflineStorageService {
 
 // Provider
 final offlineStorageServiceProvider = Provider<OfflineStorageService>((ref) {
-  throw UnimplementedError('OfflineStorageService must be initialized in main()');
+  throw UnimplementedError(
+      'OfflineStorageService must be initialized in main()');
 });

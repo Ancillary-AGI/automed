@@ -1,0 +1,447 @@
+openapi: 3.0.3
+info:
+  title: Multimodal Medical AI Service API
+  description: |
+    Comprehensive multimodal AI service that integrates text, images, vitals, and genomic data
+    for advanced diagnosis and treatment planning in healthcare.
+  version: 1.0.0
+  contact:
+    name: AutoMed Development Team
+    email: dev@automed.com
+
+servers:
+  - url: http://localhost:8086
+    description: Development server
+  - url: https://api.automed.com/multimodal-ai
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/multimodal-ai/fuse:
+    post:
+      summary: Fuse multimodal patient data for diagnosis and treatment
+      description: |
+        Performs multimodal fusion of text, image, vital signs, and genomic data
+        to provide comprehensive diagnosis and treatment recommendations.
+      operationId: fuseMultimodalData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultimodalFusionRequest'
+      responses:
+        '200':
+          description: Successful multimodal fusion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultimodalFusionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/MultimodalProcessingError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/cross-modal-reasoning:
+    post:
+      summary: Perform cross-modal reasoning
+      description: |
+        Analyzes relationships between different data modalities to provide
+        clinical insights and reasoning.
+      operationId: performCrossModalReasoning
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrossModalReasoningRequest'
+      responses:
+        '200':
+          description: Successful cross-modal reasoning
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrossModalReasoningResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/synthetic-data:
+    post:
+      summary: Generate synthetic medical data
+      description: |
+        Generates synthetic data for training and testing AI models
+        while maintaining privacy and medical accuracy.
+      operationId: generateSyntheticData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticDataRequest'
+      responses:
+        '200':
+          description: Successful synthetic data generation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticDataResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/realtime/process:
+    post:
+      summary: Process data in real-time
+      description: |
+        Processes streaming medical data in real-time with immediate
+        analysis and alerts.
+      operationId: processRealTimeData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealTimeProcessingRequest'
+      responses:
+        '200':
+          description: Successful real-time processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealTimeProcessingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/realtime/session/{sessionId}:
+    delete:
+      summary: Stop real-time processing session
+      description: Terminates a real-time processing session.
+      operationId: stopRealTimeSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session stopped successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Session not found
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/patient/{patientId}/integrate:
+    post:
+      summary: Integrate patient data from multiple sources
+      description: |
+        Retrieves and integrates patient data from various healthcare
+        systems and sources.
+      operationId: integratePatientData
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientDataIntegrationRequest'
+      responses:
+        '200':
+          description: Successful data integration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientDataIntegrationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/uncertainty/quantify:
+    post:
+      summary: Quantify uncertainty in AI predictions
+      description: |
+        Provides uncertainty quantification for clinical decisions
+        and AI predictions.
+      operationId: quantifyUncertainty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultimodalFusionRequest'
+      responses:
+        '200':
+          description: Successful uncertainty quantification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfidenceScore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/models:
+    get:
+      summary: Get available AI models
+      description: Retrieves information about available AI models.
+      operationId: getAvailableModels
+      responses:
+        '200':
+          description: Successful model information retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiModelInfo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+  /api/v1/multimodal-ai/health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the multimodal AI service.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  service:
+                    type: string
+                    example: "multimodal-ai-service"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    # Request/Response Schemas
+    MultimodalFusionRequest:
+      type: object
+      required:
+        - patientId
+      properties:
+        patientId:
+          type: string
+          description: Unique patient identifier
+        textData:
+          $ref: '#/components/schemas/TextData'
+        imageData:
+          $ref: '#/components/schemas/ImageData'
+        vitalsData:
+          $ref: '#/components/schemas/VitalsData'
+        genomicData:
+          $ref: '#/components/schemas/GenomicData'
+        fusionStrategy:
+          $ref: '#/components/schemas/FusionStrategy'
+        includeUncertainty:
+          type: boolean
+          default: true
+
+    MultimodalFusionResponse:
+      type: object
+      properties:
+        patientId:
+          type: string
+        diagnosis:
+          $ref: '#/components/schemas/DiagnosisResult'
+        treatmentPlan:
+          $ref: '#/components/schemas/TreatmentPlan'
+        confidence:
+          $ref: '#/components/schemas/ConfidenceScore'
+        processingTimeMs:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+
+    # Data Modalities
+    TextData:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Text content to analyze
+        type:
+          $ref: '#/components/schemas/TextType'
+        language:
+          type: string
+          default: "en"
+
+    ImageData:
+      type: object
+      required:
+        - imageUrl
+        - modality
+      properties:
+        imageUrl:
+          type: string
+          format: uri
+        modality:
+          $ref: '#/components/schemas/ImageModality'
+        metadata:
+          $ref: '#/components/schemas/ImageMetadata'
+
+    VitalsData:
+      type: object
+      properties:
+        measurements:
+          type: array
+          items:
+            $ref: '#/components/schemas/VitalMeasurement'
+        timeRange:
+          $ref: '#/components/schemas/TimeRange'
+
+    GenomicData:
+      type: object
+      required:
+        - sequence
+        - type
+      properties:
+        sequence:
+          type: string
+          description: DNA/RNA/protein sequence
+        type:
+          $ref: '#/components/schemas/GenomicType'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneticVariant'
+
+    # Enums
+    FusionStrategy:
+      type: string
+      enum:
+        - EARLY_FUSION
+        - LATE_FUSION
+        - HYBRID_FUSION
+
+    TextType:
+      type: string
+      enum:
+        - CLINICAL_NOTES
+        - SYMPTOM_DESCRIPTION
+        - MEDICAL_HISTORY
+        - LAB_REPORTS
+
+    ImageModality:
+      type: string
+      enum:
+        - XRAY
+        - MRI
+        - CT
+        - ULTRASOUND
+        - DERMATOLOGY
+        - OPHTHALMOLOGY
+
+    GenomicType:
+      type: string
+      enum:
+        - DNA_SEQUENCE
+        - RNA_SEQUENCE
+        - PROTEIN_SEQUENCE
+
+    Priority:
+      type: string
+      enum:
+        - HIGH
+        - MEDIUM
+        - LOW
+
+    DataModality:
+      type: string
+      enum:
+        - TEXT
+        - IMAGE
+        - VITALS
+        - GENOMIC
+        - MULTIMODAL
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    MultimodalProcessingError:
+      description: Multimodal processing error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultimodalErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

@@ -42,14 +42,15 @@ class Patient {
     this.insurance,
   });
 
-  factory Patient.fromJson(Map<String, dynamic> json) => _$PatientFromJson(json);
+  factory Patient.fromJson(Map<String, dynamic> json) =>
+      _$PatientFromJson(json);
   Map<String, dynamic> toJson() => _$PatientToJson(this);
 
   String get fullName => '$firstName $lastName';
   int get age {
     final now = DateTime.now();
     int age = now.year - dateOfBirth.year;
-    if (now.month < dateOfBirth.month || 
+    if (now.month < dateOfBirth.month ||
         (now.month == dateOfBirth.month && now.day < dateOfBirth.day)) {
       age--;
     }
@@ -77,7 +78,8 @@ class Address {
     this.longitude,
   });
 
-  factory Address.fromJson(Map<String, dynamic> json) => _$AddressFromJson(json);
+  factory Address.fromJson(Map<String, dynamic> json) =>
+      _$AddressFromJson(json);
   Map<String, dynamic> toJson() => _$AddressToJson(this);
 
   String get fullAddress => '$street, $city, $state $zipCode, $country';
@@ -99,7 +101,7 @@ class EmergencyContact {
     this.address,
   });
 
-  factory EmergencyContact.fromJson(Map<String, dynamic> json) => 
+  factory EmergencyContact.fromJson(Map<String, dynamic> json) =>
       _$EmergencyContactFromJson(json);
   Map<String, dynamic> toJson() => _$EmergencyContactToJson(this);
 }
@@ -120,11 +122,12 @@ class Insurance {
     this.notes,
   });
 
-  factory Insurance.fromJson(Map<String, dynamic> json) => _$InsuranceFromJson(json);
+  factory Insurance.fromJson(Map<String, dynamic> json) =>
+      _$InsuranceFromJson(json);
   Map<String, dynamic> toJson() => _$InsuranceToJson(this);
 
   bool get isExpired => DateTime.now().isAfter(expiryDate);
-  bool get isExpiringSoon => 
+  bool get isExpiringSoon =>
       DateTime.now().add(const Duration(days: 30)).isAfter(expiryDate);
 }
 
@@ -154,7 +157,7 @@ class MedicalRecord {
     this.metadata,
   });
 
-  factory MedicalRecord.fromJson(Map<String, dynamic> json) => 
+  factory MedicalRecord.fromJson(Map<String, dynamic> json) =>
       _$MedicalRecordFromJson(json);
   Map<String, dynamic> toJson() => _$MedicalRecordToJson(this);
 }
@@ -187,7 +190,7 @@ class VitalSigns {
     this.notes,
   });
 
-  factory VitalSigns.fromJson(Map<String, dynamic> json) => 
+  factory VitalSigns.fromJson(Map<String, dynamic> json) =>
       _$VitalSignsFromJson(json);
   Map<String, dynamic> toJson() => _$VitalSignsToJson(this);
 
@@ -210,12 +213,12 @@ class BloodPressure {
     required this.diastolic,
   });
 
-  factory BloodPressure.fromJson(Map<String, dynamic> json) => 
+  factory BloodPressure.fromJson(Map<String, dynamic> json) =>
       _$BloodPressureFromJson(json);
   Map<String, dynamic> toJson() => _$BloodPressureToJson(this);
 
   String get displayValue => '$systolic/$diastolic';
-  
+
   BloodPressureCategory get category {
     if (systolic < 120 && diastolic < 80) return BloodPressureCategory.normal;
     if (systolic < 130 && diastolic < 80) return BloodPressureCategory.elevated;
@@ -255,7 +258,7 @@ class CreatePatientRequest {
     this.insurance,
   });
 
-  factory CreatePatientRequest.fromJson(Map<String, dynamic> json) => 
+  factory CreatePatientRequest.fromJson(Map<String, dynamic> json) =>
       _$CreatePatientRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreatePatientRequestToJson(this);
 }
@@ -292,7 +295,7 @@ class UpdatePatientRequest {
     this.status,
   });
 
-  factory UpdatePatientRequest.fromJson(Map<String, dynamic> json) => 
+  factory UpdatePatientRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdatePatientRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdatePatientRequestToJson(this);
 
@@ -307,7 +310,8 @@ class UpdatePatientRequest {
     if (address != null) fields['address'] = address;
     if (bloodType != null) fields['bloodType'] = bloodType;
     if (allergies != null) fields['allergies'] = allergies;
-    if (medicalConditions != null) fields['medicalConditions'] = medicalConditions;
+    if (medicalConditions != null)
+      fields['medicalConditions'] = medicalConditions;
     if (emergencyContact != null) fields['emergencyContact'] = emergencyContact;
     if (insurance != null) fields['insurance'] = insurance;
     if (status != null) fields['status'] = status;
@@ -420,4 +424,27 @@ extension PatientStatusExtension on PatientStatus {
         return 'Unknown';
     }
   }
+}
+
+@JsonSerializable()
+class MedicalHistory {
+  final List<String> allergies;
+  final List<String> chronicConditions;
+  final List<String> surgeries;
+  final List<String> familyHistory;
+  final List<String> currentMedications;
+  final String? notes;
+
+  MedicalHistory({
+    required this.allergies,
+    required this.chronicConditions,
+    required this.surgeries,
+    required this.familyHistory,
+    required this.currentMedications,
+    this.notes,
+  });
+
+  factory MedicalHistory.fromJson(Map<String, dynamic> json) =>
+      _$MedicalHistoryFromJson(json);
+  Map<String, dynamic> toJson() => _$MedicalHistoryToJson(this);
 }

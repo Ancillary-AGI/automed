@@ -1,0 +1,137 @@
+spring:
+  application:
+    name: imaging-ai-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/automed
+    username: automed
+    password: automed123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/automed
+  cloud:
+    discovery:
+      enabled: true
+
+server:
+  port: 8085
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.automed: DEBUG
+    org.springframework.security: DEBUG
+    org.dcm4che: INFO
+
+# Medical Imaging Configuration
+imaging:
+  dicom:
+    aet: IMAGING_AI_SERVICE
+    port: 104
+    timeout: 30000
+    max-pdu-length: 16384
+    storage:
+      directory: ${IMAGING_STORAGE_DIR:/tmp/imaging-ai-storage}
+      max-file-size: 100MB
+      retention-days: 30
+
+  ai:
+    models:
+      diffusion:
+        enabled: true
+        model-path: ${DIFFUSION_MODEL_PATH:/models/diffusion}
+        batch-size: 4
+        device: cuda
+      vision-transformer:
+        enabled: true
+        model-path: ${VIT_MODEL_PATH:/models/vit}
+        confidence-threshold: 0.85
+      cross-modality:
+        enabled: true
+        models:
+          ct-to-mri: ${CT_MRI_MODEL_PATH:/models/ct2mri}
+          mri-to-ct: ${MRI_CT_MODEL_PATH:/models/mri2ct}
+          xray-to-ct: ${XRAY_CT_MODEL_PATH:/models/xray2ct}
+
+    processing:
+      max-concurrent-requests: 10
+      queue-size: 100
+      timeout-seconds: 300
+
+  federated-learning:
+    enabled: true
+    coordinator-url: ${FL_COORDINATOR_URL:http://localhost:8086}
+    client-id: ${FL_CLIENT_ID:imaging-service-001}
+    rounds-per-epoch: 5
+    min-clients: 3
+    privacy:
+      noise-multiplier: 1.0
+      max-grad-norm: 1.0
+
+  pacs:
+    integration:
+      enabled: true
+      endpoints:
+        - url: ${PACS_URL:http://localhost:8042}
+          aet: ORTHANC
+          username: ${PACS_USERNAME:admin}
+          password: ${PACS_PASSWORD:admin}
+
+  hipaa:
+    compliance:
+      enabled: true
+      audit-logging: true
+      encryption:
+        enabled: true
+        algorithm: AES256
+      data-retention:
+        medical-images: 7years
+        audit-logs: 6years
+      access-control:
+        role-based: true
+        mfa-required: true
+
+  synthetic-data:
+    generation:
+      enabled: true
+      output-directory: ${SYNTHETIC_DATA_DIR:/tmp/synthetic-images}
+      batch-size: 32
+      quality-threshold: 0.9
+
+# Security Configuration
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD:imaging-ai-secret-key}
+    algorithm: PBEWithMD5AndDES
+
+# Monitoring
+metrics:
+  imaging:
+    enabled: true
+    tags:
+      service: imaging-ai
+      version: 1.0.0

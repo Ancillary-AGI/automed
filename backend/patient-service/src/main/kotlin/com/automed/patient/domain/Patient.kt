@@ -62,6 +62,10 @@ data class Patient(
     @CollectionTable(name = "patient_medical_conditions")
     val medicalConditions: Set<String> = emptySet(),
 
+    @Lob
+    @Column(name = "medical_history")
+    val medicalHistory: String? = null,
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     val status: PatientStatus = PatientStatus.ACTIVE,

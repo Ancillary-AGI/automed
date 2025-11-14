@@ -35,6 +35,7 @@ data class CreatePatientRequest(
     val bloodType: BloodType,
 
     val allergies: Set<String> = emptySet(),
+    val medicalConditions: Set<String> = emptySet(),
 
-    val medicalConditions: Set<String> = emptySet()
+    val medicalHistory: String? = null
 )

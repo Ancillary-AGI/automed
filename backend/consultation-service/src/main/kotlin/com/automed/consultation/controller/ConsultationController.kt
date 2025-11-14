@@ -83,9 +83,12 @@ class ConsultationController(
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
     fun sendMessage(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: SendMessageRequest
+        @Valid @RequestBody request: SendMessageRequest,
+        @org.springframework.security.core.annotation.AuthenticationPrincipal principal: org.springframework.security.oauth2.jwt.Jwt
     ): Mono<ResponseEntity<MessageResponse>> {
-        return consultationService.sendMessage(id, request)
+        val userId = UUID.fromString(principal.getClaimAsString("sub"))
+        val userName = principal.getClaimAsString("preferred_username") ?: "User"
+        return consultationService.sendMessage(id, request, userId, userName)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 
@@ -100,9 +103,11 @@ class ConsultationController(
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER') or hasRole('PATIENT')")
     fun uploadFile(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: FileUploadRequest
+        @Valid @RequestBody request: FileUploadRequest,
+        @org.springframework.security.core.annotation.AuthenticationPrincipal principal: org.springframework.security.oauth2.jwt.Jwt
     ): Mono<ResponseEntity<FileUploadResponse>> {
-        return consultationService.uploadFile(id, request)
+        val uploaderId = UUID.fromString(principal.getClaimAsString("sub"))
+        return consultationService.uploadFile(id, request, uploaderId)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 
@@ -117,9 +122,11 @@ class ConsultationController(
     @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
     fun createPrescription(
         @PathVariable id: UUID,
-        @Valid @RequestBody request: CreatePrescriptionRequest
+        @Valid @RequestBody request: CreatePrescriptionRequest,
+        @org.springframework.security.core.annotation.AuthenticationPrincipal principal: org.springframework.security.oauth2.jwt.Jwt
     ): Mono<ResponseEntity<PrescriptionResponse>> {
-        return consultationService.createPrescription(id, request)
+        val prescribedBy = UUID.fromString(principal.getClaimAsString("sub"))
+        return consultationService.createPrescription(id, request, prescribedBy)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 

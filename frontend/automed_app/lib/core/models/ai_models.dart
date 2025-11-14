@@ -18,7 +18,7 @@ class DiagnosisPrediction {
     this.suggestedTests,
   });
 
-  factory DiagnosisPrediction.fromJson(Map<String, dynamic> json) => 
+  factory DiagnosisPrediction.fromJson(Map<String, dynamic> json) =>
       _$DiagnosisPredictionFromJson(json);
   Map<String, dynamic> toJson() => _$DiagnosisPredictionToJson(this);
 }
@@ -39,7 +39,7 @@ class SymptomAnalysis {
     this.nextSteps,
   });
 
-  factory SymptomAnalysis.fromJson(Map<String, dynamic> json) => 
+  factory SymptomAnalysis.fromJson(Map<String, dynamic> json) =>
       _$SymptomAnalysisFromJson(json);
   Map<String, dynamic> toJson() => _$SymptomAnalysisToJson(this);
 }
@@ -60,7 +60,7 @@ class TriageResult {
     required this.reasoning,
   });
 
-  factory TriageResult.fromJson(Map<String, dynamic> json) => 
+  factory TriageResult.fromJson(Map<String, dynamic> json) =>
       _$TriageResultFromJson(json);
   Map<String, dynamic> toJson() => _$TriageResultToJson(this);
 }
@@ -83,7 +83,7 @@ class ImageAnalysisResult {
     required this.urgencyLevel,
   });
 
-  factory ImageAnalysisResult.fromJson(Map<String, dynamic> json) => 
+  factory ImageAnalysisResult.fromJson(Map<String, dynamic> json) =>
       _$ImageAnalysisResultFromJson(json);
   Map<String, dynamic> toJson() => _$ImageAnalysisResultToJson(this);
 }
@@ -104,7 +104,7 @@ class ImageFinding {
     required this.description,
   });
 
-  factory ImageFinding.fromJson(Map<String, dynamic> json) => 
+  factory ImageFinding.fromJson(Map<String, dynamic> json) =>
       _$ImageFindingFromJson(json);
   Map<String, dynamic> toJson() => _$ImageFindingToJson(this);
 }
@@ -125,7 +125,7 @@ class ImageLocation {
     this.anatomicalRegion,
   });
 
-  factory ImageLocation.fromJson(Map<String, dynamic> json) => 
+  factory ImageLocation.fromJson(Map<String, dynamic> json) =>
       _$ImageLocationFromJson(json);
   Map<String, dynamic> toJson() => _$ImageLocationToJson(this);
 }
@@ -146,7 +146,7 @@ class WearableAnalysisResult {
     required this.recommendations,
   });
 
-  factory WearableAnalysisResult.fromJson(Map<String, dynamic> json) => 
+  factory WearableAnalysisResult.fromJson(Map<String, dynamic> json) =>
       _$WearableAnalysisResultFromJson(json);
   Map<String, dynamic> toJson() => _$WearableAnalysisResultToJson(this);
 }
@@ -167,7 +167,7 @@ class WearableAnalysis {
     required this.stressTrend,
   });
 
-  factory WearableAnalysis.fromJson(Map<String, dynamic> json) => 
+  factory WearableAnalysis.fromJson(Map<String, dynamic> json) =>
       _$WearableAnalysisFromJson(json);
   Map<String, dynamic> toJson() => _$WearableAnalysisToJson(this);
 }
@@ -188,7 +188,7 @@ class HealthInsight {
     required this.priority,
   });
 
-  factory HealthInsight.fromJson(Map<String, dynamic> json) => 
+  factory HealthInsight.fromJson(Map<String, dynamic> json) =>
       _$HealthInsightFromJson(json);
   Map<String, dynamic> toJson() => _$HealthInsightToJson(this);
 }
@@ -211,7 +211,7 @@ class VoiceAnalysisResult {
     required this.recommendations,
   });
 
-  factory VoiceAnalysisResult.fromJson(Map<String, dynamic> json) => 
+  factory VoiceAnalysisResult.fromJson(Map<String, dynamic> json) =>
       _$VoiceAnalysisResultFromJson(json);
   Map<String, dynamic> toJson() => _$VoiceAnalysisResultToJson(this);
 }
@@ -228,7 +228,7 @@ class SentimentAnalysis {
     required this.emotions,
   });
 
-  factory SentimentAnalysis.fromJson(Map<String, dynamic> json) => 
+  factory SentimentAnalysis.fromJson(Map<String, dynamic> json) =>
       _$SentimentAnalysisFromJson(json);
   Map<String, dynamic> toJson() => _$SentimentAnalysisToJson(this);
 }
@@ -247,7 +247,7 @@ class MedicalTerm {
     required this.context,
   });
 
-  factory MedicalTerm.fromJson(Map<String, dynamic> json) => 
+  factory MedicalTerm.fromJson(Map<String, dynamic> json) =>
       _$MedicalTermFromJson(json);
   Map<String, dynamic> toJson() => _$MedicalTermToJson(this);
 }
@@ -268,7 +268,7 @@ class PopulationHealthAnalysis {
     required this.recommendations,
   });
 
-  factory PopulationHealthAnalysis.fromJson(Map<String, dynamic> json) => 
+  factory PopulationHealthAnalysis.fromJson(Map<String, dynamic> json) =>
       _$PopulationHealthAnalysisFromJson(json);
   Map<String, dynamic> toJson() => _$PopulationHealthAnalysisToJson(this);
 }
@@ -285,7 +285,7 @@ class TrendAnalysis {
     required this.confidence,
   });
 
-  factory TrendAnalysis.fromJson(Map<String, dynamic> json) => 
+  factory TrendAnalysis.fromJson(Map<String, dynamic> json) =>
       _$TrendAnalysisFromJson(json);
   Map<String, dynamic> toJson() => _$TrendAnalysisToJson(this);
 }
@@ -304,7 +304,7 @@ class OutbreakDetection {
     required this.alertLevel,
   });
 
-  factory OutbreakDetection.fromJson(Map<String, dynamic> json) => 
+  factory OutbreakDetection.fromJson(Map<String, dynamic> json) =>
       _$OutbreakDetectionFromJson(json);
   Map<String, dynamic> toJson() => _$OutbreakDetectionToJson(this);
 }
@@ -327,7 +327,7 @@ class AIModel {
     this.supportedFeatures,
   });
 
-  factory AIModel.fromJson(Map<String, dynamic> json) => 
+  factory AIModel.fromJson(Map<String, dynamic> json) =>
       _$AIModelFromJson(json);
   Map<String, dynamic> toJson() => _$AIModelToJson(this);
 }
@@ -347,7 +347,7 @@ class DiagnosisRequest {
     this.medicalHistory,
   });
 
-  factory DiagnosisRequest.fromJson(Map<String, dynamic> json) => 
+  factory DiagnosisRequest.fromJson(Map<String, dynamic> json) =>
       _$DiagnosisRequestFromJson(json);
   Map<String, dynamic> toJson() => _$DiagnosisRequestToJson(this);
 }
@@ -366,7 +366,7 @@ class SymptomAnalysisRequest {
     this.patientId,
   });
 
-  factory SymptomAnalysisRequest.fromJson(Map<String, dynamic> json) => 
+  factory SymptomAnalysisRequest.fromJson(Map<String, dynamic> json) =>
       _$SymptomAnalysisRequestFromJson(json);
   Map<String, dynamic> toJson() => _$SymptomAnalysisRequestToJson(this);
 }
@@ -385,7 +385,7 @@ class TriageRequest {
     this.chiefComplaint,
   });
 
-  factory TriageRequest.fromJson(Map<String, dynamic> json) => 
+  factory TriageRequest.fromJson(Map<String, dynamic> json) =>
       _$TriageRequestFromJson(json);
   Map<String, dynamic> toJson() => _$TriageRequestToJson(this);
 }
@@ -404,7 +404,7 @@ class ImageAnalysisRequest {
     this.clinicalContext,
   });
 
-  factory ImageAnalysisRequest.fromJson(Map<String, dynamic> json) => 
+  factory ImageAnalysisRequest.fromJson(Map<String, dynamic> json) =>
       _$ImageAnalysisRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ImageAnalysisRequestToJson(this);
 }
@@ -421,7 +421,7 @@ class WearableDataRequest {
     required this.dataPoints,
   });
 
-  factory WearableDataRequest.fromJson(Map<String, dynamic> json) => 
+  factory WearableDataRequest.fromJson(Map<String, dynamic> json) =>
       _$WearableDataRequestFromJson(json);
   Map<String, dynamic> toJson() => _$WearableDataRequestToJson(this);
 }
@@ -444,7 +444,7 @@ class WearableDataPoint {
     this.oxygenSaturation,
   });
 
-  factory WearableDataPoint.fromJson(Map<String, dynamic> json) => 
+  factory WearableDataPoint.fromJson(Map<String, dynamic> json) =>
       _$WearableDataPointFromJson(json);
   Map<String, dynamic> toJson() => _$WearableDataPointToJson(this);
 }
@@ -463,7 +463,7 @@ class VoiceAnalysisRequest {
     this.language,
   });
 
-  factory VoiceAnalysisRequest.fromJson(Map<String, dynamic> json) => 
+  factory VoiceAnalysisRequest.fromJson(Map<String, dynamic> json) =>
       _$VoiceAnalysisRequestFromJson(json);
   Map<String, dynamic> toJson() => _$VoiceAnalysisRequestToJson(this);
 }
@@ -482,7 +482,7 @@ class PopulationHealthRequest {
     this.includeForecasting,
   });
 
-  factory PopulationHealthRequest.fromJson(Map<String, dynamic> json) => 
+  factory PopulationHealthRequest.fromJson(Map<String, dynamic> json) =>
       _$PopulationHealthRequestFromJson(json);
   Map<String, dynamic> toJson() => _$PopulationHealthRequestToJson(this);
 }
@@ -501,7 +501,45 @@ class OutbreakDetectionRequest {
     this.demographics,
   });
 
-  factory OutbreakDetectionRequest.fromJson(Map<String, dynamic> json) => 
+  factory OutbreakDetectionRequest.fromJson(Map<String, dynamic> json) =>
       _$OutbreakDetectionRequestFromJson(json);
   Map<String, dynamic> toJson() => _$OutbreakDetectionRequestToJson(this);
+}
+
+@JsonSerializable()
+class AIMessage {
+  final String id;
+  final String content;
+  final bool isUser;
+  final DateTime timestamp;
+  final MessageType type;
+  final Map<String, dynamic>? metadata;
+
+  AIMessage({
+    required this.id,
+    required this.content,
+    required this.isUser,
+    required this.timestamp,
+    required this.type,
+    this.metadata,
+  });
+
+  factory AIMessage.fromJson(Map<String, dynamic> json) =>
+      _$AIMessageFromJson(json);
+  Map<String, dynamic> toJson() => _$AIMessageToJson(this);
+}
+
+enum MessageType {
+  @JsonValue('TEXT')
+  text,
+  @JsonValue('DIAGNOSIS')
+  diagnosis,
+  @JsonValue('RECOMMENDATION')
+  recommendation,
+  @JsonValue('ALERT')
+  alert,
+  @JsonValue('SUMMARY')
+  summary,
+  @JsonValue('ANALYSIS')
+  analysis,
 }

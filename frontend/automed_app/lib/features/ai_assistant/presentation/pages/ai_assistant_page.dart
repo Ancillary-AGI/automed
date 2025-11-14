@@ -5,9 +5,9 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/models/ai_models.dart';
 import '../providers/ai_assistant_provider.dart';
 import '../widgets/ai_chat_bubble.dart';
-import '../widgets/ai_suggestions_panel.dart';
 import '../widgets/voice_input_button.dart';
 
 class AIAssistantPage extends ConsumerStatefulWidget {
@@ -23,10 +23,10 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   final ScrollController _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
   final FlutterTts _tts = FlutterTts();
-  
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  
+
   bool _isListening = false;
   bool _speechEnabled = false;
 
@@ -85,7 +85,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   @override
   Widget build(BuildContext context) {
     final aiState = ref.watch(aiAssistantProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Medical Assistant'),
@@ -106,16 +106,16 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
         children: [
           // AI Status Bar
           _buildAIStatusBar(aiState),
-          
+
           // Suggestions Panel
           if (aiState.suggestions.isNotEmpty)
             _buildSuggestionsPanel(aiState.suggestions),
-          
+
           // Chat Messages
           Expanded(
             child: _buildChatArea(aiState),
           ),
-          
+
           // Input Area
           _buildInputArea(aiState),
         ],
@@ -223,9 +223,8 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
             padding: const EdgeInsets.only(bottom: 16),
             child: AIChatBubble(
               message: message,
-              onSpeakMessage: (text) => _speakMessage(text),
-              onCopyMessage: (text) => _copyMessage(text),
-              onActionTap: (action) => _handleMessageAction(action),
+              onSpeakMessage: _speakMessage,
+              onCopyMessage: _copyMessage,
             ),
           );
         },
@@ -251,13 +250,11 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
           children: [
             // Voice Input Button
             VoiceInputButton(
-              isListening: _isListening,
-              isEnabled: _speechEnabled && !state.isProcessing,
               onPressed: _toggleListening,
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Text Input
             Expanded(
               child: TextField(
@@ -281,20 +278,26 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
                 onSubmitted: (text) => _sendMessage(text),
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Send Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               child: IconButton(
-                onPressed: state.isProcessing ? null : () => _sendMessage(_messageController.text),
+                onPressed: state.isProcessing
+                    ? null
+                    : () => _sendMessage(_messageController.text),
                 icon: Icon(
                   Icons.send,
-                  color: state.isProcessing ? AppColors.grey400 : AppColors.primary,
+                  color: state.isProcessing
+                      ? AppColors.grey400
+                      : AppColors.primary,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: state.isProcessing ? AppColors.grey200 : AppColors.primary.withOpacity(0.1),
+                  backgroundColor: state.isProcessing
+                      ? AppColors.grey200
+                      : AppColors.primary.withOpacity(0.1),
                   shape: const CircleBorder(),
                 ),
               ),
@@ -366,10 +369,10 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
 
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
-    
+
     ref.read(aiAssistantProvider.notifier).sendMessage(text);
     _messageController.clear();
-    
+
     // Auto-scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -576,7 +579,13 @@ class AIHelpDialog extends StatelessWidget {
 
 // Enums and data classes
 enum AIStatus { ready, processing, error, offline }
-enum MessageActionType { scheduleAppointment, orderMedication, requestConsultation, viewResults }
+
+enum MessageActionType {
+  scheduleAppointment,
+  orderMedication,
+  requestConsultation,
+  viewResults
+}
 
 class AISuggestion {
   final String id;
@@ -617,21 +626,5 @@ class AIAssistantState {
     required this.suggestions,
     required this.isProcessing,
     this.error,
-  });
-}
-
-class AIMessage {
-  final String id;
-  final String content;
-  final bool isUser;
-  final DateTime timestamp;
-  final List<MessageAction> actions;
-
-  AIMessage({
-    required this.id,
-    required this.content,
-    required this.isUser,
-    required this.timestamp,
-    required this.actions,
   });
 }

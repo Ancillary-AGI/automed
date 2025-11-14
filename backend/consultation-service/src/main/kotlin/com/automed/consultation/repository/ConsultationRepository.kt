@@ -39,7 +39,7 @@ interface ConsultationRepository : JpaRepository<Consultation, UUID> {
     @Query("SELECT c FROM Consultation c WHERE c.scheduledAt BETWEEN :startDate AND :endDate")
     fun findByScheduledAtBetween(
         @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") LocalDateTime,
+        @Param("endDate") endDate: LocalDateTime,
         pageable: Pageable
     ): Page<Consultation>
 

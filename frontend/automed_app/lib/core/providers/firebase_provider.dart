@@ -3,14 +3,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../services/firebase_service.dart';
 import '../di/injection.dart';
 
-final firebaseNotificationProvider = StateNotifierProvider<FirebaseNotificationNotifier, FirebaseNotificationState>((ref) {
+final firebaseNotificationProvider = StateNotifierProvider<
+    FirebaseNotificationNotifier, FirebaseNotificationState>((ref) {
   return FirebaseNotificationNotifier(ref.read(firebaseServiceProvider));
 });
 
-class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationState> {
+class FirebaseNotificationNotifier
+    extends StateNotifier<FirebaseNotificationState> {
   final FirebaseService _firebaseService;
 
-  FirebaseNotificationNotifier(this._firebaseService) : super(const FirebaseNotificationState()) {
+  FirebaseNotificationNotifier(this._firebaseService)
+      : super(const FirebaseNotificationState()) {
     _initialize();
   }
 
@@ -40,8 +43,9 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   }
 
   void _handleNotification(RemoteMessage message, NotificationContext context) {
-    final notification = HealthcareNotification.fromRemoteMessage(message, context);
-    
+    final notification =
+        HealthcareNotification.fromRemoteMessage(message, context);
+
     state = state.copyWith(
       lastNotification: notification,
       notificationCount: state.notificationCount + 1,
@@ -75,12 +79,15 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
       case HealthcareNotificationType.consultationRequest:
         _handleConsultationRequest(notification);
         break;
+      case HealthcareNotificationType.general:
+        // Handle general notifications
+        break;
     }
   }
 
   void _handleCriticalAlert(HealthcareNotification notification) {
     // Log critical alert
-    _firebaseService.logEvent('critical_alert_handled', {
+    _firebaseService.logEvent('critical_alert_handled', parameters: {
       'patient_id': notification.patientId,
       'alert_type': notification.data['alert_type'],
       'severity': notification.data['severity'],
@@ -94,21 +101,21 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   }
 
   void _handleMedicationReminder(HealthcareNotification notification) {
-    _firebaseService.logEvent('medication_reminder_handled', {
+    _firebaseService.logEvent('medication_reminder_handled', parameters: {
       'patient_id': notification.patientId,
       'medication': notification.data['medication'],
     });
   }
 
   void _handleAppointmentReminder(HealthcareNotification notification) {
-    _firebaseService.logEvent('appointment_reminder_handled', {
+    _firebaseService.logEvent('appointment_reminder_handled', parameters: {
       'patient_id': notification.patientId,
       'appointment_time': notification.data['appointment_time'],
     });
   }
 
   void _handleVitalSignsAlert(HealthcareNotification notification) {
-    _firebaseService.logEvent('vital_signs_alert_handled', {
+    _firebaseService.logEvent('vital_signs_alert_handled', parameters: {
       'patient_id': notification.patientId,
       'vital_type': notification.data['vital_type'],
       'value': notification.data['value'],
@@ -116,7 +123,7 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   }
 
   void _handleEmergencyAlert(HealthcareNotification notification) {
-    _firebaseService.logEvent('emergency_alert_handled', {
+    _firebaseService.logEvent('emergency_alert_handled', parameters: {
       'patient_id': notification.patientId,
       'emergency_type': notification.data['emergency_type'],
       'location': notification.data['location'],
@@ -130,14 +137,14 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   }
 
   void _handleLabResults(HealthcareNotification notification) {
-    _firebaseService.logEvent('lab_results_handled', {
+    _firebaseService.logEvent('lab_results_handled', parameters: {
       'patient_id': notification.patientId,
       'test_type': notification.data['test_type'],
     });
   }
 
   void _handleConsultationRequest(HealthcareNotification notification) {
-    _firebaseService.logEvent('consultation_request_handled', {
+    _firebaseService.logEvent('consultation_request_handled', parameters: {
       'patient_id': notification.patientId,
       'consultation_type': notification.data['consultation_type'],
     });
@@ -148,7 +155,7 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
       final token = await _firebaseService.getFCMToken();
       if (token != null) {
         state = state.copyWith(fcmToken: token);
-        
+
         // Send token to backend for user association
         await _sendTokenToBackend(token);
       }
@@ -160,7 +167,7 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   Future<void> _sendTokenToBackend(String token) async {
     // This would send the FCM token to your backend
     // so it can send targeted notifications to this device
-    _firebaseService.logEvent('fcm_token_registered', {
+    _firebaseService.logEvent('fcm_token_registered', parameters: {
       'token': token,
       'platform': 'flutter',
     });
@@ -169,37 +176,37 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   // Public methods
   Future<void> subscribeToPatientNotifications(String patientId) async {
     await _firebaseService.subscribeToTopic('patient_$patientId');
-    
+
     final currentPatients = Set<String>.from(state.subscribedPatients);
     currentPatients.add(patientId);
-    
+
     state = state.copyWith(subscribedPatients: currentPatients);
   }
 
   Future<void> unsubscribeFromPatientNotifications(String patientId) async {
     await _firebaseService.unsubscribeFromTopic('patient_$patientId');
-    
+
     final currentPatients = Set<String>.from(state.subscribedPatients);
     currentPatients.remove(patientId);
-    
+
     state = state.copyWith(subscribedPatients: currentPatients);
   }
 
   Future<void> subscribeToHospitalNotifications(String hospitalId) async {
     await _firebaseService.subscribeToTopic('hospital_$hospitalId');
-    
+
     final currentHospitals = Set<String>.from(state.subscribedHospitals);
     currentHospitals.add(hospitalId);
-    
+
     state = state.copyWith(subscribedHospitals: currentHospitals);
   }
 
   Future<void> unsubscribeFromHospitalNotifications(String hospitalId) async {
     await _firebaseService.unsubscribeFromTopic('hospital_$hospitalId');
-    
+
     final currentHospitals = Set<String>.from(state.subscribedHospitals);
     currentHospitals.remove(hospitalId);
-    
+
     state = state.copyWith(subscribedHospitals: currentHospitals);
   }
 
@@ -220,7 +227,7 @@ class FirebaseNotificationNotifier extends StateNotifier<FirebaseNotificationSta
   void markNotificationAsRead(String notificationId) {
     final readNotifications = Set<String>.from(state.readNotifications);
     readNotifications.add(notificationId);
-    
+
     state = state.copyWith(readNotifications: readNotifications);
   }
 }
@@ -310,7 +317,7 @@ class HealthcareNotification {
   ) {
     final data = message.data;
     final notification = message.notification;
-    
+
     return HealthcareNotification(
       id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: notification?.title ?? 'Automed',

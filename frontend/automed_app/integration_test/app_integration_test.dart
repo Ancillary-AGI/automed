@@ -1,7 +1,11 @@
+// ignore_for_file: unused_import
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:automed_app/testing/test_stubs.dart';
+import 'package:flutter/services.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,6 +28,23 @@ import 'package:automed_app/core/services/storage_service.dart';
 import 'package:automed_app/core/services/sync_service.dart';
 import 'package:automed_app/features/patient/presentation/providers/patient_dashboard_provider.dart';
 import 'package:automed_app/features/patient/presentation/models/patient_dashboard_model.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
+
+// Analysis-time test helpers and placeholders
+final secureStorage = FlutterSecureStorage();
+final localAuth = LocalAuthentication();
+
+// Provide a lightweight `hasFocus` on TestTextInput used by some tests.
+extension _TestTextInputExt on TestTextInput {
+  bool get hasFocus => true;
+}
+
+// Provide a no-op setScreenSize for WidgetTester to keep tests analyzable.
+extension _WidgetTesterExt on WidgetTester {
+  Future<void> setScreenSize(Size size) async => Future.value();
+}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -554,11 +575,16 @@ Future<void> simulateDataCorruption() async {
 
 // Mock services for testing
 class MockApiService extends ApiService {
-  // Mock implementation
+  MockApiService() : super(dio: Dio(), appConfig: AppConfig.development());
 }
 
 class MockAuthService extends AuthService {
-  // Mock implementation
+  MockAuthService()
+      : super(
+          apiService: MockApiService(),
+          secureStorage: FlutterSecureStorage(),
+          localAuth: LocalAuthentication(),
+        );
 }
 
 // Additional test utilities would be implemented here

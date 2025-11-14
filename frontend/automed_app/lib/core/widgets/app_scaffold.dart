@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../services/connectivity_service.dart';
 import '../services/internationalization_service.dart';
+import '../di/injection.dart';
 
 /// Advanced App Scaffold with comprehensive features for healthcare applications
 /// Supports responsive design, accessibility, internationalization, and offline capabilities
@@ -102,7 +102,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
     // Listen to connectivity changes
     ref.listen(connectivityProvider, (previous, next) {
       setState(() {
-        _isOffline = !next.isConnected;
+        _isOffline = next == ConnectivityResult.none;
       });
     });
   }
@@ -166,19 +166,13 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
 
   @override
   Widget build(BuildContext context) {
-    final appConfig = ref.watch(appConfigProvider);
-    final connectivityState = ref.watch(connectivityProvider);
     final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
 
     // Determine if we're on a small screen
     final isSmallScreen = mediaQuery.size.width < 600;
-    final isTablet =
-        mediaQuery.size.width >= 600 && mediaQuery.size.width < 1200;
-    final isDesktop = mediaQuery.size.width >= 1200;
 
     // Adjust layout based on screen size and orientation
-    final isLandscape = mediaQuery.orientation == Orientation.landscape;
     final isRTL = _i18n.isRTLLocale();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(

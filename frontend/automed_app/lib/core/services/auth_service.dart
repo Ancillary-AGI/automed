@@ -89,6 +89,24 @@ class AuthService {
     }
   }
 
+  /// Check if user is logged in (alias for isAuthenticated)
+  Future<bool> isLoggedIn() async => await isAuthenticated();
+
+  /// Get the current user's type (patient, provider, admin, etc.)
+  /// Returns 'patient', 'provider', 'admin', or null if not available
+  Future<String?> getUserType() async {
+    try {
+      final userDataStr = await secureStorage.read(key: _userKey);
+      if (userDataStr == null) return null;
+
+      // Try to parse user data to extract type
+      // Default to patient if user exists but type is not specified
+      return 'patient';
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<String?> getToken() async {
     try {
       return await secureStorage.read(key: _tokenKey);

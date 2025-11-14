@@ -10,6 +10,11 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
@@ -18,6 +23,8 @@ services:
       - redis
     networks:
       - automed-network
+    mem_limit: 512m
+    cpus: 0.5
     volumes:
       - ./backend/api-gateway:/app
       - /app/build
@@ -41,9 +48,14 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-patients:5432/patients
       - SPRING_DATASOURCE_USERNAME=automed
-      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - postgres-patients
       - kafka
@@ -53,6 +65,8 @@ services:
     volumes:
       - ./backend/patient-service:/app
       - /app/build
+    mem_limit: 512m
+    cpus: 0.5
 
   hospital-service:
     build:
@@ -64,9 +78,14 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-hospitals:5432/hospitals
       - SPRING_DATASOURCE_USERNAME=automed
-      - SPRING_DATASOURCE_PASSWORD=secure_password
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - postgres-hospitals
       - kafka
@@ -76,6 +95,8 @@ services:
     volumes:
       - ./backend/hospital-service:/app
       - /app/build
+    mem_limit: 512m
+    cpus: 0.5
 
   consultation-service:
     build:
@@ -134,6 +155,11 @@ services:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATA_REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       - kafka
       - eureka-server
@@ -143,6 +169,8 @@ services:
     volumes:
       - ./backend/ai-service:/app
       - /app/build
+    mem_limit: 512m
+    cpus: 0.5
 
   clinical-decision-service:
     build:
@@ -197,10 +225,17 @@ services:
   # Databases
   postgres-patients:
     image: postgres:15-alpine
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: patients
       POSTGRES_USER: automed
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U automed"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - postgres-patients-data:/var/lib/postgresql/data
       - ./backend/patient-service/src/main/resources/db/migration:/docker-entrypoint-initdb.d
@@ -211,10 +246,17 @@ services:
 
   postgres-hospitals:
     image: postgres:15-alpine
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: hospitals
       POSTGRES_USER: automed
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U automed"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - postgres-hospitals-data:/var/lib/postgresql/data
     ports:

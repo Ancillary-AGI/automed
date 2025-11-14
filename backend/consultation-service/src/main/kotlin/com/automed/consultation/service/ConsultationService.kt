@@ -1,10 +1,9 @@
 package com.automed.consultation.service
 
-import com.automed.consultation.domain.Consultation
-import com.automed.consultation.domain.ConsultationStatus
+import com.automed.consultation.domain.*
 import com.automed.consultation.dto.*
 import com.automed.consultation.exception.ConsultationNotFoundException
-import com.automed.consultation.repository.ConsultationRepository
+import com.automed.consultation.repository.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.kafka.core.KafkaTemplate
@@ -17,6 +16,10 @@ import java.util.*
 @Service
 class ConsultationService(
     private val consultationRepository: ConsultationRepository,
+    private val messageRepository: MessageRepository,
+    private val fileUploadRepository: FileUploadRepository,
+    private val recordingRepository: RecordingRepository,
+    private val prescriptionRepository: PrescriptionRepository,
     private val kafkaTemplate: KafkaTemplate<String, Any>
 ) {
 
@@ -224,59 +227,117 @@ class ConsultationService(
         }.then()
     }
 
-    fun sendMessage(id: UUID, request: SendMessageRequest): Mono<MessageResponse> {
+    fun sendMessage(id: UUID, request: SendMessageRequest, senderId: UUID, senderName: String): Mono<MessageResponse> {
         return Mono.fromCallable {
-            // TODO: Implement message persistence and real-time messaging
-            MessageResponse(
-                id = UUID.randomUUID(),
+            val message = Message(
                 consultationId = id,
-                senderId = UUID.randomUUID(), // TODO: Get from security context
-                senderName = "User", // TODO: Get from security context
+                senderId = senderId,
+                senderName = senderName,
                 content = request.content,
                 messageType = request.messageType,
-                timestamp = LocalDateTime.now()
+                fileUrl = request.fileUrl,
+                fileName = request.fileName,
+                fileSize = request.fileSize
+            )
+
+            val savedMessage = messageRepository.save(message)
+
+            // Publish event for real-time messaging
+            kafkaTemplate.send("consultation-message", mapOf(
+                "consultationId" to id,
+                "messageId" to savedMessage.id,
+                "senderId" to senderId,
+                "content" to request.content
+            ))
+
+            MessageResponse(
+                id = savedMessage.id!!,
+                consultationId = savedMessage.consultationId,
+                senderId = savedMessage.senderId,
+                senderName = savedMessage.senderName,
+                content = savedMessage.content,
+                messageType = savedMessage.messageType,
+                fileUrl = savedMessage.fileUrl,
+                fileName = savedMessage.fileName,
+                fileSize = savedMessage.fileSize,
+                timestamp = savedMessage.timestamp!!
             )
         }
     }
 
     fun getMessages(id: UUID): Mono<List<MessageResponse>> {
         return Mono.fromCallable {
-            // TODO: Implement message retrieval from database
-            emptyList<MessageResponse>()
+            val messages = messageRepository.findByConsultationIdOrderByTimestamp(id)
+            messages.map { message ->
+                MessageResponse(
+                    id = message.id!!,
+                    consultationId = message.consultationId,
+                    senderId = message.senderId,
+                    senderName = message.senderName,
+                    content = message.content,
+                    messageType = message.messageType,
+                    fileUrl = message.fileUrl,
+                    fileName = message.fileName,
+                    fileSize = message.fileSize,
+                    timestamp = message.timestamp!!
+                )
+            }
         }
     }
 
-    fun uploadFile(id: UUID, request: FileUploadRequest): Mono<FileUploadResponse> {
+    fun uploadFile(id: UUID, request: FileUploadRequest, uploaderId: UUID): Mono<FileUploadResponse> {
         return Mono.fromCallable {
-            // TODO: Implement file upload logic
-            FileUploadResponse(
-                fileId = UUID.randomUUID(),
+            // In a real implementation, you would upload the file to cloud storage
+            // For now, we'll simulate the upload
+            val fileUrl = "https://storage.automed.com/files/${UUID.randomUUID()}/${request.fileName}"
+
+            val fileUpload = FileUpload(
+                consultationId = id,
+                uploaderId = uploaderId,
                 fileName = request.fileName,
-                fileUrl = "https://example.com/files/${UUID.randomUUID()}",
-                uploadedAt = LocalDateTime.now()
+                fileUrl = fileUrl,
+                fileSize = request.fileSize,
+                mimeType = request.mimeType,
+                description = request.description
+            )
+
+            val savedFile = fileUploadRepository.save(fileUpload)
+
+            FileUploadResponse(
+                fileId = savedFile.id!!,
+                fileName = savedFile.fileName,
+                fileUrl = savedFile.fileUrl,
+                uploadedAt = savedFile.uploadedAt!!
             )
         }
     }
 
     fun getConsultationRecording(id: UUID): Mono<RecordingResponse> {
         return Mono.fromCallable {
-            // TODO: Implement recording retrieval
-            RecordingResponse(
-                recordingId = UUID.randomUUID(),
-                consultationId = id,
-                recordingUrl = "https://example.com/recordings/${UUID.randomUUID()}",
-                duration = 1800L, // 30 minutes
-                fileSize = 104857600L, // 100MB
-                createdAt = LocalDateTime.now()
-            )
+            val recordings = recordingRepository.findByConsultationIdOrderByCreatedAtDesc(id)
+            val latestRecording = recordings.firstOrNull()
+
+            if (latestRecording != null) {
+                RecordingResponse(
+                    recordingId = latestRecording.id!!,
+                    consultationId = latestRecording.consultationId,
+                    recordingUrl = latestRecording.recordingUrl,
+                    duration = latestRecording.duration,
+                    fileSize = latestRecording.fileSize,
+                    recordingType = latestRecording.recordingType,
+                    thumbnailUrl = latestRecording.thumbnailUrl,
+                    transcription = latestRecording.transcription,
+                    createdAt = latestRecording.createdAt!!
+                )
+            } else {
+                throw IllegalStateException("No recording found for consultation $id")
+            }
         }
     }
 
-    fun createPrescription(id: UUID, request: CreatePrescriptionRequest): Mono<PrescriptionResponse> {
+    fun createPrescription(id: UUID, request: CreatePrescriptionRequest, prescribedBy: UUID): Mono<PrescriptionResponse> {
         return Mono.fromCallable {
-            // TODO: Implement prescription creation
-            PrescriptionResponse(
-                id = UUID.randomUUID(),
+            val prescription = Prescription(
                 consultationId = id,
                 medicationName = request.medicationName,
                 dosage = request.dosage,
@@ -284,7 +345,25 @@ class ConsultationService(
                 duration = request.duration,
                 instructions = request.instructions,
                 quantity = request.quantity,
-                prescribedAt = LocalDateTime.now()
+                prescribedBy = prescribedBy,
+                pharmacyNotes = request.pharmacyNotes
+            )
+
+            val savedPrescription = prescriptionRepository.save(prescription)
+
+            PrescriptionResponse(
+                id = savedPrescription.id!!,
+                consultationId = savedPrescription.consultationId,
+                medicationName = savedPrescription.medicationName,
+                dosage = savedPrescription.dosage,
+                frequency = savedPrescription.frequency,
+                duration = savedPrescription.duration,
+                instructions = savedPrescription.instructions,
+                quantity = savedPrescription.quantity,
+                pharmacyNotes = savedPrescription.pharmacyNotes,
+                filled = savedPrescription.filled,
+                filledAt = savedPrescription.filledAt,
+                prescribedAt = savedPrescription.prescribedAt!!
             )
         }
     }

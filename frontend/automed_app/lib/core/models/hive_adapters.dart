@@ -18,54 +18,63 @@ class PatientAdapter extends TypeAdapter<Patient> {
     };
     return Patient(
       id: fields[0] as String,
-      firstName: fields[1] as String,
-      lastName: fields[2] as String,
-      email: fields[3] as String,
-      phone: fields[4] as String,
-      dateOfBirth: DateTime.fromMillisecondsSinceEpoch(fields[5] as int),
-      gender: fields[6] as String,
-      bloodType: fields[7] as String?,
-      address: fields[8] as Address?,
-      emergencyContact: fields[9] as EmergencyContact?,
-      medicalHistory: fields[10] as MedicalHistory?,
-      insurance: fields[11] as Insurance?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[12] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[13] as int),
+      patientId: fields[1] as String,
+      firstName: fields[2] as String,
+      lastName: fields[3] as String,
+      dateOfBirth: DateTime.fromMillisecondsSinceEpoch(fields[4] as int),
+      gender: Gender.values[fields[5] as int],
+      email: fields[6] as String,
+      phoneNumber: fields[7] as String,
+      address: fields[8] as Address,
+      bloodType: BloodType.values[fields[9] as int],
+      allergies: (fields[10] as List).cast<String>(),
+      medicalConditions: (fields[11] as List).cast<String>(),
+      status: PatientStatus.values[fields[12] as int],
+      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[13] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[14] as int),
+      emergencyContact: fields[15] as EmergencyContact?,
+      insurance: fields[16] as Insurance?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Patient obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.firstName)
+      ..write(obj.patientId)
       ..writeByte(2)
-      ..write(obj.lastName)
+      ..write(obj.firstName)
       ..writeByte(3)
-      ..write(obj.email)
+      ..write(obj.lastName)
       ..writeByte(4)
-      ..write(obj.phone)
-      ..writeByte(5)
       ..write(obj.dateOfBirth.millisecondsSinceEpoch)
+      ..writeByte(5)
+      ..write(obj.gender.index)
       ..writeByte(6)
-      ..write(obj.gender)
+      ..write(obj.email)
       ..writeByte(7)
-      ..write(obj.bloodType)
+      ..write(obj.phoneNumber)
       ..writeByte(8)
       ..write(obj.address)
       ..writeByte(9)
-      ..write(obj.emergencyContact)
+      ..write(obj.bloodType.index)
       ..writeByte(10)
-      ..write(obj.medicalHistory)
+      ..write(obj.allergies)
       ..writeByte(11)
-      ..write(obj.insurance)
+      ..write(obj.medicalConditions)
       ..writeByte(12)
-      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..write(obj.status.index)
       ..writeByte(13)
-      ..write(obj.updatedAt.millisecondsSinceEpoch);
+      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..writeByte(14)
+      ..write(obj.updatedAt.millisecondsSinceEpoch)
+      ..writeByte(15)
+      ..write(obj.emergencyContact)
+      ..writeByte(16)
+      ..write(obj.insurance);
   }
 
   @override
@@ -93,15 +102,17 @@ class AddressAdapter extends TypeAdapter<Address> {
       street: fields[0] as String,
       city: fields[1] as String,
       state: fields[2] as String,
-      zipCode: fields[3] as String,
-      country: fields[4] as String,
+      country: fields[3] as String,
+      zipCode: fields[4] as String,
+      latitude: fields[5] as double?,
+      longitude: fields[6] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Address obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.street)
       ..writeByte(1)
@@ -109,9 +120,13 @@ class AddressAdapter extends TypeAdapter<Address> {
       ..writeByte(2)
       ..write(obj.state)
       ..writeByte(3)
-      ..write(obj.zipCode)
+      ..write(obj.country)
       ..writeByte(4)
-      ..write(obj.country);
+      ..write(obj.zipCode)
+      ..writeByte(5)
+      ..write(obj.latitude)
+      ..writeByte(6)
+      ..write(obj.longitude);
   }
 
   @override
@@ -137,24 +152,27 @@ class EmergencyContactAdapter extends TypeAdapter<EmergencyContact> {
     };
     return EmergencyContact(
       name: fields[0] as String,
-      phone: fields[1] as String,
-      relationship: fields[2] as String,
+      relationship: fields[1] as String,
+      phoneNumber: fields[2] as String,
       email: fields[3] as String?,
+      address: fields[4] as Address?,
     );
   }
 
   @override
   void write(BinaryWriter writer, EmergencyContact obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.phone)
-      ..writeByte(2)
       ..write(obj.relationship)
+      ..writeByte(2)
+      ..write(obj.phoneNumber)
       ..writeByte(3)
-      ..write(obj.email);
+      ..write(obj.email)
+      ..writeByte(4)
+      ..write(obj.address);
   }
 
   @override
@@ -168,9 +186,55 @@ class EmergencyContactAdapter extends TypeAdapter<EmergencyContact> {
   int get hashCode => typeId.hashCode;
 }
 
-class MedicalHistoryAdapter extends TypeAdapter<MedicalHistory> {
+class InsuranceAdapter extends TypeAdapter<Insurance> {
   @override
   final int typeId = 3;
+
+  @override
+  Insurance read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Insurance(
+      provider: fields[0] as String,
+      policyNumber: fields[1] as String,
+      groupNumber: fields[2] as String,
+      expiryDate: DateTime.fromMillisecondsSinceEpoch(fields[3] as int),
+      notes: fields[4] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Insurance obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.provider)
+      ..writeByte(1)
+      ..write(obj.policyNumber)
+      ..writeByte(2)
+      ..write(obj.groupNumber)
+      ..writeByte(3)
+      ..write(obj.expiryDate.millisecondsSinceEpoch)
+      ..writeByte(4)
+      ..write(obj.notes);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is InsuranceAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class MedicalHistoryAdapter extends TypeAdapter<MedicalHistory> {
+  @override
+  final int typeId = 11;
 
   @override
   MedicalHistory read(BinaryReader reader) {
@@ -217,53 +281,9 @@ class MedicalHistoryAdapter extends TypeAdapter<MedicalHistory> {
   int get hashCode => typeId.hashCode;
 }
 
-class InsuranceAdapter extends TypeAdapter<Insurance> {
-  @override
-  final int typeId = 4;
-
-  @override
-  Insurance read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return Insurance(
-      provider: fields[0] as String,
-      policyNumber: fields[1] as String,
-      groupNumber: fields[2] as String?,
-      expiryDate: fields[3] != null ? DateTime.fromMillisecondsSinceEpoch(fields[3] as int) : null,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, Insurance obj) {
-    writer
-      ..writeByte(4)
-      ..writeByte(0)
-      ..write(obj.provider)
-      ..writeByte(1)
-      ..write(obj.policyNumber)
-      ..writeByte(2)
-      ..write(obj.groupNumber)
-      ..writeByte(3)
-      ..write(obj.expiryDate?.millisecondsSinceEpoch);
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InsuranceAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-
-  @override
-  int get hashCode => typeId.hashCode;
-}
-
-// Consultation Model Adapters
 class ConsultationAdapter extends TypeAdapter<Consultation> {
   @override
-  final int typeId = 5;
+  final int typeId = 4;
 
   @override
   Consultation read(BinaryReader reader) {
@@ -274,50 +294,48 @@ class ConsultationAdapter extends TypeAdapter<Consultation> {
     return Consultation(
       id: fields[0] as String,
       patientId: fields[1] as String,
-      doctorId: fields[2] as String,
-      type: ConsultationType.values[fields[3] as int],
+      providerId: fields[2] as String,
+      type: fields[3] as String,
       status: ConsultationStatus.values[fields[4] as int],
-      scheduledAt: DateTime.fromMillisecondsSinceEpoch(fields[5] as int),
-      startedAt: fields[6] != null ? DateTime.fromMillisecondsSinceEpoch(fields[6] as int) : null,
-      endedAt: fields[7] != null ? DateTime.fromMillisecondsSinceEpoch(fields[7] as int) : null,
+      scheduledTime: DateTime.fromMillisecondsSinceEpoch(fields[5] as int),
+      startTime: fields[6] != null
+          ? DateTime.fromMillisecondsSinceEpoch(fields[6] as int)
+          : null,
+      endTime: fields[7] != null
+          ? DateTime.fromMillisecondsSinceEpoch(fields[7] as int)
+          : null,
       notes: fields[8] as String?,
-      prescription: fields[9] as String?,
-      followUpRequired: fields[10] as bool,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[11] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[12] as int),
+      attachments: (fields[9] as List).cast<String>(),
+      metadata: fields[10] as Map<String, dynamic>?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Consultation obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.patientId)
       ..writeByte(2)
-      ..write(obj.doctorId)
+      ..write(obj.providerId)
       ..writeByte(3)
-      ..write(obj.type.index)
+      ..write(obj.type)
       ..writeByte(4)
       ..write(obj.status.index)
       ..writeByte(5)
-      ..write(obj.scheduledAt.millisecondsSinceEpoch)
+      ..write(obj.scheduledTime.millisecondsSinceEpoch)
       ..writeByte(6)
-      ..write(obj.startedAt?.millisecondsSinceEpoch)
+      ..write(obj.startTime?.millisecondsSinceEpoch)
       ..writeByte(7)
-      ..write(obj.endedAt?.millisecondsSinceEpoch)
+      ..write(obj.endTime?.millisecondsSinceEpoch)
       ..writeByte(8)
       ..write(obj.notes)
       ..writeByte(9)
-      ..write(obj.prescription)
+      ..write(obj.attachments)
       ..writeByte(10)
-      ..write(obj.followUpRequired)
-      ..writeByte(11)
-      ..write(obj.createdAt.millisecondsSinceEpoch)
-      ..writeByte(12)
-      ..write(obj.updatedAt.millisecondsSinceEpoch);
+      ..write(obj.metadata);
   }
 
   @override
@@ -331,10 +349,9 @@ class ConsultationAdapter extends TypeAdapter<Consultation> {
   int get hashCode => typeId.hashCode;
 }
 
-// Medication Model Adapters
 class MedicationAdapter extends TypeAdapter<Medication> {
   @override
-  final int typeId = 6;
+  final int typeId = 5;
 
   @override
   Medication read(BinaryReader reader) {
@@ -344,56 +361,61 @@ class MedicationAdapter extends TypeAdapter<Medication> {
     };
     return Medication(
       id: fields[0] as String,
-      name: fields[1] as String,
-      genericName: fields[2] as String?,
-      dosage: fields[3] as String,
-      frequency: fields[4] as String,
-      route: fields[5] as String,
-      startDate: DateTime.fromMillisecondsSinceEpoch(fields[6] as int),
-      endDate: fields[7] != null ? DateTime.fromMillisecondsSinceEpoch(fields[7] as int) : null,
-      prescribedBy: fields[8] as String,
-      instructions: fields[9] as String?,
-      sideEffects: (fields[10] as List?)?.cast<String>(),
-      interactions: (fields[11] as List?)?.cast<String>(),
-      isActive: fields[12] as bool,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[13] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[14] as int),
+      patientId: fields[1] as String,
+      name: fields[2] as String,
+      genericName: fields[3] as String,
+      dosage: fields[4] as String,
+      frequency: fields[5] as String,
+      route: fields[6] as String,
+      startDate: DateTime.fromMillisecondsSinceEpoch(fields[7] as int),
+      endDate: fields[8] != null
+          ? DateTime.fromMillisecondsSinceEpoch(fields[8] as int)
+          : null,
+      prescribedBy: fields[9] as String,
+      instructions: fields[10] as String?,
+      sideEffects: (fields[11] as List?)?.cast<String>() ?? [],
+      status: MedicationStatus.values[fields[12] as int],
+      isActive: fields[13] as bool,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[14] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[15] as int),
     );
   }
 
   @override
   void write(BinaryWriter writer, Medication obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.name)
+      ..write(obj.patientId)
       ..writeByte(2)
-      ..write(obj.genericName)
+      ..write(obj.name)
       ..writeByte(3)
-      ..write(obj.dosage)
+      ..write(obj.genericName)
       ..writeByte(4)
-      ..write(obj.frequency)
+      ..write(obj.dosage)
       ..writeByte(5)
-      ..write(obj.route)
+      ..write(obj.frequency)
       ..writeByte(6)
-      ..write(obj.startDate.millisecondsSinceEpoch)
+      ..write(obj.route)
       ..writeByte(7)
-      ..write(obj.endDate?.millisecondsSinceEpoch)
+      ..write(obj.startDate.millisecondsSinceEpoch)
       ..writeByte(8)
-      ..write(obj.prescribedBy)
+      ..write(obj.endDate?.millisecondsSinceEpoch)
       ..writeByte(9)
-      ..write(obj.instructions)
+      ..write(obj.prescribedBy)
       ..writeByte(10)
-      ..write(obj.sideEffects)
+      ..write(obj.instructions)
       ..writeByte(11)
-      ..write(obj.interactions)
+      ..write(obj.sideEffects)
       ..writeByte(12)
-      ..write(obj.isActive)
+      ..write(obj.status.index)
       ..writeByte(13)
-      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..write(obj.isActive)
       ..writeByte(14)
+      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..writeByte(15)
       ..write(obj.updatedAt.millisecondsSinceEpoch);
   }
 
@@ -408,10 +430,9 @@ class MedicationAdapter extends TypeAdapter<Medication> {
   int get hashCode => typeId.hashCode;
 }
 
-// Hospital Model Adapters
 class HospitalAdapter extends TypeAdapter<Hospital> {
   @override
-  final int typeId = 7;
+  final int typeId = 6;
 
   @override
   Hospital read(BinaryReader reader) {
@@ -422,49 +443,52 @@ class HospitalAdapter extends TypeAdapter<Hospital> {
     return Hospital(
       id: fields[0] as String,
       name: fields[1] as String,
-      address: fields[2] as Address,
-      phone: fields[3] as String,
-      email: fields[4] as String,
-      website: fields[5] as String?,
-      type: HospitalType.values[fields[6] as int],
-      capacity: fields[7] as HospitalCapacity,
-      departments: (fields[8] as List).cast<Department>(),
-      accreditation: (fields[9] as List?)?.cast<String>(),
-      emergencyServices: fields[10] as bool,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[11] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[12] as int),
+      type: fields[2] as String,
+      address: fields[3] as Address,
+      phoneNumber: fields[4] as String,
+      email: fields[5] as String?,
+      website: fields[6] as String?,
+      specialties: (fields[7] as List).cast<String>(),
+      status: HospitalStatus.values[fields[8] as int],
+      capacity: fields[9] as int,
+      currentOccupancy: fields[10] as int,
+      facilities: fields[11] as Map<String, dynamic>?,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(fields[12] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(fields[13] as int),
     );
   }
 
   @override
   void write(BinaryWriter writer, Hospital obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.address)
+      ..write(obj.type)
       ..writeByte(3)
-      ..write(obj.phone)
+      ..write(obj.address)
       ..writeByte(4)
-      ..write(obj.email)
+      ..write(obj.phoneNumber)
       ..writeByte(5)
-      ..write(obj.website)
+      ..write(obj.email)
       ..writeByte(6)
-      ..write(obj.type.index)
+      ..write(obj.website)
       ..writeByte(7)
-      ..write(obj.capacity)
+      ..write(obj.specialties)
       ..writeByte(8)
-      ..write(obj.departments)
+      ..write(obj.status.index)
       ..writeByte(9)
-      ..write(obj.accreditation)
+      ..write(obj.capacity)
       ..writeByte(10)
-      ..write(obj.emergencyServices)
+      ..write(obj.currentOccupancy)
       ..writeByte(11)
-      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..write(obj.facilities)
       ..writeByte(12)
+      ..write(obj.createdAt.millisecondsSinceEpoch)
+      ..writeByte(13)
       ..write(obj.updatedAt.millisecondsSinceEpoch);
   }
 
@@ -481,7 +505,7 @@ class HospitalAdapter extends TypeAdapter<Hospital> {
 
 class HospitalCapacityAdapter extends TypeAdapter<HospitalCapacity> {
   @override
-  final int typeId = 8;
+  final int typeId = 7;
 
   @override
   HospitalCapacity read(BinaryReader reader) {
@@ -530,7 +554,7 @@ class HospitalCapacityAdapter extends TypeAdapter<HospitalCapacity> {
 
 class DepartmentAdapter extends TypeAdapter<Department> {
   @override
-  final int typeId = 9;
+  final int typeId = 8;
 
   @override
   Department read(BinaryReader reader) {
@@ -577,10 +601,9 @@ class DepartmentAdapter extends TypeAdapter<Department> {
   int get hashCode => typeId.hashCode;
 }
 
-// AI Model Adapters
 class AIMessageAdapter extends TypeAdapter<AIMessage> {
   @override
-  final int typeId = 10;
+  final int typeId = 9;
 
   @override
   AIMessage read(BinaryReader reader) {
@@ -627,26 +650,180 @@ class AIMessageAdapter extends TypeAdapter<AIMessage> {
   int get hashCode => typeId.hashCode;
 }
 
-// Function to register all adapters
+class GenderAdapter extends TypeAdapter<Gender> {
+  @override
+  final int typeId = 12;
+
+  @override
+  Gender read(BinaryReader reader) => Gender.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, Gender obj) => writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GenderAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class BloodTypeAdapter extends TypeAdapter<BloodType> {
+  @override
+  final int typeId = 13;
+
+  @override
+  BloodType read(BinaryReader reader) => BloodType.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, BloodType obj) => writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BloodTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class PatientStatusAdapter extends TypeAdapter<PatientStatus> {
+  @override
+  final int typeId = 14;
+
+  @override
+  PatientStatus read(BinaryReader reader) =>
+      PatientStatus.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, PatientStatus obj) =>
+      writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PatientStatusAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class ConsultationStatusAdapter extends TypeAdapter<ConsultationStatus> {
+  @override
+  final int typeId = 15;
+
+  @override
+  ConsultationStatus read(BinaryReader reader) =>
+      ConsultationStatus.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, ConsultationStatus obj) =>
+      writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConsultationStatusAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class MedicationStatusAdapter extends TypeAdapter<MedicationStatus> {
+  @override
+  final int typeId = 16;
+
+  @override
+  MedicationStatus read(BinaryReader reader) =>
+      MedicationStatus.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, MedicationStatus obj) =>
+      writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MedicationStatusAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class HospitalStatusAdapter extends TypeAdapter<HospitalStatus> {
+  @override
+  final int typeId = 17;
+
+  @override
+  HospitalStatus read(BinaryReader reader) =>
+      HospitalStatus.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, HospitalStatus obj) =>
+      writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HospitalStatusAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
+class MessageTypeAdapter extends TypeAdapter<MessageType> {
+  @override
+  final int typeId = 18;
+
+  @override
+  MessageType read(BinaryReader reader) =>
+      MessageType.values[reader.readByte()];
+
+  @override
+  void write(BinaryWriter writer, MessageType obj) =>
+      writer.writeByte(obj.index);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MessageTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
+}
+
 void registerHiveAdapters() {
-  // Patient models
   Hive.registerAdapter(PatientAdapter());
   Hive.registerAdapter(AddressAdapter());
   Hive.registerAdapter(EmergencyContactAdapter());
-  Hive.registerAdapter(MedicalHistoryAdapter());
   Hive.registerAdapter(InsuranceAdapter());
-  
-  // Consultation models
+  Hive.registerAdapter(MedicalHistoryAdapter());
   Hive.registerAdapter(ConsultationAdapter());
-  
-  // Medication models
   Hive.registerAdapter(MedicationAdapter());
-  
-  // Hospital models
   Hive.registerAdapter(HospitalAdapter());
   Hive.registerAdapter(HospitalCapacityAdapter());
   Hive.registerAdapter(DepartmentAdapter());
-  
-  // AI models
   Hive.registerAdapter(AIMessageAdapter());
+  Hive.registerAdapter(GenderAdapter());
+  Hive.registerAdapter(BloodTypeAdapter());
+  Hive.registerAdapter(PatientStatusAdapter());
+  Hive.registerAdapter(ConsultationStatusAdapter());
+  Hive.registerAdapter(MedicationStatusAdapter());
+  Hive.registerAdapter(HospitalStatusAdapter());
+  Hive.registerAdapter(MessageTypeAdapter());
 }

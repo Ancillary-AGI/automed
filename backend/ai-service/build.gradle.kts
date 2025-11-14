@@ -39,9 +39,15 @@ dependencies {
     // AI/ML Integration
     implementation("org.tensorflow:tensorflow-core-platform:0.5.0")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    
+
     // HTTP Client for external AI services
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Causal Inference and Bayesian Networks
+    implementation("org.apache.commons:commons-math3:3.6.1")
+    implementation("com.google.guava:guava:32.1.3-jre")
+    implementation("org.jgrapht:jgrapht-core:1.5.2")
+    implementation("org.jgrapht:jgrapht-ext:1.5.2")
     
     // Observability
     implementation("io.micrometer:micrometer-tracing-bridge-brave")

@@ -30,7 +30,7 @@ class Consultation {
     this.metadata,
   });
 
-  factory Consultation.fromJson(Map<String, dynamic> json) => 
+  factory Consultation.fromJson(Map<String, dynamic> json) =>
       _$ConsultationFromJson(json);
   Map<String, dynamic> toJson() => _$ConsultationToJson(this);
 }
@@ -55,7 +55,7 @@ class ConsultationSession {
     this.settings,
   });
 
-  factory ConsultationSession.fromJson(Map<String, dynamic> json) => 
+  factory ConsultationSession.fromJson(Map<String, dynamic> json) =>
       _$ConsultationSessionFromJson(json);
   Map<String, dynamic> toJson() => _$ConsultationSessionToJson(this);
 }
@@ -78,7 +78,7 @@ class Participant {
     this.leftAt,
   });
 
-  factory Participant.fromJson(Map<String, dynamic> json) => 
+  factory Participant.fromJson(Map<String, dynamic> json) =>
       _$ParticipantFromJson(json);
   Map<String, dynamic> toJson() => _$ParticipantToJson(this);
 }
@@ -101,7 +101,7 @@ class CreateConsultationRequest {
     this.metadata,
   });
 
-  factory CreateConsultationRequest.fromJson(Map<String, dynamic> json) => 
+  factory CreateConsultationRequest.fromJson(Map<String, dynamic> json) =>
       _$CreateConsultationRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreateConsultationRequestToJson(this);
 }
@@ -120,7 +120,7 @@ class UpdateConsultationRequest {
     this.metadata,
   });
 
-  factory UpdateConsultationRequest.fromJson(Map<String, dynamic> json) => 
+  factory UpdateConsultationRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdateConsultationRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdateConsultationRequestToJson(this);
 }
@@ -136,6 +136,19 @@ enum ConsultationStatus {
   cancelled,
   @JsonValue('NO_SHOW')
   noShow,
+}
+
+enum ConsultationType {
+  @JsonValue('TEXT')
+  text,
+  @JsonValue('VIDEO')
+  video,
+  @JsonValue('AUDIO')
+  audio,
+  @JsonValue('IN_PERSON')
+  inPerson,
+  @JsonValue('FOLLOW_UP')
+  followUp,
 }
 
 enum SessionStatus {

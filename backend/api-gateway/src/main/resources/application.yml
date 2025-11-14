@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: dev
+  cloud:
+    gateway:
+      routes:
+        - id: patient-service
+          uri: lb://patient-service
+          predicates:
+            - Path=/api/v1/patients/**
+          filters:
+            - RewritePath=/api/v1/patients/(?<path>.*), /api/v1/patients/${path}
+        - id: hospital-service
+          uri: lb://hospital-service
+          predicates:
+            - Path=/api/v1/hospitals/**
+          filters:
+            - RewritePath=/api/v1/hospitals/(?<path>.*), /api/v1/hospitals/${path}
+        - id: consultation-service
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/v1/consultations/**
+          filters:
+            - RewritePath=/api/v1/consultations/(?<path>.*), /api/v1/consultations/${path}
+        - id: sync-service
+          uri: lb://sync-service
+          predicates:
+            - Path=/api/v1/sync/**
+          filters:
+            - RewritePath=/api/v1/sync/(?<path>.*), /api/v1/sync/${path}
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - RewritePath=/api/v1/ai/(?<path>.*), /api/v1/ai/${path}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.automed: DEBUG

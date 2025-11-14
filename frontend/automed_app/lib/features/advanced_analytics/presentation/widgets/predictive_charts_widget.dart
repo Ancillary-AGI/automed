@@ -19,7 +19,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           // Health Outcomes Prediction
           Card(
             child: Padding(
@@ -31,12 +31,14 @@ class PredictiveChartsWidget extends ConsumerWidget {
                     children: [
                       const Text(
                         'Health Outcomes Prediction',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       const Spacer(),
                       Chip(
-                        label: Text('${(data.predictiveInsights.accuracyScore * 100).toInt()}% Accuracy'),
-                        backgroundColor: Colors.green.withOpacity(0.2),
+                        label: Text(
+                            '${(data.predictiveInsights.accuracyScore * 100).toInt()}% Accuracy'),
+                        backgroundColor: Colors.green.withValues(alpha: 0.2),
                       ),
                     ],
                   ),
@@ -44,7 +46,8 @@ class PredictiveChartsWidget extends ConsumerWidget {
                   SizedBox(
                     height: 250,
                     child: LineChart(
-                      _buildHealthOutcomesChart(data.predictiveInsights.healthOutcomes),
+                      _buildHealthOutcomesChart(
+                          data.predictiveInsights.healthOutcomes),
                     ),
                   ),
                 ],
@@ -52,7 +55,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Risk Assessment Matrix
           Card(
             child: Padding(
@@ -67,14 +70,15 @@ class PredictiveChartsWidget extends ConsumerWidget {
                   const SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: _buildRiskMatrix(data.predictiveInsights.riskAssessments),
+                    child: _buildRiskMatrix(
+                        data.predictiveInsights.riskAssessments),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Trend Analysis
           Card(
             child: Padding(
@@ -98,7 +102,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // AI Recommendations
           Card(
             child: Padding(
@@ -112,8 +116,9 @@ class PredictiveChartsWidget extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   ...data.predictiveInsights.recommendations.take(5).map(
-                    (recommendation) => _buildRecommendationTile(recommendation),
-                  ),
+                        (recommendation) =>
+                            _buildRecommendationTile(recommendation),
+                      ),
                 ],
               ),
             ),
@@ -134,7 +139,13 @@ class PredictiveChartsWidget extends ConsumerWidget {
       predictionGroups.putIfAbsent(outcome.modelType, () => []).add(outcome);
     }
 
-    final colors = [Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple];
+    final colors = [
+      Colors.blue,
+      Colors.red,
+      Colors.green,
+      Colors.orange,
+      Colors.purple
+    ];
     int colorIndex = 0;
 
     return LineChartData(
@@ -165,7 +176,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
       lineBarsData: predictionGroups.entries.map((entry) {
         final color = colors[colorIndex % colors.length];
         colorIndex++;
-        
+
         return LineChartBarData(
           spots: entry.value.asMap().entries.map((spotEntry) {
             return FlSpot(
@@ -185,8 +196,14 @@ class PredictiveChartsWidget extends ConsumerWidget {
   Widget _buildRiskMatrix(List<dynamic> riskAssessments) {
     // Create a grid showing risk levels
     final riskLevels = ['Low', 'Medium', 'High', 'Critical'];
-    final riskTypes = ['Infection', 'Fall', 'Medication', 'Cardiac', 'Respiratory'];
-    
+    final riskTypes = [
+      'Infection',
+      'Fall',
+      'Medication',
+      'Cardiac',
+      'Respiratory'
+    ];
+
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 5,
@@ -198,7 +215,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
       itemBuilder: (context, index) {
         final row = index ~/ riskTypes.length;
         final col = index % riskTypes.length;
-        
+
         if (row == 0) {
           // Header row
           return Container(
@@ -209,22 +226,26 @@ class PredictiveChartsWidget extends ConsumerWidget {
             child: Center(
               child: Text(
                 riskTypes[col],
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
           );
         }
-        
+
         final riskLevel = riskLevels[row - 1];
         final riskType = riskTypes[col];
-        
+
         // Count assessments for this combination
-        final count = riskAssessments.where((assessment) =>
-          assessment.riskLevel == riskLevel && 
-          assessment.riskType.toLowerCase().contains(riskType.toLowerCase())
-        ).length;
-        
+        final count = riskAssessments
+            .where((assessment) =>
+                assessment.riskLevel == riskLevel &&
+                assessment.riskType
+                    .toLowerCase()
+                    .contains(riskType.toLowerCase()))
+            .length;
+
         Color cellColor;
         switch (riskLevel) {
           case 'Critical':
@@ -239,10 +260,10 @@ class PredictiveChartsWidget extends ConsumerWidget {
           default:
             cellColor = Colors.green;
         }
-        
+
         return Container(
           decoration: BoxDecoration(
-            color: cellColor.withOpacity(count > 0 ? 0.7 : 0.1),
+            color: cellColor.withValues(alpha: count > 0 ? 0.7 : 0.1),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: cellColor),
           ),
@@ -264,8 +285,12 @@ class PredictiveChartsWidget extends ConsumerWidget {
   BarChartData _buildTrendChart(List<dynamic> trends) {
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
-      maxY: trends.isNotEmpty 
-          ? trends.map((e) => e.changePercentage.abs()).reduce((a, b) => a > b ? a : b).toDouble() * 1.2
+      maxY: trends.isNotEmpty
+          ? trends
+                  .map((e) => e.changePercentage.abs())
+                  .reduce((a, b) => a > b ? a : b)
+                  .toDouble() *
+              1.2
           : 100,
       barTouchData: BarTouchData(
         enabled: true,
@@ -331,7 +356,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
   Widget _buildRecommendationTile(dynamic recommendation) {
     Color priorityColor;
     IconData priorityIcon;
-    
+
     switch (recommendation.priority.toLowerCase()) {
       case 'high':
         priorityColor = Colors.red;
@@ -371,7 +396,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
               ),
               Chip(
                 label: Text(recommendation.priority),
-                backgroundColor: priorityColor.withOpacity(0.2),
+                backgroundColor: priorityColor.withValues(alpha: 0.2),
                 labelStyle: TextStyle(color: priorityColor),
               ),
             ],

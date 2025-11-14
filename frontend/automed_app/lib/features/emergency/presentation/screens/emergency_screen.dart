@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../generated/l10n.dart';
@@ -44,7 +43,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.2,
@@ -52,7 +51,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _pulseController.repeat(reverse: true);
   }
 
@@ -79,18 +78,14 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
 
     return AppScaffold(
       backgroundColor: _isEmergencyActive ? Colors.red[50] : null,
-      appBar: AppBar(
-        title: Text(S.of(context).emergency),
-        backgroundColor: _isEmergencyActive ? Colors.red : AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          if (_isEmergencyActive)
-            IconButton(
-              icon: const Icon(Icons.stop),
-              onPressed: _cancelEmergency,
-            ),
-        ],
-      ),
+      title: S.of(context).emergency,
+      actions: [
+        if (_isEmergencyActive)
+          IconButton(
+            icon: const Icon(Icons.stop),
+            onPressed: _cancelEmergency,
+          ),
+      ],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -144,18 +139,18 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
             // Emergency Button
             Center(
               child: EmergencyButton(
-                isActive: _isEmergencyActive,
-                onPressed: _isEmergencyActive ? _cancelEmergency : _triggerEmergency,
+                onPressed:
+                    _isEmergencyActive ? _cancelEmergency : _triggerEmergency,
               ),
             ),
-            
+
             const SizedBox(height: 32),
 
             // Location Information
             if (_currentPosition != null)
               LocationWidget(
-                position: _currentPosition!,
-                isEmergencyActive: _isEmergencyActive,
+                address:
+                    '${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
               ),
 
             const SizedBox(height: 24),
@@ -214,7 +209,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
 
             // Emergency Contacts
             EmergencyContactsList(
-              onContactTap: _callEmergencyContact,
+              contacts: ['Emergency: 911', 'Police: 911', 'Fire: 911'],
             ),
 
             const SizedBox(height: 24),
@@ -310,11 +305,11 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     setState(() {
       _isEmergencyActive = true;
     });
-    
+
     ref.read(emergencyProvider.notifier).triggerEmergency(
-      location: _currentPosition,
-    );
-    
+          location: _currentPosition,
+        );
+
     // Show confirmation dialog
     showDialog(
       context: context,

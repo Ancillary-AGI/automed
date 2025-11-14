@@ -1,0 +1,487 @@
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$AnalyticsDashboardDataImpl _$$AnalyticsDashboardDataImplFromJson(
+        Map<String, dynamic> json) =>
+    _$AnalyticsDashboardDataImpl(
+      activePatients: (json['activePatients'] as num).toInt(),
+      patientGrowth: (json['patientGrowth'] as num).toDouble(),
+      criticalAlerts: (json['criticalAlerts'] as num).toInt(),
+      alertTrend: (json['alertTrend'] as num).toDouble(),
+      bedOccupancy: (json['bedOccupancy'] as num).toDouble(),
+      occupancyTrend: (json['occupancyTrend'] as num).toDouble(),
+      avgResponseTime: (json['avgResponseTime'] as num).toDouble(),
+      responseTrend: (json['responseTrend'] as num).toDouble(),
+      realTimeMetrics: RealTimeMetrics.fromJson(
+          json['realTimeMetrics'] as Map<String, dynamic>),
+      predictiveInsights: PredictiveInsights.fromJson(
+          json['predictiveInsights'] as Map<String, dynamic>),
+      performanceKpis: PerformanceKpis.fromJson(
+          json['performanceKpis'] as Map<String, dynamic>),
+      populationHealth: PopulationHealth.fromJson(
+          json['populationHealth'] as Map<String, dynamic>),
+      systemServices: (json['systemServices'] as List<dynamic>)
+          .map((e) => SystemService.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+    );
+
+Map<String, dynamic> _$$AnalyticsDashboardDataImplToJson(
+        _$AnalyticsDashboardDataImpl instance) =>
+    <String, dynamic>{
+      'activePatients': instance.activePatients,
+      'patientGrowth': instance.patientGrowth,
+      'criticalAlerts': instance.criticalAlerts,
+      'alertTrend': instance.alertTrend,
+      'bedOccupancy': instance.bedOccupancy,
+      'occupancyTrend': instance.occupancyTrend,
+      'avgResponseTime': instance.avgResponseTime,
+      'responseTrend': instance.responseTrend,
+      'realTimeMetrics': instance.realTimeMetrics,
+      'predictiveInsights': instance.predictiveInsights,
+      'performanceKpis': instance.performanceKpis,
+      'populationHealth': instance.populationHealth,
+      'systemServices': instance.systemServices,
+      'lastUpdated': instance.lastUpdated.toIso8601String(),
+    };
+
+_$RealTimeMetricsImpl _$$RealTimeMetricsImplFromJson(
+        Map<String, dynamic> json) =>
+    _$RealTimeMetricsImpl(
+      vitalSigns: (json['vitalSigns'] as List<dynamic>)
+          .map((e) => MetricDataPoint.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      patientFlow: (json['patientFlow'] as List<dynamic>)
+          .map((e) => MetricDataPoint.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      resourceUtilization: (json['resourceUtilization'] as List<dynamic>)
+          .map((e) => MetricDataPoint.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      activeAlerts: (json['activeAlerts'] as List<dynamic>)
+          .map((e) => AlertMetric.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      systemLoad: (json['systemLoad'] as num).toDouble(),
+      connectedDevices: (json['connectedDevices'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$RealTimeMetricsImplToJson(
+        _$RealTimeMetricsImpl instance) =>
+    <String, dynamic>{
+      'vitalSigns': instance.vitalSigns,
+      'patientFlow': instance.patientFlow,
+      'resourceUtilization': instance.resourceUtilization,
+      'activeAlerts': instance.activeAlerts,
+      'systemLoad': instance.systemLoad,
+      'connectedDevices': instance.connectedDevices,
+    };
+
+_$PredictiveInsightsImpl _$$PredictiveInsightsImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PredictiveInsightsImpl(
+      healthOutcomes: (json['healthOutcomes'] as List<dynamic>)
+          .map((e) => PredictionModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      riskAssessments: (json['riskAssessments'] as List<dynamic>)
+          .map((e) => RiskAssessment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      trends: (json['trends'] as List<dynamic>)
+          .map((e) => TrendAnalysis.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      recommendations: (json['recommendations'] as List<dynamic>)
+          .map((e) => Recommendation.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      accuracyScore: (json['accuracyScore'] as num).toDouble(),
+      lastModelUpdate: DateTime.parse(json['lastModelUpdate'] as String),
+    );
+
+Map<String, dynamic> _$$PredictiveInsightsImplToJson(
+        _$PredictiveInsightsImpl instance) =>
+    <String, dynamic>{
+      'healthOutcomes': instance.healthOutcomes,
+      'riskAssessments': instance.riskAssessments,
+      'trends': instance.trends,
+      'recommendations': instance.recommendations,
+      'accuracyScore': instance.accuracyScore,
+      'lastModelUpdate': instance.lastModelUpdate.toIso8601String(),
+    };
+
+_$PerformanceKpisImpl _$$PerformanceKpisImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PerformanceKpisImpl(
+      patientSatisfaction: (json['patientSatisfaction'] as num).toDouble(),
+      staffEfficiency: (json['staffEfficiency'] as num).toDouble(),
+      costPerPatient: (json['costPerPatient'] as num).toDouble(),
+      readmissionRate: (json['readmissionRate'] as num).toDouble(),
+      mortalityRate: (json['mortalityRate'] as num).toDouble(),
+      infectionRate: (json['infectionRate'] as num).toDouble(),
+      trends: (json['trends'] as List<dynamic>)
+          .map((e) => KpiTrend.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      benchmarks: (json['benchmarks'] as List<dynamic>)
+          .map((e) => Benchmark.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$$PerformanceKpisImplToJson(
+        _$PerformanceKpisImpl instance) =>
+    <String, dynamic>{
+      'patientSatisfaction': instance.patientSatisfaction,
+      'staffEfficiency': instance.staffEfficiency,
+      'costPerPatient': instance.costPerPatient,
+      'readmissionRate': instance.readmissionRate,
+      'mortalityRate': instance.mortalityRate,
+      'infectionRate': instance.infectionRate,
+      'trends': instance.trends,
+      'benchmarks': instance.benchmarks,
+    };
+
+_$PopulationHealthImpl _$$PopulationHealthImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PopulationHealthImpl(
+      demographics: (json['demographics'] as List<dynamic>)
+          .map((e) => DemographicData.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      diseasePrevalence: (json['diseasePrevalence'] as List<dynamic>)
+          .map((e) => DiseasePrevalence.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      outbreakAlerts: (json['outbreakAlerts'] as List<dynamic>)
+          .map((e) => OutbreakAlert.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      healthTrends: (json['healthTrends'] as List<dynamic>)
+          .map((e) => HealthTrend.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      communityHealthScore: (json['communityHealthScore'] as num).toDouble(),
+      preventiveCare: (json['preventiveCare'] as List<dynamic>)
+          .map((e) => PreventiveCareMetric.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$$PopulationHealthImplToJson(
+        _$PopulationHealthImpl instance) =>
+    <String, dynamic>{
+      'demographics': instance.demographics,
+      'diseasePrevalence': instance.diseasePrevalence,
+      'outbreakAlerts': instance.outbreakAlerts,
+      'healthTrends': instance.healthTrends,
+      'communityHealthScore': instance.communityHealthScore,
+      'preventiveCare': instance.preventiveCare,
+    };
+
+_$MetricDataPointImpl _$$MetricDataPointImplFromJson(
+        Map<String, dynamic> json) =>
+    _$MetricDataPointImpl(
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      value: (json['value'] as num).toDouble(),
+      metric: json['metric'] as String,
+      unit: json['unit'] as String?,
+      category: json['category'] as String?,
+    );
+
+Map<String, dynamic> _$$MetricDataPointImplToJson(
+        _$MetricDataPointImpl instance) =>
+    <String, dynamic>{
+      'timestamp': instance.timestamp.toIso8601String(),
+      'value': instance.value,
+      'metric': instance.metric,
+      'unit': instance.unit,
+      'category': instance.category,
+    };
+
+_$AlertMetricImpl _$$AlertMetricImplFromJson(Map<String, dynamic> json) =>
+    _$AlertMetricImpl(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      severity: json['severity'] as String,
+      message: json['message'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      patientId: json['patientId'] as String,
+      department: json['department'] as String?,
+      acknowledged: json['acknowledged'] as bool?,
+    );
+
+Map<String, dynamic> _$$AlertMetricImplToJson(_$AlertMetricImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'severity': instance.severity,
+      'message': instance.message,
+      'timestamp': instance.timestamp.toIso8601String(),
+      'patientId': instance.patientId,
+      'department': instance.department,
+      'acknowledged': instance.acknowledged,
+    };
+
+_$PredictionModelImpl _$$PredictionModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PredictionModelImpl(
+      modelType: json['modelType'] as String,
+      prediction: json['prediction'] as String,
+      confidence: (json['confidence'] as num).toDouble(),
+      predictionDate: DateTime.parse(json['predictionDate'] as String),
+      patientId: json['patientId'] as String,
+      riskFactors: (json['riskFactors'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      recommendedAction: json['recommendedAction'] as String?,
+    );
+
+Map<String, dynamic> _$$PredictionModelImplToJson(
+        _$PredictionModelImpl instance) =>
+    <String, dynamic>{
+      'modelType': instance.modelType,
+      'prediction': instance.prediction,
+      'confidence': instance.confidence,
+      'predictionDate': instance.predictionDate.toIso8601String(),
+      'patientId': instance.patientId,
+      'riskFactors': instance.riskFactors,
+      'recommendedAction': instance.recommendedAction,
+    };
+
+_$RiskAssessmentImpl _$$RiskAssessmentImplFromJson(Map<String, dynamic> json) =>
+    _$RiskAssessmentImpl(
+      patientId: json['patientId'] as String,
+      riskType: json['riskType'] as String,
+      riskLevel: json['riskLevel'] as String,
+      riskScore: (json['riskScore'] as num).toDouble(),
+      riskFactors: (json['riskFactors'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      assessmentDate: DateTime.parse(json['assessmentDate'] as String),
+      mitigation: json['mitigation'] as String?,
+    );
+
+Map<String, dynamic> _$$RiskAssessmentImplToJson(
+        _$RiskAssessmentImpl instance) =>
+    <String, dynamic>{
+      'patientId': instance.patientId,
+      'riskType': instance.riskType,
+      'riskLevel': instance.riskLevel,
+      'riskScore': instance.riskScore,
+      'riskFactors': instance.riskFactors,
+      'assessmentDate': instance.assessmentDate.toIso8601String(),
+      'mitigation': instance.mitigation,
+    };
+
+_$TrendAnalysisImpl _$$TrendAnalysisImplFromJson(Map<String, dynamic> json) =>
+    _$TrendAnalysisImpl(
+      metric: json['metric'] as String,
+      trendDirection: json['trendDirection'] as String,
+      changePercentage: (json['changePercentage'] as num).toDouble(),
+      dataPoints: (json['dataPoints'] as List<dynamic>)
+          .map((e) => MetricDataPoint.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      timeframe: json['timeframe'] as String,
+      significance: json['significance'] as String?,
+    );
+
+Map<String, dynamic> _$$TrendAnalysisImplToJson(_$TrendAnalysisImpl instance) =>
+    <String, dynamic>{
+      'metric': instance.metric,
+      'trendDirection': instance.trendDirection,
+      'changePercentage': instance.changePercentage,
+      'dataPoints': instance.dataPoints,
+      'timeframe': instance.timeframe,
+      'significance': instance.significance,
+    };
+
+_$RecommendationImpl _$$RecommendationImplFromJson(Map<String, dynamic> json) =>
+    _$RecommendationImpl(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      priority: json['priority'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      category: json['category'] as String?,
+      targetAudience: json['targetAudience'] as String?,
+      implemented: json['implemented'] as bool?,
+    );
+
+Map<String, dynamic> _$$RecommendationImplToJson(
+        _$RecommendationImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'title': instance.title,
+      'description': instance.description,
+      'priority': instance.priority,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'category': instance.category,
+      'targetAudience': instance.targetAudience,
+      'implemented': instance.implemented,
+    };
+
+_$KpiTrendImpl _$$KpiTrendImplFromJson(Map<String, dynamic> json) =>
+    _$KpiTrendImpl(
+      kpiName: json['kpiName'] as String,
+      currentValue: (json['currentValue'] as num).toDouble(),
+      previousValue: (json['previousValue'] as num).toDouble(),
+      changePercentage: (json['changePercentage'] as num).toDouble(),
+      trendDirection: json['trendDirection'] as String,
+      timeframe: json['timeframe'] as String,
+    );
+
+Map<String, dynamic> _$$KpiTrendImplToJson(_$KpiTrendImpl instance) =>
+    <String, dynamic>{
+      'kpiName': instance.kpiName,
+      'currentValue': instance.currentValue,
+      'previousValue': instance.previousValue,
+      'changePercentage': instance.changePercentage,
+      'trendDirection': instance.trendDirection,
+      'timeframe': instance.timeframe,
+    };
+
+_$BenchmarkImpl _$$BenchmarkImplFromJson(Map<String, dynamic> json) =>
+    _$BenchmarkImpl(
+      metric: json['metric'] as String,
+      ourValue: (json['ourValue'] as num).toDouble(),
+      industryAverage: (json['industryAverage'] as num).toDouble(),
+      bestPractice: (json['bestPractice'] as num).toDouble(),
+      comparison: json['comparison'] as String,
+      unit: json['unit'] as String?,
+    );
+
+Map<String, dynamic> _$$BenchmarkImplToJson(_$BenchmarkImpl instance) =>
+    <String, dynamic>{
+      'metric': instance.metric,
+      'ourValue': instance.ourValue,
+      'industryAverage': instance.industryAverage,
+      'bestPractice': instance.bestPractice,
+      'comparison': instance.comparison,
+      'unit': instance.unit,
+    };
+
+_$DemographicDataImpl _$$DemographicDataImplFromJson(
+        Map<String, dynamic> json) =>
+    _$DemographicDataImpl(
+      category: json['category'] as String,
+      subcategory: json['subcategory'] as String,
+      count: (json['count'] as num).toInt(),
+      percentage: (json['percentage'] as num).toDouble(),
+      ageGroup: json['ageGroup'] as String?,
+      gender: json['gender'] as String?,
+    );
+
+Map<String, dynamic> _$$DemographicDataImplToJson(
+        _$DemographicDataImpl instance) =>
+    <String, dynamic>{
+      'category': instance.category,
+      'subcategory': instance.subcategory,
+      'count': instance.count,
+      'percentage': instance.percentage,
+      'ageGroup': instance.ageGroup,
+      'gender': instance.gender,
+    };
+
+_$DiseasePrevalenceImpl _$$DiseasePrevalenceImplFromJson(
+        Map<String, dynamic> json) =>
+    _$DiseasePrevalenceImpl(
+      disease: json['disease'] as String,
+      cases: (json['cases'] as num).toInt(),
+      prevalenceRate: (json['prevalenceRate'] as num).toDouble(),
+      timeframe: json['timeframe'] as String,
+      changeFromPrevious: (json['changeFromPrevious'] as num).toDouble(),
+      severity: json['severity'] as String?,
+    );
+
+Map<String, dynamic> _$$DiseasePrevalenceImplToJson(
+        _$DiseasePrevalenceImpl instance) =>
+    <String, dynamic>{
+      'disease': instance.disease,
+      'cases': instance.cases,
+      'prevalenceRate': instance.prevalenceRate,
+      'timeframe': instance.timeframe,
+      'changeFromPrevious': instance.changeFromPrevious,
+      'severity': instance.severity,
+    };
+
+_$OutbreakAlertImpl _$$OutbreakAlertImplFromJson(Map<String, dynamic> json) =>
+    _$OutbreakAlertImpl(
+      id: json['id'] as String,
+      disease: json['disease'] as String,
+      location: json['location'] as String,
+      affectedCount: (json['affectedCount'] as num).toInt(),
+      severity: json['severity'] as String,
+      detectedAt: DateTime.parse(json['detectedAt'] as String),
+      status: json['status'] as String,
+      description: json['description'] as String?,
+    );
+
+Map<String, dynamic> _$$OutbreakAlertImplToJson(_$OutbreakAlertImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'disease': instance.disease,
+      'location': instance.location,
+      'affectedCount': instance.affectedCount,
+      'severity': instance.severity,
+      'detectedAt': instance.detectedAt.toIso8601String(),
+      'status': instance.status,
+      'description': instance.description,
+    };
+
+_$HealthTrendImpl _$$HealthTrendImplFromJson(Map<String, dynamic> json) =>
+    _$HealthTrendImpl(
+      indicator: json['indicator'] as String,
+      trendDirection: json['trendDirection'] as String,
+      changeRate: (json['changeRate'] as num).toDouble(),
+      timeframe: json['timeframe'] as String,
+      dataPoints: (json['dataPoints'] as List<dynamic>)
+          .map((e) => MetricDataPoint.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      significance: json['significance'] as String?,
+    );
+
+Map<String, dynamic> _$$HealthTrendImplToJson(_$HealthTrendImpl instance) =>
+    <String, dynamic>{
+      'indicator': instance.indicator,
+      'trendDirection': instance.trendDirection,
+      'changeRate': instance.changeRate,
+      'timeframe': instance.timeframe,
+      'dataPoints': instance.dataPoints,
+      'significance': instance.significance,
+    };
+
+_$PreventiveCareMetricImpl _$$PreventiveCareMetricImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PreventiveCareMetricImpl(
+      careType: json['careType'] as String,
+      eligiblePopulation: (json['eligiblePopulation'] as num).toInt(),
+      completedScreenings: (json['completedScreenings'] as num).toInt(),
+      completionRate: (json['completionRate'] as num).toDouble(),
+      targetRate: (json['targetRate'] as num).toDouble(),
+      timeframe: json['timeframe'] as String?,
+    );
+
+Map<String, dynamic> _$$PreventiveCareMetricImplToJson(
+        _$PreventiveCareMetricImpl instance) =>
+    <String, dynamic>{
+      'careType': instance.careType,
+      'eligiblePopulation': instance.eligiblePopulation,
+      'completedScreenings': instance.completedScreenings,
+      'completionRate': instance.completionRate,
+      'targetRate': instance.targetRate,
+      'timeframe': instance.timeframe,
+    };
+
+_$SystemServiceImpl _$$SystemServiceImplFromJson(Map<String, dynamic> json) =>
+    _$SystemServiceImpl(
+      name: json['name'] as String,
+      status: json['status'] as String,
+      responseTime: (json['responseTime'] as num).toInt(),
+      uptime: (json['uptime'] as num).toDouble(),
+      lastCheck: DateTime.parse(json['lastCheck'] as String),
+      version: json['version'] as String?,
+      endpoint: json['endpoint'] as String?,
+    );
+
+Map<String, dynamic> _$$SystemServiceImplToJson(_$SystemServiceImpl instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'status': instance.status,
+      'responseTime': instance.responseTime,
+      'uptime': instance.uptime,
+      'lastCheck': instance.lastCheck.toIso8601String(),
+      'version': instance.version,
+      'endpoint': instance.endpoint,
+    };

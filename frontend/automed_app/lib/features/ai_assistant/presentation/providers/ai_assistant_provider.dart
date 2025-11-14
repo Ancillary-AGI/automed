@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/models/ai_models.dart';
+import '../../../../core/models/api_response.dart';
 import '../pages/ai_assistant_page.dart';
 
 // AI Assistant State Notifier
@@ -10,12 +13,13 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
   final ApiService _apiService;
   final Uuid _uuid = const Uuid();
 
-  AIAssistantNotifier(this._apiService) : super(AIAssistantState(
-    status: AIStatus.ready,
-    messages: [],
-    suggestions: [],
-    isProcessing: false,
-  ));
+  AIAssistantNotifier(this._apiService)
+      : super(AIAssistantState(
+          status: AIStatus.ready,
+          messages: [],
+          suggestions: [],
+          isProcessing: false,
+        ));
 
   // Send message to AI
   Future<void> sendMessage(String content) async {
@@ -27,7 +31,7 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
       content: content,
       isUser: true,
       timestamp: DateTime.now(),
-      actions: [],
+      type: MessageType.text,
     );
 
     state = state.copyWith(
@@ -39,14 +43,14 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     try {
       // Determine the type of AI request based on content
       final aiResponse = await _processAIRequest(content);
-      
+
       // Add AI response message
       final aiMessage = AIMessage(
         id: _uuid.v4(),
         content: aiResponse.content,
         isUser: false,
         timestamp: DateTime.now(),
-        actions: aiResponse.actions,
+        type: MessageType.analysis,
       );
 
       state = state.copyWith(
@@ -55,14 +59,18 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
         isProcessing: false,
         status: AIStatus.ready,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      // Log error for semantic bug detection
+      print(
+          '[ERROR] [AIAssistantNotifier] Failed to process AI request: $e\n$stack');
       // Add error message
       final errorMessage = AIMessage(
         id: _uuid.v4(),
-        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        content:
+            'Sorry, something went wrong while processing your request. Please check your connection or try again later.',
         isUser: false,
         timestamp: DateTime.now(),
-        actions: [],
+        type: MessageType.alert,
       );
 
       state = state.copyWith(
@@ -79,25 +87,33 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     final lowerContent = content.toLowerCase();
 
     // Symptom analysis
-    if (lowerContent.contains('symptom') || lowerContent.contains('pain') || lowerContent.contains('feel')) {
+    if (lowerContent.contains('symptom') ||
+        lowerContent.contains('pain') ||
+        lowerContent.contains('feel')) {
       return await _analyzeSymptoms(content);
     }
-    
+
     // Medication queries
-    if (lowerContent.contains('medication') || lowerContent.contains('drug') || lowerContent.contains('pill')) {
+    if (lowerContent.contains('medication') ||
+        lowerContent.contains('drug') ||
+        lowerContent.contains('pill')) {
       return await _handleMedicationQuery(content);
     }
-    
+
     // Appointment scheduling
-    if (lowerContent.contains('appointment') || lowerContent.contains('schedule') || lowerContent.contains('book')) {
+    if (lowerContent.contains('appointment') ||
+        lowerContent.contains('schedule') ||
+        lowerContent.contains('book')) {
       return await _handleAppointmentRequest(content);
     }
-    
+
     // Emergency situations
-    if (lowerContent.contains('emergency') || lowerContent.contains('urgent') || lowerContent.contains('help')) {
+    if (lowerContent.contains('emergency') ||
+        lowerContent.contains('urgent') ||
+        lowerContent.contains('help')) {
       return await _handleEmergencyRequest(content);
     }
-    
+
     // General medical query
     return await _handleGeneralQuery(content);
   }
@@ -107,18 +123,23 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     try {
       // Extract symptoms from the content (simplified)
       final symptoms = _extractSymptoms(content);
-      
+
       final request = SymptomAnalysisRequest(
         symptoms: symptoms,
         duration: 1, // Default duration
         severity: 'moderate', // Default severity
       );
 
-      final response = await _apiService.analyzeSymptoms(request);
-      
-      if (response.success && response.data != null) {
-        final analysis = response.data!;
-        
+      // Send JSON payload to ApiService
+      final raw = await _apiService.analyzeSymptoms(request.toJson());
+
+      // Parse into ApiResponse<SymptomAnalysis>
+      final apiResp = ApiResponse.fromJson(raw,
+          (json) => SymptomAnalysis.fromJson(json as Map<String, dynamic>));
+
+      if (apiResp.success && apiResp.data != null) {
+        final analysis = apiResp.data!;
+
         return AIResponse(
           content: _formatSymptomAnalysis(analysis),
           actions: [
@@ -150,7 +171,8 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     }
 
     return AIResponse(
-      content: 'Based on the symptoms you described, I recommend monitoring them closely. If they persist or worsen, please consult with a healthcare provider.',
+      content:
+          'Based on the symptoms you described, I recommend monitoring them closely. If they persist or worsen, please consult with a healthcare provider.',
       actions: [],
       suggestions: [],
     );
@@ -159,7 +181,8 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
   // Handle medication queries
   Future<AIResponse> _handleMedicationQuery(String content) async {
     return AIResponse(
-      content: 'I can help you with medication information. What specific medication would you like to know about?',
+      content:
+          'I can help you with medication information. What specific medication would you like to know about?',
       actions: [
         MessageAction(
           type: MessageActionType.orderMedication,
@@ -188,7 +211,8 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
   // Handle appointment requests
   Future<AIResponse> _handleAppointmentRequest(String content) async {
     return AIResponse(
-      content: 'I can help you schedule an appointment. What type of appointment would you like to book?',
+      content:
+          'I can help you schedule an appointment. What type of appointment would you like to book?',
       actions: [
         MessageAction(
           type: MessageActionType.scheduleAppointment,
@@ -217,7 +241,8 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
   // Handle emergency requests
   Future<AIResponse> _handleEmergencyRequest(String content) async {
     return AIResponse(
-      content: 'If this is a medical emergency, please call emergency services immediately (911). For urgent but non-emergency situations, I can help you find immediate care options.',
+      content:
+          'If this is a medical emergency, please call emergency services immediately (911). For urgent but non-emergency situations, I can help you find immediate care options.',
       actions: [
         MessageAction(
           type: MessageActionType.requestConsultation,
@@ -246,7 +271,8 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
   // Handle general queries
   Future<AIResponse> _handleGeneralQuery(String content) async {
     return AIResponse(
-      content: 'I\'m here to help with your healthcare needs. You can ask me about symptoms, medications, appointments, or general health questions.',
+      content:
+          'I\'m here to help with your healthcare needs. You can ask me about symptoms, medications, appointments, or general health questions.',
       actions: [],
       suggestions: [
         AISuggestion(
@@ -289,16 +315,24 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     // Simplified symptom extraction
     final symptoms = <String>[];
     final commonSymptoms = [
-      'headache', 'fever', 'cough', 'pain', 'nausea', 'fatigue',
-      'dizziness', 'shortness of breath', 'chest pain', 'abdominal pain'
+      'headache',
+      'fever',
+      'cough',
+      'pain',
+      'nausea',
+      'fatigue',
+      'dizziness',
+      'shortness of breath',
+      'chest pain',
+      'abdominal pain'
     ];
-    
+
     for (final symptom in commonSymptoms) {
       if (content.toLowerCase().contains(symptom)) {
         symptoms.add(symptom);
       }
     }
-    
+
     return symptoms.isEmpty ? ['general discomfort'] : symptoms;
   }
 
@@ -306,7 +340,7 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
     final buffer = StringBuffer();
     buffer.writeln('Based on your symptoms, here\'s what I found:');
     buffer.writeln();
-    
+
     if (analysis.possibleCauses.isNotEmpty) {
       buffer.writeln('Possible causes:');
       for (final cause in analysis.possibleCauses) {
@@ -314,7 +348,7 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
       }
       buffer.writeln();
     }
-    
+
     if (analysis.recommendations.isNotEmpty) {
       buffer.writeln('Recommendations:');
       for (final recommendation in analysis.recommendations) {
@@ -322,14 +356,14 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
       }
       buffer.writeln();
     }
-    
+
     buffer.writeln('Urgency level: ${analysis.urgencyLevel}');
-    
+
     if (analysis.nextSteps != null) {
       buffer.writeln();
       buffer.writeln('Next steps: ${analysis.nextSteps}');
     }
-    
+
     return buffer.toString();
   }
 }
@@ -367,7 +401,8 @@ extension AIAssistantStateExtension on AIAssistantState {
 }
 
 // Provider
-final aiAssistantProvider = StateNotifierProvider<AIAssistantNotifier, AIAssistantState>((ref) {
+final aiAssistantProvider =
+    StateNotifierProvider<AIAssistantNotifier, AIAssistantState>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return AIAssistantNotifier(apiService);
 });

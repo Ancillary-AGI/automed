@@ -22,15 +22,19 @@ class PopulationHealthWidget extends ConsumerWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getHealthScoreColor(data.populationHealth.communityHealthScore).withOpacity(0.2),
+                  color: _getHealthScoreColor(
+                          data.populationHealth.communityHealthScore)
+                      .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   'Health Score: ${(data.populationHealth.communityHealthScore * 100).toInt()}',
                   style: TextStyle(
-                    color: _getHealthScoreColor(data.populationHealth.communityHealthScore),
+                    color: _getHealthScoreColor(
+                        data.populationHealth.communityHealthScore),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -38,7 +42,7 @@ class PopulationHealthWidget extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Demographics Overview
           Card(
             child: Padding(
@@ -57,12 +61,14 @@ class PopulationHealthWidget extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: PieChart(
-                            _buildDemographicsChart(data.populationHealth.demographics),
+                            _buildDemographicsChart(
+                                data.populationHealth.demographics),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: _buildDemographicsLegend(data.populationHealth.demographics),
+                          child: _buildDemographicsLegend(
+                              data.populationHealth.demographics),
                         ),
                       ],
                     ),
@@ -72,7 +78,7 @@ class PopulationHealthWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Disease Prevalence
           Card(
             child: Padding(
@@ -88,7 +94,8 @@ class PopulationHealthWidget extends ConsumerWidget {
                   SizedBox(
                     height: 250,
                     child: BarChart(
-                      _buildDiseasePrevalenceChart(data.populationHealth.diseasePrevalence),
+                      _buildDiseasePrevalenceChart(
+                          data.populationHealth.diseasePrevalence),
                     ),
                   ),
                 ],
@@ -96,7 +103,7 @@ class PopulationHealthWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Outbreak Alerts
           if (data.populationHealth.outbreakAlerts.isNotEmpty)
             Card(
@@ -111,12 +118,14 @@ class PopulationHealthWidget extends ConsumerWidget {
                         const SizedBox(width: 8),
                         const Text(
                           'Outbreak Alerts',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                         const Spacer(),
                         Chip(
-                          label: Text('${data.populationHealth.outbreakAlerts.length} Active'),
-                          backgroundColor: Colors.red.withOpacity(0.2),
+                          label: Text(
+                              '${data.populationHealth.outbreakAlerts.length} Active'),
+                          backgroundColor: Colors.red.withValues(alpha: 0.2),
                           labelStyle: const TextStyle(color: Colors.red),
                         ),
                       ],
@@ -130,7 +139,7 @@ class PopulationHealthWidget extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: 16),
-          
+
           // Health Trends
           Card(
             child: Padding(
@@ -146,7 +155,8 @@ class PopulationHealthWidget extends ConsumerWidget {
                   SizedBox(
                     height: 200,
                     child: LineChart(
-                      _buildHealthTrendsChart(data.populationHealth.healthTrends),
+                      _buildHealthTrendsChart(
+                          data.populationHealth.healthTrends),
                     ),
                   ),
                 ],
@@ -154,7 +164,7 @@ class PopulationHealthWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Preventive Care Metrics
           Card(
             child: Padding(
@@ -264,8 +274,12 @@ class PopulationHealthWidget extends ConsumerWidget {
   BarChartData _buildDiseasePrevalenceChart(List<dynamic> diseasePrevalence) {
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
-      maxY: diseasePrevalence.isNotEmpty 
-          ? diseasePrevalence.map((e) => e.prevalenceRate).reduce((a, b) => a > b ? a : b).toDouble() * 1.2
+      maxY: diseasePrevalence.isNotEmpty
+          ? diseasePrevalence
+                  .map((e) => e.prevalenceRate)
+                  .reduce((a, b) => a > b ? a : b)
+                  .toDouble() *
+              1.2
           : 100,
       barTouchData: BarTouchData(
         enabled: true,
@@ -353,8 +367,8 @@ class PopulationHealthWidget extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.left(color: severityColor, width: 4),
-        color: severityColor.withOpacity(0.1),
+        border: Border(left: BorderSide(color: severityColor, width: 4)),
+        color: severityColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -373,7 +387,7 @@ class PopulationHealthWidget extends ConsumerWidget {
               ),
               Chip(
                 label: Text(alert.severity),
-                backgroundColor: severityColor.withOpacity(0.2),
+                backgroundColor: severityColor.withValues(alpha: 0.2),
                 labelStyle: TextStyle(color: severityColor),
               ),
             ],
@@ -416,8 +430,14 @@ class PopulationHealthWidget extends ConsumerWidget {
   }
 
   LineChartData _buildHealthTrendsChart(List<dynamic> healthTrends) {
-    final colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple];
-    
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.red,
+      Colors.purple
+    ];
+
     return LineChartData(
       gridData: FlGridData(show: true),
       titlesData: FlTitlesData(
@@ -433,9 +453,10 @@ class PopulationHealthWidget extends ConsumerWidget {
       borderData: FlBorderData(show: true),
       lineBarsData: healthTrends.asMap().entries.map((entry) {
         final color = colors[entry.key % colors.length];
-        
+
         return LineChartBarData(
-          spots: entry.value.dataPoints.asMap().entries.map<FlSpot>((pointEntry) {
+          spots:
+              entry.value.dataPoints.asMap().entries.map<FlSpot>((pointEntry) {
             return FlSpot(
               pointEntry.key.toDouble(),
               pointEntry.value.value.toDouble(),
@@ -454,7 +475,7 @@ class PopulationHealthWidget extends ConsumerWidget {
     final completionRate = metric.completionRate;
     final targetRate = metric.targetRate;
     final isOnTarget = completionRate >= targetRate;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(

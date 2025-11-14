@@ -72,7 +72,7 @@ dependencies:
   flutter_local_notifications: ^16.3.2
 
   # Utils
-  intl: ^0.17.0
+  intl: ^0.20.2
   uuid: ^4.3.3
   logger: ^2.0.2+1
   equatable: ^2.0.5
@@ -84,8 +84,8 @@ dependencies:
   flutter_tts: ^3.8.5
 
   # Charts & Analytics
-  syncfusion_flutter_charts: ^21.2.4
-  charts_flutter: ^0.12.0
+  syncfusion_flutter_charts: ^31.2.5
+  # charts_flutter: ^0.12.0  # Commented out due to intl version conflict
 
   # Camera & Scanning
   camera: ^0.10.5+9
@@ -97,6 +97,19 @@ dependencies:
   package_info_plus: ^4.2.0
   battery_plus: ^4.0.2
   sensors_plus: ^4.0.2
+
+  # Location & Communication
+  geolocator: ^10.1.1
+
+  # Video Calling
+  flutter_webrtc: ^0.9.48
+
+  # NFC
+  nfc_manager: ^3.4.0
+
+  # Internationalization
+  flutter_localizations:
+    sdk: flutter
 
   # Development
   flutter_launcher_icons: ^0.13.1

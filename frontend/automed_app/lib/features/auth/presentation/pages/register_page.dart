@@ -20,7 +20,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+  final _phoneController = TextEditingController();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -34,6 +35,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -59,22 +61,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 Text(
                   'Join Automed',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Create your account to access global healthcare services',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                        color: AppColors.textSecondary,
+                      ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // User Type Selection
                 Text(
                   'I am a:',
@@ -109,9 +111,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // First Name
                 TextFormField(
                   controller: _firstNameController,
@@ -126,9 +128,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Last Name
                 TextFormField(
                   controller: _lastNameController,
@@ -143,9 +145,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Email
                 TextFormField(
                   controller: _emailController,
@@ -158,15 +160,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Password
                 TextFormField(
                   controller: _passwordController,
@@ -176,7 +179,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -192,15 +197,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     if (value.length < 8) {
                       return 'Password must be at least 8 characters';
                     }
-                    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+                    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
+                        .hasMatch(value)) {
                       return 'Password must contain uppercase, lowercase, and number';
                     }
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Confirm Password
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -210,7 +216,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        _obscureConfirmPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -229,9 +237,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Terms and Conditions
                 CheckboxListTile(
                   value: _acceptTerms,
@@ -265,12 +273,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Register Button
                 ElevatedButton(
-                  onPressed: (_isLoading || !_acceptTerms) ? null : _handleRegister,
+                  onPressed:
+                      (_isLoading || !_acceptTerms) ? null : _handleRegister,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -279,9 +288,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         )
                       : const Text('Create Account'),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -308,7 +317,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -326,21 +335,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     try {
       // Perform actual registration
       final authService = ref.read(authServiceProvider);
-      final success = await authService.register(
-        email: _emailController.text,
-        password: _passwordController.text,
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        phone: _phoneController.text,
-      );
-      
+      final success = await authService.register({
+        'email': _emailController.text,
+        'password': _passwordController.text,
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'phone': _phoneController.text,
+        'userType': _selectedUserType,
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created successfully! Please login.'),
           backgroundColor: AppColors.success,
         ),
       );
-      
+
       context.go(RouteNames.login);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -2,6 +2,7 @@ package com.automed.ai.controller
 
 import com.automed.ai.dto.*
 import com.automed.ai.service.AiService
+import com.automed.ai.service.CausalAnalysisService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -12,7 +13,8 @@ import reactor.core.publisher.Mono
 @RequestMapping("/api/v1/ai")
 @CrossOrigin(origins = ["*"])
 class AiController(
-    private val aiService: AiService
+    private val aiService: AiService,
+    private val causalAnalysisService: CausalAnalysisService
 ) {
 
     @PostMapping("/predict-diagnosis")
@@ -125,5 +127,42 @@ class AiController(
     fun startVRTraining(@Valid @RequestBody request: VRTrainingRequest): Mono<ResponseEntity<VRTrainingResponse>> {
         return aiService.startVRTraining(request)
             .map { ResponseEntity.ok(it) }
+    }
+
+    // ===== CAUSAL AI ENDPOINTS =====
+
+    @PostMapping("/causal-analysis")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun performCausalAnalysis(@Valid @RequestBody request: CausalAnalysisRequest): Mono<ResponseEntity<CausalAnalysisResponse>> {
+        return causalAnalysisService.performCausalAnalysis(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/counterfactual-reasoning")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun generateCounterfactuals(@Valid @RequestBody request: CounterfactualRequest): Mono<ResponseEntity<CounterfactualResponse>> {
+        return causalAnalysisService.generateCounterfactuals(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/treatment-optimization")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun optimizeTreatmentPathway(@Valid @RequestBody request: TreatmentOptimizationRequest): Mono<ResponseEntity<TreatmentOptimizationResponse>> {
+        return causalAnalysisService.optimizeTreatmentPathway(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping("/personalized-causal-model")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun createPersonalizedModel(@Valid @RequestBody request: PersonalizedCausalModelRequest): Mono<ResponseEntity<PersonalizedCausalModelResponse>> {
+        return causalAnalysisService.createPersonalizedModel(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
+    @GetMapping("/causal-models/{patientId}")
+    @PreAuthorize("hasRole('HEALTHCARE_PROVIDER')")
+    fun getPersonalizedModel(@PathVariable patientId: String): ResponseEntity<PersonalizedCausalModelResponse?> {
+        // This would retrieve stored models - simplified for now
+        return ResponseEntity.ok(null)
     }
 }

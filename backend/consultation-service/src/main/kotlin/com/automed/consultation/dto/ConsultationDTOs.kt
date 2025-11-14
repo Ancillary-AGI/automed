@@ -153,7 +153,10 @@ data class SendMessageRequest(
     @field:Size(max = 1000)
     val content: String,
 
-    val messageType: String = "text"
+    val messageType: String = "TEXT",
+    val fileUrl: String? = null,
+    val fileName: String? = null,
+    val fileSize: Long? = null
 )
 
 data class MessageResponse(
@@ -163,6 +166,9 @@ data class MessageResponse(
     val senderName: String,
     val content: String,
     val messageType: String,
+    val fileUrl: String?,
+    val fileName: String?,
+    val fileSize: Long?,
     val timestamp: LocalDateTime
 )
 
@@ -171,7 +177,7 @@ data class FileUploadRequest(
     val fileName: String,
 
     @field:NotBlank
-    val fileType: String,
+    val mimeType: String,
 
     @field:NotNull
     val fileSize: Long,
@@ -192,6 +198,9 @@ data class RecordingResponse(
     val recordingUrl: String,
     val duration: Long,
     val fileSize: Long,
+    val recordingType: String,
+    val thumbnailUrl: String?,
+    val transcription: String?,
     val createdAt: LocalDateTime
 )
 
@@ -205,13 +214,16 @@ data class CreatePrescriptionRequest(
     @field:NotBlank
     val frequency: String,
 
-    @field:NotNull
-    val duration: Int,
+    @field:NotBlank
+    val duration: String,
 
     @field:Size(max = 1000)
     val instructions: String? = null,
 
-    val quantity: Int? = null
+    @field:NotNull
+    val quantity: Int,
+
+    val pharmacyNotes: String? = null
 )
 
 data class PrescriptionResponse(
@@ -220,9 +232,12 @@ data class PrescriptionResponse(
     val medicationName: String,
     val dosage: String,
     val frequency: String,
-    val duration: Int,
+    val duration: String,
     val instructions: String?,
-    val quantity: Int?,
+    val quantity: Int,
+    val pharmacyNotes: String?,
+    val filled: Boolean,
+    val filledAt: LocalDateTime?,
     val prescribedAt: LocalDateTime
 )
 

@@ -168,8 +168,7 @@ class _PatientDashboardScreenState
 
         // Upcoming Appointments
         SliverToBoxAdapter(
-          child: UpcomingAppointmentsCard(
-              appointments: dashboard.upcomingAppointments),
+          child: const UpcomingAppointmentsCard(),
         ),
 
         const SliverToBoxAdapter(
@@ -178,7 +177,7 @@ class _PatientDashboardScreenState
 
         // Medication Reminders
         SliverToBoxAdapter(
-          child: MedicationRemindersCard(medications: dashboard.medications),
+          child: const MedicationRemindersCard(),
         ),
 
         const SliverToBoxAdapter(

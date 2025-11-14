@@ -19,7 +19,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           // Vital Signs Chart
           Card(
             child: Padding(
@@ -43,7 +43,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Patient Flow Chart
           Card(
             child: Padding(
@@ -67,7 +67,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Resource Utilization
           Card(
             child: Padding(
@@ -83,7 +83,8 @@ class RealTimeMetricsWidget extends ConsumerWidget {
                   SizedBox(
                     height: 200,
                     child: PieChart(
-                      _buildResourceUtilizationChart(data.realTimeMetrics.resourceUtilization),
+                      _buildResourceUtilizationChart(
+                          data.realTimeMetrics.resourceUtilization),
                     ),
                   ),
                 ],
@@ -91,7 +92,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Active Alerts
           Card(
             child: Padding(
@@ -105,14 +106,15 @@ class RealTimeMetricsWidget extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   ...data.realTimeMetrics.activeAlerts.take(5).map(
-                    (alert) => _buildAlertTile(alert),
-                  ),
+                        (alert) => _buildAlertTile(alert),
+                      ),
                   if (data.realTimeMetrics.activeAlerts.length > 5)
                     TextButton(
                       onPressed: () {
                         // Navigate to full alerts view
                       },
-                      child: Text('View all ${data.realTimeMetrics.activeAlerts.length} alerts'),
+                      child: Text(
+                          'View all ${data.realTimeMetrics.activeAlerts.length} alerts'),
                     ),
                 ],
               ),
@@ -158,8 +160,12 @@ class RealTimeMetricsWidget extends ConsumerWidget {
   BarChartData _buildPatientFlowChart(List<dynamic> patientFlow) {
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
-      maxY: patientFlow.isNotEmpty 
-          ? patientFlow.map((e) => e.value).reduce((a, b) => a > b ? a : b).toDouble() * 1.2
+      maxY: patientFlow.isNotEmpty
+          ? patientFlow
+                  .map((e) => e.value)
+                  .reduce((a, b) => a > b ? a : b)
+                  .toDouble() *
+              1.2
           : 100,
       barTouchData: BarTouchData(enabled: true),
       titlesData: FlTitlesData(
@@ -191,7 +197,13 @@ class RealTimeMetricsWidget extends ConsumerWidget {
   PieChartData _buildResourceUtilizationChart(List<dynamic> resourceData) {
     return PieChartData(
       sections: resourceData.asMap().entries.map((entry) {
-        final colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple];
+        final colors = [
+          Colors.blue,
+          Colors.green,
+          Colors.orange,
+          Colors.red,
+          Colors.purple
+        ];
         return PieChartSectionData(
           value: entry.value.value.toDouble(),
           title: '${entry.value.value.toInt()}%',
@@ -212,7 +224,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
   Widget _buildAlertTile(dynamic alert) {
     Color severityColor;
     IconData severityIcon;
-    
+
     switch (alert.severity.toLowerCase()) {
       case 'critical':
         severityColor = Colors.red;
@@ -235,8 +247,8 @@ class RealTimeMetricsWidget extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.left(color: severityColor, width: 4),
-        color: severityColor.withOpacity(0.1),
+        border: Border(left: BorderSide(color: severityColor, width: 4)),
+        color: severityColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -276,7 +288,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
   String _formatTime(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inHours < 1) {

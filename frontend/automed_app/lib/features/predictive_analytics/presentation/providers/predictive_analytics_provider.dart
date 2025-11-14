@@ -95,14 +95,17 @@ class PredictiveAnalyticsNotifier
     try {
       final endpoint =
           '/analytics/predictive?range=${Uri.encodeComponent(_currentTimeRange)}&filter=${Uri.encodeComponent(_currentPatientFilter)}';
-      final resp = await _apiService.get(endpoint);
+      final apiResp = await _apiService.getTyped<Map<String, dynamic>>(
+        endpoint,
+        (json) => json as Map<String, dynamic>,
+      );
 
-      if (resp.isEmpty) {
-        throw Exception('Empty response');
+      if (!apiResp.success || apiResp.data == null || apiResp.data!.isEmpty) {
+        throw Exception('Empty or error response');
       }
 
-      // Parse response into model; fall back to generators for missing parts
-      return _parsePredictiveAnalytics(resp);
+      // Parse response into model
+      return _parsePredictiveAnalytics(apiResp.data!);
     } catch (e) {
       // Surface errors to the caller so the UI/state can present an error state.
       // Do not return mock data.
