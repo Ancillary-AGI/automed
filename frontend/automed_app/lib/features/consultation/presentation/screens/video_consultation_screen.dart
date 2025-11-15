@@ -223,7 +223,7 @@ class _VideoConsultationScreenState
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.7),
             Colors.transparent,
           ],
         ),
@@ -249,7 +249,7 @@ class _VideoConsultationScreenState
                 Text(
                   'with Dr. ${consultation.doctorName ?? 'Unknown'}',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -279,7 +279,7 @@ class _VideoConsultationScreenState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

@@ -14,19 +14,19 @@ import 'generated/l10n.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set up Firebase background message handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  
+
   // Initialize Hive for local storage
   await Hive.initFlutter();
-  
+
   // Initialize dependency injection
   await configureDependencies();
-  
+
   // Initialize platform-specific configurations
   await _initializePlatformConfigurations();
-  
+
   runApp(
     ProviderScope(
       child: AutomedApp(),
@@ -42,7 +42,7 @@ Future<void> _initializePlatformConfigurations() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  
+
   // Configure system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -52,7 +52,7 @@ Future<void> _initializePlatformConfigurations() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
+
   // Platform-specific initializations
   if (PlatformUtils.isAndroid) {
     // Android-specific initialization
@@ -69,17 +69,16 @@ class AutomedApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    final appConfig = ref.watch(appConfigProvider);
-    
+
     return MaterialApp.router(
       title: 'Automed',
       debugShowCheckedModeBanner: false,
-      
+
       // Theme Configuration
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      
+
       // Localization
       localizationsDelegates: const [
         S.delegate,
@@ -88,15 +87,17 @@ class AutomedApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      
+
       // Routing
       routerConfig: router,
-      
+
       // Builder for responsive design and platform adaptations
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaler: MediaQuery.of(context).textScaler.clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2),
+            textScaler: MediaQuery.of(context)
+                .textScaler
+                .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2),
           ),
           child: child ?? const SizedBox.shrink(),
         );

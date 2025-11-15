@@ -20,7 +20,8 @@ class ConsultationService(
     private val fileUploadRepository: FileUploadRepository,
     private val recordingRepository: RecordingRepository,
     private val prescriptionRepository: PrescriptionRepository,
-    private val kafkaTemplate: KafkaTemplate<String, Any>
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val securityService: SecurityService
 ) {
 
     fun createConsultation(request: CreateConsultationRequest): Mono<ConsultationResponse> {
@@ -229,6 +230,23 @@ class ConsultationService(
 
     fun sendMessage(id: UUID, request: SendMessageRequest, senderId: UUID, senderName: String): Mono<MessageResponse> {
         return Mono.fromCallable {
+            // Security validations
+            if (!securityService.validateUserAccess(senderId, id)) {
+                throw SecurityException("User $senderId does not have access to consultation $id")
+            }
+
+            if (!securityService.validateRateLimit(senderId, "send_message")) {
+                throw IllegalStateException("Rate limit exceeded for user $senderId")
+            }
+
+            if (!securityService.validateMessageContent(request.content)) {
+                securityService.logSecurityEvent("MALICIOUS_MESSAGE_ATTEMPT", senderId, mapOf(
+                    "consultationId" to id,
+                    "content" to request.content.take(100)
+                ))
+                throw IllegalArgumentException("Message content contains invalid or malicious content")
+            }
+
             val message = Message(
                 consultationId = id,
                 senderId = senderId,
@@ -240,6 +258,11 @@ class ConsultationService(
                 fileSize = request.fileSize
             )
 
+            // Validate message integrity
+            if (!message.isValidFileMessage() || !message.isValidFileSize()) {
+                throw IllegalArgumentException("Invalid file message data")
+            }
+
             val savedMessage = messageRepository.save(message)
 
             // Publish event for real-time messaging
@@ -247,7 +270,7 @@ class ConsultationService(
                 "consultationId" to id,
                 "messageId" to savedMessage.id,
                 "senderId" to senderId,
-                "content" to request.content
+                "content" to request.content.take(200) // Truncate for event
             ))
 
             MessageResponse(
@@ -287,21 +310,58 @@ class ConsultationService(
 
     fun uploadFile(id: UUID, request: FileUploadRequest, uploaderId: UUID): Mono<FileUploadResponse> {
         return Mono.fromCallable {
-            // In a real implementation, you would upload the file to cloud storage
-            // For now, we'll simulate the upload
-            val fileUrl = "https://storage.automed.com/files/${UUID.randomUUID()}/${request.fileName}"
+            // Security validations
+            if (!securityService.validateUserAccess(uploaderId, id)) {
+                throw SecurityException("User $uploaderId does not have access to consultation $id")
+            }
 
+            // Sanitize filename for security
+            val sanitizedFileName = securityService.sanitizeFileName(request.fileName)
+
+            // Create file upload entity for validation
             val fileUpload = FileUpload(
                 consultationId = id,
                 uploaderId = uploaderId,
-                fileName = request.fileName,
-                fileUrl = fileUrl,
+                fileName = sanitizedFileName,
+                fileUrl = "", // Will be set after validation
                 fileSize = request.fileSize,
                 mimeType = request.mimeType,
                 description = request.description
             )
 
-            val savedFile = fileUploadRepository.save(fileUpload)
+            // Validate file upload
+            if (!securityService.validateFileUpload(fileUpload)) {
+                securityService.logSecurityEvent("INVALID_FILE_UPLOAD", uploaderId, mapOf(
+                    "consultationId" to id,
+                    "fileName" to request.fileName,
+                    "fileSize" to request.fileSize,
+                    "mimeType" to request.mimeType
+                ))
+                throw IllegalArgumentException("File upload validation failed")
+            }
+
+            // In a real implementation, you would:
+            // 1. Upload file to secure cloud storage (S3, GCS, etc.)
+            // 2. Scan for viruses
+            // 3. Generate secure, signed URLs
+            // For now, we'll simulate the upload
+            val secureFileUrl = securityService.generateSecureFileUrl(UUID.randomUUID(), id)
+
+            val validatedFileUpload = fileUpload.copy(
+                fileUrl = secureFileUrl,
+                isScanned = true, // In real implementation, this would be set after virus scanning
+                scanResult = "CLEAN" // In real implementation, this would be set by scanner
+            )
+
+            val savedFile = fileUploadRepository.save(validatedFileUpload)
+
+            // Log successful upload
+            securityService.logSecurityEvent("FILE_UPLOADED", uploaderId, mapOf(
+                "fileId" to savedFile.id,
+                "consultationId" to id,
+                "fileName" to savedFile.fileName,
+                "fileSize" to savedFile.fileSize
+            ))
 
             FileUploadResponse(
                 fileId = savedFile.id!!,

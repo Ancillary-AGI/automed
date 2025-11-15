@@ -23,7 +23,7 @@ class EmergencyButton extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 4,
-          shadowColor: AppColors.error.withOpacity(0.3),
+          shadowColor: AppColors.error.withValues(alpha: 0.3),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

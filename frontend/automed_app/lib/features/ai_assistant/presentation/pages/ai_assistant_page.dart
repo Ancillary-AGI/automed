@@ -28,7 +28,6 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   late Animation<double> _pulseAnimation;
 
   bool _isListening = false;
-  bool _speechEnabled = false;
 
   @override
   void initState() {
@@ -47,7 +46,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   }
 
   void _initializeSpeech() async {
-    _speechEnabled = await _speech.initialize(
+    await _speech.initialize(
       onStatus: (status) {
         setState(() {
           _isListening = status == 'listening';
@@ -239,7 +238,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -297,7 +296,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
                 style: IconButton.styleFrom(
                   backgroundColor: state.isProcessing
                       ? AppColors.grey200
-                      : AppColors.primary.withOpacity(0.1),
+                      : AppColors.primary.withValues(alpha: 0.1),
                   shape: const CircleBorder(),
                 ),
               ),
@@ -399,23 +398,6 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
     );
   }
 
-  void _handleMessageAction(MessageAction action) {
-    switch (action.type) {
-      case MessageActionType.scheduleAppointment:
-        _scheduleAppointment(action.data);
-        break;
-      case MessageActionType.orderMedication:
-        _orderMedication(action.data);
-        break;
-      case MessageActionType.requestConsultation:
-        _requestConsultation(action.data);
-        break;
-      case MessageActionType.viewResults:
-        _viewResults(action.data);
-        break;
-    }
-  }
-
   void _applySuggestion(AISuggestion suggestion) {
     ref.read(aiAssistantProvider.notifier).applySuggestion(suggestion);
   }
@@ -470,9 +452,9 @@ class AISuggestionCard extends StatelessWidget {
         width: 200,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

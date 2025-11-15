@@ -26,7 +26,7 @@ class AdherenceChart extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: adherence.clamp(0.0, 1.0),
                     color: AppColors.success,
-                    backgroundColor: AppColors.success.withOpacity(0.12),
+                    backgroundColor: AppColors.success.withValues(alpha: 0.12),
                     minHeight: 10,
                   ),
                 ),
@@ -35,7 +35,9 @@ class AdherenceChart extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text('Based on recent intake logs', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+            Text('Based on recent intake logs',
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondary)),
           ],
         ),
       ),
