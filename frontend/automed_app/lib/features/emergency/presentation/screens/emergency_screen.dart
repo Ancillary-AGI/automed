@@ -73,7 +73,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
 
   @override
   Widget build(BuildContext context) {
-    final emergencyState = ref.watch(emergencyProvider);
     final theme = Theme.of(context);
 
     return AppScaffold(
@@ -352,10 +351,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
         ],
       ),
     );
-  }
-
-  void _callEmergencyContact(String phoneNumber) {
-    // Implement phone call functionality
   }
 
   void _findNearestHospital() {

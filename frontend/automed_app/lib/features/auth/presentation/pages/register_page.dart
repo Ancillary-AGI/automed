@@ -335,7 +335,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     try {
       // Perform actual registration
       final authService = ref.read(authServiceProvider);
-      final success = await authService.register({
+      await authService.register({
         'email': _emailController.text,
         'password': _passwordController.text,
         'firstName': _firstNameController.text,

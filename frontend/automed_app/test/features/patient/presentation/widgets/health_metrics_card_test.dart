@@ -5,17 +5,6 @@ import 'package:automed_app/features/patient/presentation/widgets/health_metrics
 
 void main() {
   group('HealthMetricsCard', () {
-    late HealthMetrics testMetrics;
-
-    setUp(() {
-      testMetrics = const HealthMetrics(
-        heartRate: 75.0,
-        bloodPressure: 120.0,
-        temperature: 98.6,
-        oxygenSaturation: 98.0,
-      );
-    });
-
     testWidgets('displays metric correctly', (
       WidgetTester tester,
     ) async {

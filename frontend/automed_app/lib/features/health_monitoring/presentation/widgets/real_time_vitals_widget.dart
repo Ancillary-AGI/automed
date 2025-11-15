@@ -47,7 +47,6 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
   @override
   void dispose() {
     _heartbeatController.dispose();
-    _pulseController.dispose();
     _dataUpdateTimer?.cancel();
     super.dispose();
   }
@@ -55,11 +54,6 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
   void _setupAnimations() {
     _heartbeatController = AnimationController(
       duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -71,16 +65,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
       curve: Curves.easeInOut,
     ));
 
-    _pulseAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeOut,
-    ));
-
     _heartbeatController.repeat(reverse: true);
-    _pulseController.repeat();
   }
 
   void _startRealTimeUpdates() {

@@ -39,7 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                
+
                 // Logo and Title
                 Column(
                   children: [
@@ -59,24 +59,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 24),
                     Text(
                       'Automed',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Global Healthcare Delivery Platform',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                            color: AppColors.textSecondary,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -89,15 +90,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Password Field
                 TextFormField(
                   controller: _passwordController,
@@ -107,7 +109,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -126,9 +130,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Login Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
@@ -140,9 +144,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         )
                       : const Text('Login'),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Forgot Password
                 TextButton(
                   onPressed: () {
@@ -151,9 +155,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   },
                   child: const Text('Forgot Password?'),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Divider
                 Row(
                   children: [
@@ -163,16 +167,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: Text(
                         'OR',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                              color: AppColors.textSecondary,
+                            ),
                       ),
                     ),
                     const Expanded(child: Divider()),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Register Button
                 OutlinedButton(
                   onPressed: () {
@@ -180,9 +184,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   },
                   child: const Text('Create Account'),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Emergency Access
                 TextButton.icon(
                   onPressed: () {
@@ -212,11 +216,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       // Perform actual login
       final authService = ref.read(authServiceProvider);
-      final success = await authService.login(_emailController.text, _passwordController.text);
-      
+      await authService.login(_emailController.text, _passwordController.text);
+
       // For demo purposes, navigate based on email domain
       final email = _emailController.text.toLowerCase();
-      if (email.contains('hospital') || email.contains('doctor') || email.contains('nurse')) {
+      if (email.contains('hospital') ||
+          email.contains('doctor') ||
+          email.contains('nurse')) {
         context.go(RouteNames.hospitalDashboard);
       } else {
         context.go(RouteNames.patientDashboard);

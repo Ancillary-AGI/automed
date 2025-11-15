@@ -40,7 +40,6 @@ class _MedicationTrackerScreenState
   Widget build(BuildContext context) {
     final medicationsAsync = ref.watch(medicationsProvider);
     final todayScheduleAsync = ref.watch(todayMedicationScheduleProvider);
-    final theme = Theme.of(context);
 
     return AppScaffold(
       title: S.of(context).medicationTracker,
@@ -87,7 +86,6 @@ class _MedicationTrackerScreenState
                 padding: const EdgeInsets.all(16),
                 itemCount: schedule.length,
                 itemBuilder: (context, index) {
-                  final medicationSchedule = schedule[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: MedicationScheduleWidget(),
@@ -286,14 +284,6 @@ class _MedicationTrackerScreenState
         backgroundColor: AppColors.primary,
       ),
     );
-  }
-
-  void _markAsTaken(String scheduleId) {
-    ref.read(medicationProvider.notifier).markScheduleAsTaken(scheduleId);
-  }
-
-  void _markAsSkipped(String scheduleId) {
-    ref.read(medicationProvider.notifier).markScheduleAsSkipped(scheduleId);
   }
 
   void _editMedication(dynamic medication) {

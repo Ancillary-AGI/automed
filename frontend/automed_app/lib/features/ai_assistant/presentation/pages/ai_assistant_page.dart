@@ -129,7 +129,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
         color: _getStatusColor(state.status),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -400,22 +400,6 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
 
   void _applySuggestion(AISuggestion suggestion) {
     ref.read(aiAssistantProvider.notifier).applySuggestion(suggestion);
-  }
-
-  void _scheduleAppointment(Map<String, dynamic> data) {
-    // Navigate to appointment scheduling
-  }
-
-  void _orderMedication(Map<String, dynamic> data) {
-    // Navigate to medication ordering
-  }
-
-  void _requestConsultation(Map<String, dynamic> data) {
-    // Navigate to consultation request
-  }
-
-  void _viewResults(Map<String, dynamic> data) {
-    // Navigate to results view
   }
 
   void _showSettingsDialog() {
