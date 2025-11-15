@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/router/route_names.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -151,7 +151,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 TextButton(
                   onPressed: () {
                     // Navigate to forgot password page
-                    Navigator.pushNamed(context, '/forgot-password');
+                    context.go('/forgot-password');
                   },
                   child: const Text('Forgot Password?'),
                 ),

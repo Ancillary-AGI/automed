@@ -1,10 +1,11 @@
+import 'dart:async';
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'dart:async';
-import '../../../../core/di/injection.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 
 class RealTimeVitalsWidget extends ConsumerStatefulWidget {
   final String patientId;
@@ -24,9 +25,7 @@ class RealTimeVitalsWidget extends ConsumerStatefulWidget {
 class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     with TickerProviderStateMixin {
   late AnimationController _heartbeatController;
-  late AnimationController _pulseController;
   late Animation<double> _heartbeatAnimation;
-  late Animation<double> _pulseAnimation;
 
   Timer? _dataUpdateTimer;
   List<VitalSignData> _heartRateData = [];

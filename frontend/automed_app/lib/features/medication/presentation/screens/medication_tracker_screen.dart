@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_card.dart';
-import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../generated/l10n.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/core/widgets/app_card.dart';
+import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/generated/l10n.dart';
 import '../providers/medication_provider.dart';
 import '../widgets/medication_card.dart';
 import '../widgets/medication_schedule_widget.dart';
@@ -20,56 +20,56 @@ class MedicationTrackerScreen extends ConsumerStatefulWidget {
 }
 
 class _MedicationTrackerScreenState
-    extends ConsumerState<MedicationTrackerScreen>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+    extends ConsumerState<MedicationTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final medicationsAsync = ref.watch(medicationsProvider);
     final todayScheduleAsync = ref.watch(todayMedicationScheduleProvider);
 
-    return AppScaffold(
-      title: S.of(context).medicationTracker,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () => _showAddMedicationDialog(context),
-        ),
-        IconButton(
-          icon: const Icon(Icons.sync),
-          onPressed: () => _syncMedications(),
-        ),
-      ],
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Today's Schedule
-          _buildTodayTab(todayScheduleAsync),
-
-          // All Medications
-          _buildAllMedicationsTab(medicationsAsync),
-
-          // History
-          _buildHistoryTab(),
+    return DefaultTabController(
+      length: 3,
+      child: AppScaffold(
+        title: S.of(context).medicationTracker,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showAddMedicationDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.sync),
+            onPressed: () => _syncMedications(),
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddMedicationDialog(context),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        body: Column(
+          children: [
+            TabBar(
+              tabs: [
+                Tab(text: S.of(context).today),
+                Tab(text: S.of(context).allMedications),
+                Tab(text: S.of(context).history),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // Today's Schedule
+                  _buildTodayTab(todayScheduleAsync),
+
+                  // All Medications
+                  _buildAllMedicationsTab(medicationsAsync),
+
+                  // History
+                  _buildHistoryTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _showAddMedicationDialog(context),
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
@@ -310,6 +310,12 @@ class _MedicationTrackerScreenState
                   .read(medicationProvider.notifier)
                   .deleteMedication(medicationId);
               Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Medication deleted successfully'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(S.of(context).delete),

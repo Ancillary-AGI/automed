@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/router/route_names.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -90,10 +90,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         title: const Text('Patient'),
                         value: 'patient',
                         groupValue: _selectedUserType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedUserType = value!;
-                          });
+                        onChanged: (String? value) {
+                          if (value != null) {
+                            setState(() {
+                              _selectedUserType = value;
+                            });
+                          }
                         },
                       ),
                     ),
@@ -102,10 +104,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         title: const Text('Healthcare Provider'),
                         value: 'provider',
                         groupValue: _selectedUserType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedUserType = value!;
-                          });
+                        onChanged: (String? value) {
+                          if (value != null) {
+                            setState(() {
+                              _selectedUserType = value;
+                            });
+                          }
                         },
                       ),
                     ),

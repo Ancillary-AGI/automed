@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/models/ai_models.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/models/ai_models.dart';
 import '../providers/ai_assistant_provider.dart';
 import '../widgets/ai_chat_bubble.dart';
 import '../widgets/voice_input_button.dart';
