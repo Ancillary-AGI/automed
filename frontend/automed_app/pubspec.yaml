@@ -1,7 +1,7 @@
 name: automed_app
 description: Automed - Global Healthcare Delivery Automation Platform
 publish_to: 'none'
-version: 1.0.0+1
+version: 0.1.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -45,6 +45,7 @@ dependencies:
   local_auth: ^2.1.7
   crypto: ^3.0.3
   jwt_decoder: ^2.0.1
+  encrypt: ^5.0.1
 
   # Media & Files
   image_picker: ^1.0.7
@@ -79,7 +80,6 @@ dependencies:
   freezed_annotation: ^2.4.1
 
   # AI & ML
-  tflite_flutter: ^0.10.4
   speech_to_text: ^6.6.0
   flutter_tts: ^3.8.5
 
@@ -100,6 +100,8 @@ dependencies:
 
   # Location & Communication
   geolocator: ^10.1.1
+  google_maps_flutter: ^2.5.3
+  flutter_background_service: ^5.0.5
 
   # Video Calling
   flutter_webrtc: ^0.9.48
@@ -190,3 +192,27 @@ flutter_native_splash:
     image_dark: assets/images/splash_logo_android12_dark.png
     icon_background_color_dark: "#042a49"
   web: false
+
+# Flavors configuration
+flavors:
+  research:
+    app:
+      name: "Automed Research"
+    android:
+      applicationId: "com.automed.research"
+    ios:
+      bundleId: "com.automed.research"
+  user:
+    app:
+      name: "Automed User"
+    android:
+      applicationId: "com.automed.user"
+    ios:
+      bundleId: "com.automed.user"
+  hospital:
+    app:
+      name: "Automed Hospital"
+    android:
+      applicationId: "com.automed.hospital"
+    ios:
+      bundleId: "com.automed.hospital"

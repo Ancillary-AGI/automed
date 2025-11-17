@@ -28,6 +28,14 @@ spring:
   cloud:
     discovery:
       enabled: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/automed_audit
+  redis:
+    host: localhost
+    port: 6379
+    password: automed123
+    timeout: 2000ms
 
 server:
   port: 8081
@@ -45,3 +53,26 @@ logging:
   level:
     com.automed: DEBUG
     org.springframework.security: DEBUG
+
+# HIPAA/GDPR Security Configuration
+app:
+  security:
+    cors:
+      allowed-origins: "https://app.automed.com,https://admin.automed.com"
+    encryption:
+      key: "${ENCRYPTION_KEY:}"  # Should be set via environment variable
+      algorithm: "AES/GCM/NoPadding"
+    audit:
+      enabled: true
+      retention-days: 2555  # 7 years for medical records
+    rate-limiting:
+      enabled: true
+      requests-per-minute: 100
+      requests-per-hour: 1000
+    compliance:
+      hipaa-enabled: true
+      gdpr-enabled: true
+      data-retention-years: 7
+    headers:
+      hsts-max-age: 31536000
+      csp-policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.automed.com"

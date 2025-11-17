@@ -188,6 +188,13 @@ class HospitalService(
         )
     }
 
+    @Transactional(readOnly = true)
+    fun findNearestHospitals(latitude: Double, longitude: Double, limit: Int): List<HospitalResponse> {
+        val pageable = org.springframework.data.domain.PageRequest.of(0, limit)
+        val hospitals = hospitalRepository.findNearestHospitals(latitude, longitude, pageable)
+        return hospitals.content.map { mapToResponse(it) }
+    }
+
     private fun calculateCurrentOccupancy(hospitalId: String): Int {
         // This would typically query patient records to get current occupancy
         // For now, return a mock value

@@ -42,4 +42,16 @@ interface HospitalRepository : JpaRepository<Hospital, UUID> {
 
     @Query("SELECT h FROM Hospital h WHERE h.capacity > h.currentOccupancy")
     fun findHospitalsWithAvailableBeds(pageable: Pageable): Page<Hospital>
+
+    @Query("""
+        SELECT h FROM Hospital h WHERE h.address.latitude IS NOT NULL AND h.address.longitude IS NOT NULL
+        ORDER BY (6371 * acos(cos(radians(:latitude)) * cos(radians(h.address.latitude)) *
+                  cos(radians(h.address.longitude) - radians(:longitude)) +
+                  sin(radians(:latitude)) * sin(radians(h.address.latitude))))
+    """)
+    fun findNearestHospitals(
+        @Param("latitude") latitude: Double,
+        @Param("longitude") longitude: Double,
+        pageable: Pageable
+    ): Page<Hospital>
 }

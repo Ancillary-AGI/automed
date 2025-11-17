@@ -118,4 +118,15 @@ class HospitalController(
         val equipment = hospitalService.getHospitalEquipment(id)
         return ResponseEntity.ok(equipment)
     }
+
+    @GetMapping("/nearest")
+    @Operation(summary = "Find nearest hospitals by location coordinates")
+    fun findNearestHospitals(
+        @RequestParam latitude: Double,
+        @RequestParam longitude: Double,
+        @RequestParam(defaultValue = "10") limit: Int
+    ): ResponseEntity<List<HospitalResponse>> {
+        val hospitals = hospitalService.findNearestHospitals(latitude, longitude, limit)
+        return ResponseEntity.ok(hospitals)
+    }
 }

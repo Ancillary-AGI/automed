@@ -1,5 +1,5 @@
 # Automed - Global Healthcare Delivery Automation Platform
-.PHONY: help dev-up dev-down dev-logs dev-clean build test clean flutter-deps flutter-build flutter-test docker-build docker-push k8s-deploy k8s-delete helm-install helm-upgrade helm-uninstall performance-test security-scan integration-test setup-monitoring
+.PHONY: help dev-up dev-down dev-logs dev-clean build test clean flutter-deps flutter-build flutter-build-research flutter-build-user flutter-build-hospital flutter-test docker-build docker-push k8s-deploy k8s-delete helm-install helm-upgrade helm-uninstall performance-test security-scan integration-test setup-monitoring
 
 # Default target
 help:
@@ -23,6 +23,9 @@ help:
 	@echo "📱 Flutter Commands:"
 	@echo "  flutter-deps        Get Flutter dependencies"
 	@echo "  flutter-build       Build Flutter app"
+	@echo "  flutter-build-research  Build Flutter app for research flavor"
+	@echo "  flutter-build-user  Build Flutter app for user flavor"
+	@echo "  flutter-build-hospital Build Flutter app for hospital flavor"
 	@echo "  flutter-test        Run Flutter tests"
 	@echo "  flutter-analyze     Analyze Flutter code"
 	@echo ""
@@ -125,6 +128,20 @@ flutter-build:
 	cd frontend/automed_app && flutter build apk --release
 	cd frontend/automed_app && flutter build web --release
 	cd frontend/automed_app && flutter build windows --release
+
+flutter-build-research:
+	cd frontend/automed_app && flutter build apk --flavor research --target lib/main_research.dart --release
+	cd frontend/automed_app && flutter build web --flavor research --target lib/main_research.dart --release
+	cd frontend/automed_app && flutter build windows --flavor research --target lib/main_research.dart --release
+
+flutter-build-user:
+	cd frontend/automed_app && flutter build apk --flavor user --target lib/main_user.dart --release
+	cd frontend/automed_app && flutter build web --flavor user --target lib/main_user.dart --release
+
+flutter-build-hospital:
+	cd frontend/automed_app && flutter build apk --flavor hospital --target lib/main_hospital.dart --release
+	cd frontend/automed_app && flutter build web --flavor hospital --target lib/main_hospital.dart --release
+	cd frontend/automed_app && flutter build windows --flavor hospital --target lib/main_hospital.dart --release
 
 flutter-test:
 	cd frontend/automed_app && flutter test
