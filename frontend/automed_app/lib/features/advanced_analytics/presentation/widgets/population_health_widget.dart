@@ -322,8 +322,8 @@ class PopulationHealthWidget extends ConsumerWidget {
             },
           ),
         ),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
       barGroups: diseasePrevalence.asMap().entries.map((entry) {
@@ -439,8 +439,8 @@ class PopulationHealthWidget extends ConsumerWidget {
     ];
 
     return LineChartData(
-      gridData: FlGridData(show: true),
-      titlesData: FlTitlesData(
+      gridData: const FlGridData(show: true),
+      titlesData: const FlTitlesData(
         leftTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: true, reservedSize: 40),
         ),
@@ -465,7 +465,7 @@ class PopulationHealthWidget extends ConsumerWidget {
           isCurved: true,
           color: color,
           barWidth: 3,
-          dotData: FlDotData(show: false),
+          dotData: const FlDotData(show: false),
         );
       }).toList(),
     );

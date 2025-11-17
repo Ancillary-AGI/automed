@@ -6,9 +6,9 @@ class MedicationScheduleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
         child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             child: Text('Medication schedule placeholder')));
   }
 }

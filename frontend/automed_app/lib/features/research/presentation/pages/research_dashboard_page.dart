@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../models/research_models.dart';
-import '../../providers/research_providers.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/features/research/models/research_models.dart';
+import 'package:automed_app/features/research/providers/research_providers.dart';
 
 class ResearchDashboardPage extends ConsumerWidget {
   const ResearchDashboardPage({super.key});
@@ -19,11 +19,11 @@ class ResearchDashboardPage extends ConsumerWidget {
         title: Text(
           'Research Platform',
           style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.onSurface,
+            color: AppColors.appOnSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.appSurface,
         elevation: 0,
         actions: [
           IconButton(
@@ -43,13 +43,13 @@ class ResearchDashboardPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: AppColors.error,
+                color: AppColors.appError,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Failed to load research dashboard',
                 style: AppTextStyles.headlineSmall,
               ),
@@ -57,7 +57,7 @@ class ResearchDashboardPage extends ConsumerWidget {
               Text(
                 error.toString(),
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: AppColors.appOnSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -112,14 +112,14 @@ class ResearchDashboardPage extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.appPrimary, AppColors.withOpacity(AppColors.appPrimary, 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.appPrimary.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -130,7 +130,7 @@ class ResearchDashboardPage extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.science,
                 color: AppColors.onPrimary,
                 size: 32,
@@ -242,28 +242,28 @@ class ResearchDashboardPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: AppColors.appSurfaceVariant,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
-                Icon(
+                const Icon(
                   Icons.folder_open,
                   size: 48,
-                  color: AppColors.onSurfaceVariant,
+                  color: AppColors.appOnSurfaceVariant,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No active projects',
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: AppColors.appOnSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Start your first research project',
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: AppColors.appOnSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -287,7 +287,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppColors.appSurface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.outline),
                   ),
@@ -298,7 +298,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                         children: [
                           Icon(
                             _getProjectIcon(project.type),
-                            color: AppColors.primary,
+                            color: AppColors.appPrimary,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -318,7 +318,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                       Text(
                         project.description,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                          color: AppColors.appOnSurfaceVariant,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -326,10 +326,10 @@ class ResearchDashboardPage extends ConsumerWidget {
                       const Spacer(),
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.access_time,
                             size: 16,
-                            color: AppColors.onSurfaceVariant,
+                            color: AppColors.appOnSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -367,42 +367,42 @@ class ResearchDashboardPage extends ConsumerWidget {
 
   Widget _buildResearchModulesGrid(BuildContext context) {
     final modules = [
-      ResearchModule(
+      const ResearchModule(
         title: 'Molecular Simulation',
         description: 'Drug-target interactions, molecular dynamics',
         icon: Icons.science,
         color: Colors.blue,
         route: '/research/molecular',
       ),
-      ResearchModule(
+      const ResearchModule(
         title: 'Cancer Research',
         description: 'Tumor modeling, drug resistance, immunotherapy',
         icon: Icons.biotech,
         color: Colors.red,
         route: '/research/cancer',
       ),
-      ResearchModule(
+      const ResearchModule(
         title: 'Tissue Engineering',
         description: 'Scaffold design, stem cell differentiation',
         icon: Icons.healing,
         color: Colors.green,
         route: '/research/tissue',
       ),
-      ResearchModule(
+      const ResearchModule(
         title: 'Medical Robotics',
         description: 'Surgical planning, rehabilitation systems',
         icon: Icons.precision_manufacturing,
         color: Colors.orange,
         route: '/research/robotics',
       ),
-      ResearchModule(
+      const ResearchModule(
         title: 'Computational Biology',
         description: 'Genomics, proteomics, systems biology',
         icon: Icons.analytics,
         color: Colors.purple,
         route: '/research/biology',
       ),
-      ResearchModule(
+      const ResearchModule(
         title: 'Drug Development',
         description: 'Virtual screening, ADMET prediction',
         icon: Icons.medication,
@@ -439,7 +439,7 @@ class ResearchDashboardPage extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.appSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.outline),
                 ),
@@ -463,7 +463,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                       child: Text(
                         module.description,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                          color: AppColors.appOnSurfaceVariant,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -504,14 +504,14 @@ class ResearchDashboardPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: AppColors.appSurfaceVariant,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: Text(
                 'No recent results',
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: AppColors.appOnSurfaceVariant,
                 ),
               ),
             ),
@@ -527,7 +527,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.appSurface,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.outline),
                 ),
@@ -535,7 +535,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                   children: [
                     Icon(
                       _getResultIcon(result.type),
-                      color: AppColors.primary,
+                      color: AppColors.appPrimary,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -552,7 +552,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                           Text(
                             result.description,
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.onSurfaceVariant,
+                              color: AppColors.appOnSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -564,7 +564,7 @@ class ResearchDashboardPage extends ConsumerWidget {
                     Text(
                       _formatDate(result.createdAt),
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: AppColors.appOnSurfaceVariant,
                       ),
                     ),
                   ],
@@ -580,7 +580,7 @@ class ResearchDashboardPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.appSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.outline),
       ),
@@ -652,7 +652,7 @@ class ResearchDashboardPage extends ConsumerWidget {
       children: [
         Icon(
           icon,
-          color: AppColors.primary,
+          color: AppColors.appPrimary,
           size: 20,
         ),
         const SizedBox(height: 4),
@@ -665,7 +665,7 @@ class ResearchDashboardPage extends ConsumerWidget {
         Text(
           label,
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: AppColors.appOnSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),

@@ -67,7 +67,7 @@ class _MedicationTrackerScreenState
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _showAddMedicationDialog(context),
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.appPrimary,
           child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
@@ -86,8 +86,8 @@ class _MedicationTrackerScreenState
                 padding: const EdgeInsets.all(16),
                 itemCount: schedule.length,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
                     child: MedicationScheduleWidget(),
                   );
                 },
@@ -281,7 +281,7 @@ class _MedicationTrackerScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(S.of(context).syncingMedications),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
       ),
     );
   }
@@ -313,7 +313,7 @@ class _MedicationTrackerScreenState
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Medication deleted successfully'),
-                  backgroundColor: AppColors.success,
+                  backgroundColor: AppColors.appSuccess,
                 ),
               );
             },

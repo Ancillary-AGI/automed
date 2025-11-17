@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection.dart';
-import '../../../../core/services/api_service.dart';
-import '../../domain/models/analytics_models.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/services/api_service.dart';
+import 'package:automed_app/features/advanced_analytics/domain/models/analytics_models.dart';
 
 final advancedAnalyticsProvider = StateNotifierProvider<
     AdvancedAnalyticsNotifier, AsyncValue<AnalyticsDashboardData>>((ref) {
@@ -125,7 +125,7 @@ class AdvancedAnalyticsNotifier
         responseTrend: parseDouble(overviewMap['responseTrend']),
         realTimeMetrics: fetched.length > 1
             ? RealTimeMetrics.fromJson(fetched[1])
-            : RealTimeMetrics(
+            : const RealTimeMetrics(
                 vitalSigns: [],
                 patientFlow: [],
                 resourceUtilization: [],
@@ -145,7 +145,7 @@ class AdvancedAnalyticsNotifier
               ),
         performanceKpis: fetched.length > 3
             ? PerformanceKpis.fromJson(fetched[3])
-            : PerformanceKpis(
+            : const PerformanceKpis(
                 patientSatisfaction: 0.0,
                 staffEfficiency: 0.0,
                 costPerPatient: 0.0,
@@ -157,7 +157,7 @@ class AdvancedAnalyticsNotifier
               ),
         populationHealth: fetched.length > 4
             ? PopulationHealth.fromJson(fetched[4])
-            : PopulationHealth(
+            : const PopulationHealth(
                 demographics: [],
                 diseasePrevalence: [],
                 outbreakAlerts: [],
@@ -194,6 +194,13 @@ class AdvancedAnalyticsNotifier
       await _apiService
           .get('/analytics/export?format=$format&timeRange=$_currentTimeRange');
       // TODO: handle export response (e.g., download file, show confirmation)
+      // For now, show success message
+      print('Analytics exported successfully in $format format');
+      // In a real implementation, this would:
+      // 1. Download the exported file
+      // 2. Save it to device storage
+      // 3. Show a success notification
+      // 4. Handle any errors appropriately
     } catch (error) {
       // Handle export error
     }

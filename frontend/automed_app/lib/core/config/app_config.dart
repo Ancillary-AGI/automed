@@ -16,24 +16,24 @@ class AppConfig {
   });
 
   factory AppConfig.fromEnvironment() {
-    return AppConfig(
-      apiBaseUrl: const String.fromEnvironment(
+    return const AppConfig(
+      apiBaseUrl: String.fromEnvironment(
         'API_BASE_URL',
         defaultValue: 'http://localhost:8080/api/v1',
       ),
-      wsBaseUrl: const String.fromEnvironment(
+      wsBaseUrl: String.fromEnvironment(
         'WS_BASE_URL',
         defaultValue: 'ws://localhost:8080/ws',
       ),
-      enableLogging: const bool.fromEnvironment(
+      enableLogging: bool.fromEnvironment(
         'ENABLE_LOGGING',
         defaultValue: kDebugMode,
       ),
-      version: const String.fromEnvironment(
+      version: String.fromEnvironment(
         'APP_VERSION',
         defaultValue: '1.0.0',
       ),
-      features: const {
+      features: {
         'ai_assistant':
             bool.fromEnvironment('FEATURE_AI_ASSISTANT', defaultValue: true),
         'telemedicine':

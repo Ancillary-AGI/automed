@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/auth/presentation/pages/register_page.dart';
-import '../../features/consultation/presentation/pages/consultation_page.dart';
-import '../../features/consultation/presentation/pages/consultations_list_page.dart';
-import '../../features/emergency/presentation/pages/emergency_page.dart';
-import '../../features/hospital/presentation/pages/hospital_dashboard_page.dart';
-import '../../features/medication/presentation/pages/medication_page.dart';
-import '../../features/patient/presentation/pages/patient_dashboard_page.dart';
-import '../../features/patient/presentation/pages/patient_profile_page.dart';
-import '../../features/patient/presentation/pages/patients_list_page.dart';
-import '../di/injection.dart';
-import 'route_names.dart';
+import 'package:automed_app/features/ai_assistant/presentation/pages/ai_assistant_page.dart';
+import 'package:automed_app/features/auth/presentation/pages/login_page.dart';
+import 'package:automed_app/features/auth/presentation/pages/register_page.dart';
+import 'package:automed_app/features/consultation/presentation/pages/consultation_page.dart';
+import 'package:automed_app/features/consultation/presentation/pages/consultations_list_page.dart';
+import 'package:automed_app/features/emergency/presentation/pages/emergency_page.dart';
+import 'package:automed_app/features/hospital/presentation/pages/hospital_dashboard_page.dart';
+import 'package:automed_app/features/medication/presentation/pages/medication_page.dart';
+import 'package:automed_app/features/patient/presentation/pages/health_records_page.dart';
+import 'package:automed_app/features/patient/presentation/pages/notifications_page.dart';
+import 'package:automed_app/features/patient/presentation/pages/patient_dashboard_page.dart';
+import 'package:automed_app/features/patient/presentation/pages/patient_profile_page.dart';
+import 'package:automed_app/features/patient/presentation/pages/patients_list_page.dart';
+import 'package:automed_app/features/settings/presentation/pages/settings_page.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/router/route_names.dart';
+
+const bool isUserApp = bool.fromEnvironment('IS_USER_APP', defaultValue: true);
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -31,7 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return RouteNames.login;
       }
 
-      // If logged in and on login/register page, redirect to dashboard
+      // If logged in and on login/register page, redirect to appropriate dashboard
       if (isLoggedIn && isLoggingIn) {
         final userType = await authService.getUserType();
         return userType == 'patient'
@@ -46,56 +52,180 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
-        builder: (context, state) => const SplashPage(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SplashPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Authentication Routes
       GoRoute(
         path: RouteNames.login,
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const LoginPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
       ),
       GoRoute(
         path: RouteNames.register,
         name: 'register',
-        builder: (context, state) => const RegisterPage(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const RegisterPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Patient Routes
       GoRoute(
         path: RouteNames.patientDashboard,
         name: 'patient-dashboard',
-        builder: (context, state) => const PatientDashboardPage(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const PatientDashboardPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
         routes: [
           GoRoute(
             path: 'profile',
             name: 'patient-profile',
-            builder: (context, state) => const PatientProfilePage(),
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const PatientProfilePage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
           ),
           GoRoute(
             path: 'consultations',
             name: 'patient-consultations',
-            builder: (context, state) => const ConsultationsListPage(),
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const ConsultationsListPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
             routes: [
               GoRoute(
                 path: ':id',
                 name: 'consultation-detail',
-                builder: (context, state) {
-                  final consultationId = state.pathParameters['id']!;
-                  return ConsultationPage(consultationId: consultationId);
-                },
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: ConsultationPage(
+                      consultationId: state.pathParameters['id']!),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
+                ),
               ),
             ],
           ),
           GoRoute(
             path: 'medications',
             name: 'patient-medications',
-            builder: (context, state) => const MedicationPage(),
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const MedicationPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
           ),
           GoRoute(
             path: 'emergency',
             name: 'emergency',
-            builder: (context, state) => const EmergencyPage(),
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const EmergencyPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 1.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -133,48 +263,70 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/ai',
         name: 'ai-features',
-        builder: (context, state) => const AIFeaturesPage(),
-        routes: [
-          GoRoute(
-            path: 'diagnosis',
-            name: 'ai-diagnosis',
-            builder: (context, state) => const AIDiagnosisPage(),
-          ),
-          GoRoute(
-            path: 'image-analysis',
-            name: 'ai-image-analysis',
-            builder: (context, state) => const AIImageAnalysisPage(),
-          ),
-          GoRoute(
-            path: 'voice-analysis',
-            name: 'ai-voice-analysis',
-            builder: (context, state) => const AIVoiceAnalysisPage(),
-          ),
-        ],
+        builder: (context, state) => const AIAssistantPage(),
+      ),
+
+      // Notifications Route
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const NotificationsPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Health Records Route
+      GoRoute(
+        path: '/health-records',
+        name: 'health-records',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const HealthRecordsPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Settings Routes
       GoRoute(
         path: '/settings',
         name: 'settings',
-        builder: (context, state) => const SettingsPage(),
-        routes: [
-          GoRoute(
-            path: 'profile',
-            name: 'settings-profile',
-            builder: (context, state) => const ProfileSettingsPage(),
-          ),
-          GoRoute(
-            path: 'notifications',
-            name: 'settings-notifications',
-            builder: (context, state) => const NotificationSettingsPage(),
-          ),
-          GoRoute(
-            path: 'privacy',
-            name: 'settings-privacy',
-            builder: (context, state) => const PrivacySettingsPage(),
-          ),
-        ],
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SettingsPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
       ),
     ],
     errorBuilder: (context, state) => ErrorPage(error: state.error),
@@ -190,118 +342,6 @@ class SplashPage extends StatelessWidget {
     return const Scaffold(
       body: Center(
         child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-class AIFeaturesPage extends StatelessWidget {
-  const AIFeaturesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AI Features')),
-      body: const Center(
-        child: Text('AI Features Page'),
-      ),
-    );
-  }
-}
-
-class AIDiagnosisPage extends StatelessWidget {
-  const AIDiagnosisPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AI Diagnosis')),
-      body: const Center(
-        child: Text('AI Diagnosis Page'),
-      ),
-    );
-  }
-}
-
-class AIImageAnalysisPage extends StatelessWidget {
-  const AIImageAnalysisPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AI Image Analysis')),
-      body: const Center(
-        child: Text('AI Image Analysis Page'),
-      ),
-    );
-  }
-}
-
-class AIVoiceAnalysisPage extends StatelessWidget {
-  const AIVoiceAnalysisPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AI Voice Analysis')),
-      body: const Center(
-        child: Text('AI Voice Analysis Page'),
-      ),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: const Center(
-        child: Text('Settings Page'),
-      ),
-    );
-  }
-}
-
-class ProfileSettingsPage extends StatelessWidget {
-  const ProfileSettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile Settings')),
-      body: const Center(
-        child: Text('Profile Settings Page'),
-      ),
-    );
-  }
-}
-
-class NotificationSettingsPage extends StatelessWidget {
-  const NotificationSettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Notification Settings')),
-      body: const Center(
-        child: Text('Notification Settings Page'),
-      ),
-    );
-  }
-}
-
-class PrivacySettingsPage extends StatelessWidget {
-  const PrivacySettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Privacy Settings')),
-      body: const Center(
-        child: Text('Privacy Settings Page'),
       ),
     );
   }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
 import '../providers/patient_dashboard_provider.dart';
 import '../models/patient_dashboard_model.dart';
 import '../widgets/health_metrics_card.dart';
@@ -40,8 +40,8 @@ class _PatientDashboardScreenState
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/emergency'),
         backgroundColor: AppColors.emergency,
-        child: const Icon(Icons.emergency),
         tooltip: 'Emergency',
+        child: const Icon(Icons.emergency),
       ),
     );
   }
@@ -58,9 +58,9 @@ class _PatientDashboardScreenState
           flexibleSpace: FlexibleSpaceBar(
             title: const Text('Patient Dashboard'),
             background: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryLight],
+                  colors: [AppColors.appPrimary, AppColors.appPrimaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -106,7 +106,7 @@ class _PatientDashboardScreenState
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             padding: const EdgeInsets.all(20.0),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.appSurface,
               borderRadius: BorderRadius.circular(16.0),
               boxShadow: [
                 BoxShadow(
@@ -138,10 +138,10 @@ class _PatientDashboardScreenState
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.health_and_safety,
                   size: 48,
-                  color: AppColors.primary,
+                  color: AppColors.appPrimary,
                 ),
               ],
             ),
@@ -167,8 +167,8 @@ class _PatientDashboardScreenState
         ),
 
         // Upcoming Appointments
-        SliverToBoxAdapter(
-          child: const UpcomingAppointmentsCard(),
+        const SliverToBoxAdapter(
+          child: UpcomingAppointmentsCard(),
         ),
 
         const SliverToBoxAdapter(
@@ -176,8 +176,8 @@ class _PatientDashboardScreenState
         ),
 
         // Medication Reminders
-        SliverToBoxAdapter(
-          child: const MedicationRemindersCard(),
+        const SliverToBoxAdapter(
+          child: MedicationRemindersCard(),
         ),
 
         const SliverToBoxAdapter(
@@ -215,7 +215,7 @@ class _PatientDashboardScreenState
               Expanded(
                 child: HealthMetricsCard(
                   metricName: 'Heart Rate',
-                  value: '${metrics.heartRate.toStringAsFixed(0)}',
+                  value: metrics.heartRate.toStringAsFixed(0),
                   unit: 'bpm',
                   status: _getHeartRateStatus(metrics.heartRate),
                   statusColor: _getHeartRateColor(metrics.heartRate),
@@ -226,7 +226,7 @@ class _PatientDashboardScreenState
               Expanded(
                 child: HealthMetricsCard(
                   metricName: 'Blood Pressure',
-                  value: '${metrics.bloodPressure.toStringAsFixed(0)}',
+                  value: metrics.bloodPressure.toStringAsFixed(0),
                   unit: 'mmHg',
                   status: _getBloodPressureStatus(metrics.bloodPressure),
                   statusColor: _getBloodPressureColor(metrics.bloodPressure),
@@ -241,7 +241,7 @@ class _PatientDashboardScreenState
               Expanded(
                 child: HealthMetricsCard(
                   metricName: 'Temperature',
-                  value: '${metrics.temperature.toStringAsFixed(1)}',
+                  value: metrics.temperature.toStringAsFixed(1),
                   unit: '°C',
                   status: _getTemperatureStatus(metrics.temperature),
                   statusColor: _getTemperatureColor(metrics.temperature),
@@ -253,7 +253,7 @@ class _PatientDashboardScreenState
                 child: HealthMetricsCard(
                   metricName: 'Oxygen Saturation',
                   value:
-                      '${(metrics.oxygenSaturation * 100).toStringAsFixed(0)}',
+                      (metrics.oxygenSaturation * 100).toStringAsFixed(0),
                   unit: '%',
                   status: _getOxygenStatus(metrics.oxygenSaturation),
                   statusColor: _getOxygenColor(metrics.oxygenSaturation),
@@ -272,13 +272,13 @@ class _PatientDashboardScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline,
             size: 64,
-            color: AppColors.error,
+            color: AppColors.appError,
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Unable to load dashboard',
             style: AppTextStyles.headline6,
           ),
@@ -307,8 +307,8 @@ class _PatientDashboardScreenState
   }
 
   Color _getHeartRateColor(double heartRate) {
-    if (heartRate < 60 || heartRate > 100) return AppColors.error;
-    return AppColors.success;
+    if (heartRate < 60 || heartRate > 100) return AppColors.appError;
+    return AppColors.appSuccess;
   }
 
   String _getBloodPressureStatus(double bloodPressure) {
@@ -318,8 +318,8 @@ class _PatientDashboardScreenState
   }
 
   Color _getBloodPressureColor(double bloodPressure) {
-    if (bloodPressure < 90 || bloodPressure > 140) return AppColors.warning;
-    return AppColors.success;
+    if (bloodPressure < 90 || bloodPressure > 140) return AppColors.appWarning;
+    return AppColors.appSuccess;
   }
 
   String _getTemperatureStatus(double temperature) {
@@ -329,8 +329,8 @@ class _PatientDashboardScreenState
   }
 
   Color _getTemperatureColor(double temperature) {
-    if (temperature < 36.1 || temperature > 37.5) return AppColors.error;
-    return AppColors.success;
+    if (temperature < 36.1 || temperature > 37.5) return AppColors.appError;
+    return AppColors.appSuccess;
   }
 
   String _getOxygenStatus(double oxygen) {
@@ -339,7 +339,7 @@ class _PatientDashboardScreenState
   }
 
   Color _getOxygenColor(double oxygen) {
-    if (oxygen < 0.95) return AppColors.error;
-    return AppColors.success;
+    if (oxygen < 0.95) return AppColors.appError;
+    return AppColors.appSuccess;
   }
 }

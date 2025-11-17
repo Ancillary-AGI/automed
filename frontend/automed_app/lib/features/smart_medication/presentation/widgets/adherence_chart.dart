@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
 
 class AdherenceChart extends StatelessWidget {
   final double adherence; // 0.0 - 1.0
@@ -18,15 +18,15 @@ class AdherenceChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Adherence', style: AppTextStyles.subtitle1),
+            const Text('Adherence', style: AppTextStyles.subtitle1),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
                     value: adherence.clamp(0.0, 1.0),
-                    color: AppColors.success,
-                    backgroundColor: AppColors.success.withValues(alpha: 0.12),
+                    color: AppColors.appSuccess,
+                    backgroundColor: AppColors.appSuccess.withValues(alpha: 0.12),
                     minHeight: 10,
                   ),
                 ),

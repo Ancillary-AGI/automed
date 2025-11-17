@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/di/injection.dart';
+import 'package:automed_app/core/di/injection.dart';
 import '../models/patient_dashboard_model.dart';
 
 final patientDashboardProvider =

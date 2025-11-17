@@ -62,7 +62,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   'Join Automed',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: AppColors.appPrimary,
                       ),
                   textAlign: TextAlign.center,
                 ),
@@ -255,20 +255,20 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   title: RichText(
                     text: TextSpan(
                       style: Theme.of(context).textTheme.bodySmall,
-                      children: [
-                        const TextSpan(text: 'I agree to the '),
+                      children: const [
+                        TextSpan(text: 'I agree to the '),
                         TextSpan(
                           text: 'Terms of Service',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.appPrimary,
                             decoration: TextDecoration.underline,
                           ),
                         ),
-                        const TextSpan(text: ' and '),
+                        TextSpan(text: ' and '),
                         TextSpan(
                           text: 'Privacy Policy',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.appPrimary,
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -326,7 +326,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please accept the terms and conditions'),
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.appError,
         ),
       );
       return;
@@ -351,7 +351,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created successfully! Please login.'),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.appSuccess,
         ),
       );
 
@@ -360,7 +360,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Registration failed: ${e.toString()}'),
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.appError,
         ),
       );
     } finally {

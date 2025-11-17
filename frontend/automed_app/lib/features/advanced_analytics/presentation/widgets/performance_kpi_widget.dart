@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../providers/advanced_analytics_provider.dart';
-import '../../domain/models/analytics_models.dart';
+import 'package:automed_app/features/advanced_analytics/presentation/providers/advanced_analytics_provider.dart';
+import 'package:automed_app/features/advanced_analytics/domain/models/analytics_models.dart';
 
 class PerformanceKpiWidget extends ConsumerWidget {
   const PerformanceKpiWidget({super.key});
@@ -236,7 +236,7 @@ class PerformanceKpiWidget extends ConsumerWidget {
     ];
 
     return LineChartData(
-      gridData: FlGridData(show: true),
+      gridData: const FlGridData(show: true),
       titlesData: FlTitlesData(
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
@@ -256,8 +256,8 @@ class PerformanceKpiWidget extends ConsumerWidget {
             },
           ),
         ),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
       lineBarsData: trends.asMap().entries.map((entry) {
@@ -274,7 +274,7 @@ class PerformanceKpiWidget extends ConsumerWidget {
           isCurved: true,
           color: color,
           barWidth: 3,
-          dotData: FlDotData(show: false),
+          dotData: const FlDotData(show: false),
         );
       }).toList(),
     );

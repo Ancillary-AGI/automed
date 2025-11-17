@@ -7,6 +7,7 @@ class WebRtcState {
   final bool isVideoMuted;
   final RTCVideoRenderer? localRenderer;
   final RTCVideoRenderer? remoteRenderer;
+  final String? error;
 
   WebRtcState({
     this.isConnected = false,
@@ -14,6 +15,7 @@ class WebRtcState {
     this.isVideoMuted = false,
     this.localRenderer,
     this.remoteRenderer,
+    this.error,
   });
 
   WebRtcState copyWith({
@@ -22,6 +24,7 @@ class WebRtcState {
     bool? isVideoMuted,
     RTCVideoRenderer? localRenderer,
     RTCVideoRenderer? remoteRenderer,
+    String? error,
   }) {
     return WebRtcState(
       isConnected: isConnected ?? this.isConnected,
@@ -29,6 +32,7 @@ class WebRtcState {
       isVideoMuted: isVideoMuted ?? this.isVideoMuted,
       localRenderer: localRenderer ?? this.localRenderer,
       remoteRenderer: remoteRenderer ?? this.remoteRenderer,
+      error: error ?? this.error,
     );
   }
 }
@@ -41,25 +45,42 @@ class WebRtcNotifier extends StateNotifier<WebRtcState> {
     RTCVideoRenderer localRenderer,
     RTCVideoRenderer remoteRenderer,
   ) async {
-    // TODO: Implement WebRTC connection initialization
-    state = state.copyWith(
-      localRenderer: localRenderer,
-      remoteRenderer: remoteRenderer,
-    );
+    try {
+      // TODO: Implement actual WebRTC connection initialization
+      // This would involve:
+      // 1. Creating RTCPeerConnection
+      // 2. Setting up ICE servers
+      // 3. Adding local media streams
+      // 4. Creating offer/answer
+      // 5. Signaling through backend
+
+      state = state.copyWith(
+        localRenderer: localRenderer,
+        remoteRenderer: remoteRenderer,
+        isConnected: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+      );
+    }
   }
 
   void toggleAudio(bool muted) {
-    // TODO: Implement audio toggle
+    // TODO: Implement actual audio toggle with WebRTC media stream
+    // This would involve enabling/disabling audio tracks
     state = state.copyWith(isAudioMuted: muted);
   }
 
   void toggleVideo(bool muted) {
-    // TODO: Implement video toggle
+    // TODO: Implement actual video toggle with WebRTC media stream
+    // This would involve enabling/disabling video tracks
     state = state.copyWith(isVideoMuted: muted);
   }
 
   void endCall() {
-    // TODO: Implement call ending
+    // TODO: Implement proper call ending with WebRTC cleanup
+    // This would involve closing peer connections, stopping media streams
     state = state.copyWith(isConnected: false);
   }
 }

@@ -493,7 +493,7 @@ class MedicationInfoCard extends AppCard {
             width: 12.0,
             height: 12.0,
             decoration: BoxDecoration(
-              color: isTaken ? AppColors.success : statusColor,
+              color: isTaken ? AppColors.appSuccess : statusColor,
               shape: BoxShape.circle,
             ),
           ),
@@ -508,7 +508,7 @@ class MedicationInfoCard extends AppCard {
                 Text(
                   isTaken ? 'Taken' : 'Pending',
                   style: AppTextStyles.body2.copyWith(
-                    color: isTaken ? AppColors.success : statusColor,
+                    color: isTaken ? AppColors.appSuccess : statusColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -529,7 +529,7 @@ class MedicationInfoCard extends AppCard {
           if (onTap != null)
             Icon(
               isTaken ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isTaken ? AppColors.success : statusColor,
+              color: isTaken ? AppColors.appSuccess : statusColor,
             ),
         ],
       ),

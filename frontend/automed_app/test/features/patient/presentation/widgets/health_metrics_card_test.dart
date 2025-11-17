@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:automed_app/features/patient/presentation/models/patient_dashboard_model.dart';
 import 'package:automed_app/features/patient/presentation/widgets/health_metrics_card.dart';
 
 void main() {
@@ -9,7 +8,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
               body: HealthMetricsCard(
             icon: Icons.bloodtype,
@@ -38,7 +37,7 @@ void main() {
 
     testWidgets('displays icon correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
               body: HealthMetricsCard(
             icon: Icons.thermostat,
@@ -61,7 +60,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
               body: HealthMetricsCard(
             icon: Icons.air,
@@ -85,7 +84,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
               body: HealthMetricsCard(
             icon: Icons.favorite,

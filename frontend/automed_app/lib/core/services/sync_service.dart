@@ -1,5 +1,5 @@
-import '../../core/config/app_config.dart';
-import 'api_service.dart';
+import 'package:automed_app/core/config/app_config.dart';
+import 'package:automed_app/core/services/api_service.dart';
 import 'connectivity_service.dart';
 import 'offline_data_service.dart';
 

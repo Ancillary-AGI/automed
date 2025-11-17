@@ -88,7 +88,7 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Medical Assistant'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -291,12 +291,12 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
                   Icons.send,
                   color: state.isProcessing
                       ? AppColors.grey400
-                      : AppColors.primary,
+                      : AppColors.appPrimary,
                 ),
                 style: IconButton.styleFrom(
                   backgroundColor: state.isProcessing
                       ? AppColors.grey200
-                      : AppColors.primary.withValues(alpha: 0.1),
+                      : AppColors.appPrimary.withValues(alpha: 0.1),
                   shape: const CircleBorder(),
                 ),
               ),
@@ -311,11 +311,11 @@ class _AIAssistantPageState extends ConsumerState<AIAssistantPage>
   Color _getStatusColor(AIStatus status) {
     switch (status) {
       case AIStatus.ready:
-        return AppColors.success;
+        return AppColors.appSuccess;
       case AIStatus.processing:
-        return AppColors.primary;
+        return AppColors.appPrimary;
       case AIStatus.error:
-        return AppColors.error;
+        return AppColors.appError;
       case AIStatus.offline:
         return AppColors.grey600;
     }
@@ -436,16 +436,16 @@ class AISuggestionCard extends StatelessWidget {
         width: 200,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
+          color: AppColors.appPrimary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.appPrimary.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               suggestion.icon,
-              color: AppColors.primary,
+              color: AppColors.appPrimary,
               size: 20,
             ),
             const SizedBox(height: 4),
@@ -461,7 +461,7 @@ class AISuggestionCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               suggestion.description,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 10,
                 color: AppColors.textSecondary,
               ),

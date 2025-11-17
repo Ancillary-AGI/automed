@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_card.dart';
-import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../generated/l10n.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/core/widgets/app_card.dart';
+import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/generated/l10n.dart';
 import '../providers/hospital_dashboard_provider.dart';
 import '../widgets/bed_occupancy_card.dart';
 import '../widgets/staff_status_card.dart';
@@ -35,7 +35,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
               expandedHeight: 140,
               floating: true,
               pinned: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.appPrimary,
               flexibleSpace: FlexibleSpaceBar(
                 title: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -65,8 +65,8 @@ class HospitalDashboardScreen extends ConsumerWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primary,
-                        AppColors.primaryDark,
+                        AppColors.appPrimary,
+                        AppColors.appPrimaryDark,
                       ],
                     ),
                   ),
@@ -121,7 +121,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
                 delegate: SliverChildListDelegate([
                   // Emergency Alerts
                   dashboardState.when(
-                    data: (data) => EmergencyAlertsCard(
+                    data: (data) => const EmergencyAlertsCard(
                       activeAlerts: 0, // TODO: Fix data structure
                     ),
                     loading: () => const _LoadingCard(),
@@ -139,7 +139,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: dashboardState.when(
-                          data: (data) => BedOccupancyCard(
+                          data: (data) => const BedOccupancyCard(
                             occupied: 75,
                             total: 100, // TODO: Fix data structure
                           ),
@@ -151,7 +151,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: dashboardState.when(
-                          data: (data) => StaffStatusCard(
+                          data: (data) => const StaffStatusCard(
                             onDuty: 45, total: 50, // TODO: Fix data structure
                           ),
                           loading: () => const _LoadingCard(),
@@ -165,7 +165,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
 
                   // Equipment Status
                   dashboardState.when(
-                    data: (data) => EquipmentStatusCard(
+                    data: (data) => const EquipmentStatusCard(
                       operational: 85, total: 100, // TODO: Fix data structure
                     ),
                     loading: () => const _LoadingCard(),
@@ -176,7 +176,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
 
                   // Patient Flow Chart
                   dashboardState.when(
-                    data: (data) => PatientFlowChart(),
+                    data: (data) => const PatientFlowChart(),
                     loading: () => const _LoadingCard(),
                     error: (error, stack) =>
                         _ErrorCard(error: error.toString()),
@@ -195,12 +195,12 @@ class HospitalDashboardScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.secondary.withOpacity(0.1),
+                                  color: AppColors.appSecondary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
                                   Icons.psychology_outlined,
-                                  color: AppColors.secondary,
+                                  color: AppColors.appSecondary,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -271,10 +271,10 @@ class _LoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Container(
+    return const AppCard(
+      child: SizedBox(
         height: 120,
-        child: const Center(
+        child: Center(
           child: CircularProgressIndicator(),
         ),
       ),
@@ -290,7 +290,7 @@ class _ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      child: Container(
+      child: SizedBox(
         height: 120,
         child: Center(
           child: Column(

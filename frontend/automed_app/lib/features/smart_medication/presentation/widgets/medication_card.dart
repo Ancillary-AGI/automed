@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/models/medication_models.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/core/models/medication_models.dart';
 
 class MedicationCard extends StatelessWidget {
   final Medication medication;
@@ -26,10 +26,10 @@ class MedicationCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: AppColors.appPrimary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.medication, color: AppColors.primary),
+                child: const Icon(Icons.medication, color: AppColors.appPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -48,12 +48,12 @@ class MedicationCard extends StatelessWidget {
                 Chip(
                     label: Text('Active',
                         style: AppTextStyles.caption
-                            .copyWith(color: AppColors.success)))
+                            .copyWith(color: AppColors.appSuccess)))
               else
                 Chip(
                     label: Text('Expired',
                         style: AppTextStyles.caption
-                            .copyWith(color: AppColors.error))),
+                            .copyWith(color: AppColors.appError))),
             ],
           ),
         ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection.dart';
+import 'package:automed_app/core/di/injection.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 
 class PatientMonitoringPage extends ConsumerStatefulWidget {
   final String patientId;
@@ -67,7 +67,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Patient Monitoring'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -91,7 +91,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
                             const Icon(Icons.error,
                                 color: Colors.red, size: 48),
                             const SizedBox(height: 8),
-                            Text('Failed to load vitals'),
+                            const Text('Failed to load vitals'),
                             const SizedBox(height: 8),
                             Text(_errorMessage ?? ''),
                           ],
@@ -195,7 +195,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
             ),
             Text(
               unit,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
@@ -233,7 +233,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
             SizedBox(
               height: 200,
               child: _heartRateSpots.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text(
                         'No real-time heart rate data available',
                         style: TextStyle(color: AppColors.textSecondary),
@@ -241,8 +241,8 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
                     )
                   : LineChart(
                       LineChartData(
-                        gridData: FlGridData(show: true),
-                        titlesData: FlTitlesData(show: true),
+                        gridData: const FlGridData(show: true),
+                        titlesData: const FlTitlesData(show: true),
                         borderData: FlBorderData(show: true),
                         lineBarsData: [
                           LineChartBarData(
@@ -250,7 +250,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
                             isCurved: true,
                             color: AppColors.vitalSigns,
                             barWidth: 2,
-                            dotData: FlDotData(show: false),
+                            dotData: const FlDotData(show: false),
                           ),
                         ],
                       ),
@@ -280,15 +280,15 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.appSuccess.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                border: Border.all(color: AppColors.appSuccess.withOpacity(0.3)),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  Icon(Icons.check_circle, color: AppColors.success),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  Icon(Icons.check_circle, color: AppColors.appSuccess),
+                  SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       'All vital signs are within normal ranges',
                       style: TextStyle(fontWeight: FontWeight.w500),
@@ -372,7 +372,7 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
               // Trigger emergency alert
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: AppColors.appError,
             ),
             child: const Text('Confirm'),
           ),

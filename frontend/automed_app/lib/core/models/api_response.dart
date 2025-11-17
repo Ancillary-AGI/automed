@@ -213,7 +213,7 @@ class ResourceState<T> {
     required R Function() idle,
   }) {
     if (isLoading) return loading();
-    if (isSuccess && data != null) return success(data!);
+    if (isSuccess && data != null) return success(data as T);
     if (isError && this.error != null) return error(this.error!);
     return idle();
   }
@@ -226,7 +226,7 @@ class ResourceState<T> {
     required R Function() orElse,
   }) {
     if (isLoading && loading != null) return loading();
-    if (isSuccess && data != null && success != null) return success(data!);
+    if (isSuccess && data != null && success != null) return success(data as T);
     if (isError && this.error != null && error != null) return error(this.error!);
     if (isEmpty && idle != null) return idle();
     return orElse();

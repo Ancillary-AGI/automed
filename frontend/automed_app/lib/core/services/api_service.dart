@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../core/config/app_config.dart';
-import '../models/api_response.dart';
+import 'package:automed_app/core/config/app_config.dart';
+import 'package:automed_app/core/models/api_response.dart';
 
 class ApiService {
   final Dio dio;

@@ -28,7 +28,7 @@ void main() async {
   await _initializePlatformConfigurations();
 
   runApp(
-    ProviderScope(
+    const ProviderScope(
       child: AutomedApp(),
     ),
   );
@@ -66,6 +66,8 @@ Future<void> _initializePlatformConfigurations() async {
 }
 
 class AutomedApp extends ConsumerWidget {
+  const AutomedApp({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);

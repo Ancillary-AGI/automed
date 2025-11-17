@@ -565,7 +565,7 @@ class InternationalizationService {
   // Advanced features for healthcare
   String formatPrescription(
       String medication, num dosage, String frequency, int duration) {
-    final prescriptionKey = 'prescription';
+    const prescriptionKey = 'prescription';
     return formatMessage(prescriptionKey, {
       'medication': translateMedicalTerm(medication),
       'dosage': formatNumber(dosage),
@@ -576,7 +576,7 @@ class InternationalizationService {
 
   String formatDiagnosis(
       String condition, String severity, List<String> symptoms) {
-    final diagnosisKey = 'diagnosis';
+    const diagnosisKey = 'diagnosis';
     return formatMessage(diagnosisKey, {
       'condition': translateMedicalTerm(condition),
       'severity': translate(severity),
@@ -586,7 +586,7 @@ class InternationalizationService {
 
   String formatTreatmentPlan(
       List<String> treatments, int duration, List<String> precautions) {
-    final treatmentKey = 'treatment_plan';
+    const treatmentKey = 'treatment_plan';
     return formatMessage(treatmentKey, {
       'treatments': treatments.map((t) => translate(t)).join(', '),
       'duration': formatNumber(duration),

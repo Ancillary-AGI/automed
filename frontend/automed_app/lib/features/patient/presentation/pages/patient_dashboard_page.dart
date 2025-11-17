@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 
 class PatientDashboardPage extends ConsumerWidget {
   const PatientDashboardPage({super.key});
@@ -15,13 +16,13 @@ class PatientDashboardPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
+              context.go('/notifications');
             },
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.pushNamed(context, '/settings');
+              context.go('/settings');
             },
           ),
         ],
@@ -69,23 +70,23 @@ class _WelcomeCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            Row(
+            const Row(
               children: [
                 _HealthStatusChip(
                   label: 'Good',
-                  color: AppColors.success,
+                  color: AppColors.appSuccess,
                   isSelected: true,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _HealthStatusChip(
                   label: 'Fair',
-                  color: AppColors.warning,
+                  color: AppColors.appWarning,
                   isSelected: false,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _HealthStatusChip(
                   label: 'Poor',
-                  color: AppColors.error,
+                  color: AppColors.appError,
                   isSelected: false,
                 ),
               ],
@@ -164,13 +165,13 @@ class _QuickActionsGrid extends StatelessWidget {
               icon: Icons.video_call,
               title: 'Start Consultation',
               subtitle: 'Connect with a doctor',
-              color: AppColors.primary,
+              color: AppColors.appPrimary,
             ),
             _QuickActionCard(
               icon: Icons.medication,
               title: 'Medications',
               subtitle: 'View & track meds',
-              color: AppColors.secondary,
+              color: AppColors.appSecondary,
             ),
             _QuickActionCard(
               icon: Icons.emergency,
@@ -182,7 +183,7 @@ class _QuickActionsGrid extends StatelessWidget {
               icon: Icons.health_and_safety,
               title: 'Health Records',
               subtitle: 'View medical history',
-              color: AppColors.info,
+              color: AppColors.appInfo,
             ),
           ],
         ),
@@ -210,23 +211,17 @@ class _QuickActionCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           switch (title) {
-            case 'Book Appointment':
-              Navigator.pushNamed(context, '/book-appointment');
-              break;
-            case 'View Records':
-              Navigator.pushNamed(context, '/medical-records');
+            case 'Start Consultation':
+              context.go('/patient-dashboard/consultations');
               break;
             case 'Medications':
-              Navigator.pushNamed(context, '/medications');
-              break;
-            case 'Lab Results':
-              Navigator.pushNamed(context, '/lab-results');
+              context.go('/patient-dashboard/medications');
               break;
             case 'Emergency':
-              Navigator.pushNamed(context, '/emergency');
+              context.go('/emergency');
               break;
-            case 'Telemedicine':
-              Navigator.pushNamed(context, '/telemedicine');
+            case 'Health Records':
+              context.go('/health-records');
               break;
           }
         },
@@ -279,7 +274,7 @@ class _UpcomingAppointments extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/appointments');
+                context.go('/patient-dashboard/consultations');
               },
               child: const Text('View All'),
             ),
@@ -289,14 +284,14 @@ class _UpcomingAppointments extends StatelessWidget {
         Card(
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              child: const Icon(Icons.person, color: AppColors.primary),
+              backgroundColor: AppColors.appPrimary.withValues(alpha: 0.1),
+              child: const Icon(Icons.person, color: AppColors.appPrimary),
             ),
             title: const Text('Dr. Sarah Johnson'),
             subtitle: const Text('General Consultation • Tomorrow 2:00 PM'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.pushNamed(context, '/appointment-details');
+              context.go('/patient-dashboard/consultations');
             },
           ),
         ),
@@ -318,22 +313,22 @@ class _RecentActivity extends StatelessWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
-        Card(
+        const Card(
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.medication, color: AppColors.success),
-                title: const Text('Medication taken'),
-                subtitle: const Text('Aspirin 100mg • 2 hours ago'),
+                leading: Icon(Icons.medication, color: AppColors.appSuccess),
+                title: Text('Medication taken'),
+                subtitle: Text('Aspirin 100mg • 2 hours ago'),
                 trailing:
-                    const Icon(Icons.check_circle, color: AppColors.success),
+                    Icon(Icons.check_circle, color: AppColors.appSuccess),
               ),
-              const Divider(height: 1),
+              Divider(height: 1),
               ListTile(
-                leading: const Icon(Icons.favorite, color: AppColors.heartRate),
-                title: const Text('Vitals recorded'),
-                subtitle: const Text('Heart rate: 72 bpm • 4 hours ago'),
-                trailing: const Icon(Icons.chevron_right),
+                leading: Icon(Icons.favorite, color: AppColors.heartRate),
+                title: Text('Vitals recorded'),
+                subtitle: Text('Heart rate: 72 bpm • 4 hours ago'),
+                trailing: Icon(Icons.chevron_right),
               ),
             ],
           ),
@@ -375,13 +370,13 @@ class _PatientBottomNavBar extends StatelessWidget {
             // Already on dashboard
             break;
           case 1:
-            Navigator.pushNamed(context, '/appointments');
+            context.go('/patient-dashboard/consultations');
             break;
           case 2:
-            Navigator.pushNamed(context, '/medications');
+            context.go('/patient-dashboard/medications');
             break;
           case 3:
-            Navigator.pushNamed(context, '/profile');
+            context.go('/patient-dashboard/profile');
             break;
         }
       },

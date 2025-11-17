@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
 
 class EmergencyButton extends ConsumerWidget {
   const EmergencyButton({super.key});
@@ -17,13 +17,13 @@ class EmergencyButton extends ConsumerWidget {
       child: ElevatedButton(
         onPressed: () => _handleEmergencyPress(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.appError,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 4,
-          shadowColor: AppColors.error.withValues(alpha: 0.3),
+          shadowColor: AppColors.appError.withValues(alpha: 0.3),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +68,7 @@ class EmergencyButton extends ConsumerWidget {
               _sendEmergencyAlert(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: AppColors.appError,
               foregroundColor: Colors.white,
             ),
             child: const Text('Send Alert'),
@@ -86,7 +86,7 @@ class EmergencyButton extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Emergency alert sent! Help is on the way.'),
-        backgroundColor: AppColors.error,
+        backgroundColor: AppColors.appError,
         duration: Duration(seconds: 5),
       ),
     );

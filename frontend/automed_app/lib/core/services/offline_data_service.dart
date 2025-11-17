@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import '../../core/config/app_config.dart';
-import 'api_service.dart';
+import 'package:automed_app/core/config/app_config.dart';
+import 'package:automed_app/core/services/api_service.dart';
 import 'cache_service.dart';
 import 'storage_service.dart';
 

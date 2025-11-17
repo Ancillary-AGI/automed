@@ -47,7 +47,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: AppColors.appPrimary,
                         borderRadius: BorderRadius.circular(60),
                       ),
                       child: const Icon(
@@ -62,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       style:
                           Theme.of(context).textTheme.headlineLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
+                                color: AppColors.appPrimary,
                               ),
                     ),
                     const SizedBox(height: 8),
@@ -231,7 +231,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Login failed: ${e.toString()}'),
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.appError,
         ),
       );
     } finally {

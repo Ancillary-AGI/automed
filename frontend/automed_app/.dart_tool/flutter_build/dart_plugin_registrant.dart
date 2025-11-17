@@ -7,7 +7,9 @@
 
 import 'dart:io'; // flutter_ignore: dart_io_import.
 import 'package:camera_android/camera_android.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:geolocator_android/geolocator_android.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:path_provider_android/path_provider_android.dart';
@@ -15,7 +17,9 @@ import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:sqflite_android/sqflite_android.dart';
 import 'package:url_launcher_android/url_launcher_android.dart';
 import 'package:camera_avfoundation/camera_avfoundation.dart';
+import 'package:flutter_background_service_ios/flutter_background_service_ios.dart';
 import 'package:geolocator_apple/geolocator_apple.dart';
+import 'package:google_maps_flutter_ios/google_maps_flutter_ios.dart';
 import 'package:image_picker_ios/image_picker_ios.dart';
 import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:path_provider_foundation/path_provider_foundation.dart';
@@ -69,10 +73,28 @@ class _PluginRegistrant {
       }
 
       try {
+        FlutterBackgroundServiceAndroid.registerWith();
+      } catch (err) {
+        print(
+          '`flutter_background_service_android` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
         GeolocatorAndroid.registerWith();
       } catch (err) {
         print(
           '`geolocator_android` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
+        GoogleMapsFlutterAndroid.registerWith();
+      } catch (err) {
+        print(
+          '`google_maps_flutter_android` threw an error: $err. '
           'The app may not function as expected until you remove this plugin from pubspec.yaml'
         );
       }
@@ -142,10 +164,28 @@ class _PluginRegistrant {
       }
 
       try {
+        FlutterBackgroundServiceIOS.registerWith();
+      } catch (err) {
+        print(
+          '`flutter_background_service_ios` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
         GeolocatorApple.registerWith();
       } catch (err) {
         print(
           '`geolocator_apple` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
+        GoogleMapsFlutterIOS.registerWith();
+      } catch (err) {
+        print(
+          '`google_maps_flutter_ios` threw an error: $err. '
           'The app may not function as expected until you remove this plugin from pubspec.yaml'
         );
       }

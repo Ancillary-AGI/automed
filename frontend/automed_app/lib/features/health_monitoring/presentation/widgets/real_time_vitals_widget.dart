@@ -29,9 +29,9 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
 
   Timer? _dataUpdateTimer;
   List<VitalSignData> _heartRateData = [];
-  List<VitalSignData> _bloodPressureData = [];
-  List<VitalSignData> _oxygenSatData = [];
-  List<VitalSignData> _temperatureData = [];
+  final List<VitalSignData> _bloodPressureData = [];
+  final List<VitalSignData> _oxygenSatData = [];
+  final List<VitalSignData> _temperatureData = [];
 
   VitalSigns _currentVitals = VitalSigns.normal();
   List<VitalAlert> _activeAlerts = [];
@@ -125,12 +125,14 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
         }
 
         final oxy = (vitals['oxygenSaturation'] as num?)?.toDouble();
-        if (oxy != null)
+        if (oxy != null) {
           _oxygenSatData.add(VitalSignData(timestamp: now, value: oxy));
+        }
 
         final temp = (vitals['temperature'] as num?)?.toDouble();
-        if (temp != null)
+        if (temp != null) {
           _temperatureData.add(VitalSignData(timestamp: now, value: temp));
+        }
 
         // Keep only last 60 data points
         if (_heartRateData.length > 60) _heartRateData.removeAt(0);
@@ -195,7 +197,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Real-Time Vitals'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -241,7 +243,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.error,
+                      color: AppColors.appError,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -267,18 +269,18 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
+        color: AppColors.appError.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.appError.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              Icon(Icons.warning, color: AppColors.error),
-              const SizedBox(width: 8),
-              const Text(
+              Icon(Icons.warning, color: AppColors.appError),
+              SizedBox(width: 8),
+              Text(
                 'Active Alerts',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -426,7 +428,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
             ),
             Text(
               unit,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
@@ -475,7 +477,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
           ),
           Text(
             unit,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 8,
               color: AppColors.textSecondary,
             ),
@@ -519,8 +521,8 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
               height: 150,
               child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(show: true),
-                  titlesData: FlTitlesData(
+                  gridData: const FlGridData(show: true),
+                  titlesData: const FlTitlesData(
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -546,7 +548,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
                       isCurved: true,
                       color: color,
                       barWidth: 2,
-                      dotData: FlDotData(show: false),
+                      dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
                         color: color.withOpacity(0.1),
@@ -578,11 +580,11 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
   Color _getAlertColor(AlertSeverity severity) {
     switch (severity) {
       case AlertSeverity.critical:
-        return AppColors.error;
+        return AppColors.appError;
       case AlertSeverity.warning:
-        return AppColors.warning;
+        return AppColors.appWarning;
       case AlertSeverity.info:
-        return AppColors.info;
+        return AppColors.appInfo;
     }
   }
 
@@ -603,7 +605,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
               // Trigger emergency protocol
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: AppColors.appError,
             ),
             child: const Text('Confirm'),
           ),

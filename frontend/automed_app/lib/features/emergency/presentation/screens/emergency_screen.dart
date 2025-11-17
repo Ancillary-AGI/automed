@@ -5,11 +5,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:automed_app/core/theme/app_text_styles.dart';
 import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/core/services/background_location_service.dart';
 import 'package:automed_app/generated/l10n.dart';
-import '../providers/emergency_provider.dart';
-import '../widgets/emergency_button.dart';
-import '../widgets/emergency_contacts_list.dart';
-import '../widgets/location_widget.dart';
+import 'package:automed_app/features/emergency/presentation/providers/emergency_provider.dart';
+import 'package:automed_app/features/emergency/presentation/widgets/emergency_button.dart';
+import 'package:automed_app/features/emergency/presentation/widgets/emergency_contacts_list.dart';
+import 'package:automed_app/features/emergency/presentation/widgets/location_widget.dart';
 
 class EmergencyScreen extends ConsumerStatefulWidget {
   const EmergencyScreen({super.key});
@@ -107,7 +108,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                       builder: (context, child) {
                         return Transform.scale(
                           scale: _pulseAnimation.value,
-                          child: Icon(
+                          child: const Icon(
                             Icons.warning,
                             color: Colors.red,
                             size: 48,
@@ -162,7 +163,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
               child: Column(
@@ -207,7 +208,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
             const SizedBox(height: 24),
 
             // Emergency Contacts
-            EmergencyContactsList(
+            const EmergencyContactsList(
               contacts: ['Emergency: 911', 'Police: 911', 'Fire: 911'],
             ),
 
@@ -247,7 +248,8 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
           Icon(
             icon,
             size: 16,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -277,7 +279,8 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: Column(
@@ -300,7 +303,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     );
   }
 
-  void _triggerEmergency() {
+  void _triggerEmergency() async {
     setState(() {
       _isEmergencyActive = true;
     });
@@ -308,6 +311,9 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     ref.read(emergencyProvider.notifier).triggerEmergency(
           location: _currentPosition,
         );
+
+    // Start background location tracking
+    await BackgroundLocationService.startEmergencyTracking();
 
     // Show confirmation dialog
     showDialog(
@@ -326,7 +332,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     );
   }
 
-  void _cancelEmergency() {
+  void _cancelEmergency() async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -338,11 +344,12 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
             child: Text(S.of(context).no),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 _isEmergencyActive = false;
               });
               ref.read(emergencyProvider.notifier).cancelEmergency();
+              await BackgroundLocationService.stopEmergencyTracking();
               Navigator.of(context).pop();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -353,11 +360,48 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     );
   }
 
-  void _findNearestHospital() {
-    // Implement find nearest hospital functionality
+  void _findNearestHospital() async {
+    if (_currentPosition == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location not available')),
+      );
+      return;
+    }
+
+    // TODO: Navigate to map screen with nearest hospitals
+    // For now, show a placeholder
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Nearest Hospital'),
+        content: Text(
+          'Finding nearest hospital at your location: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showMedicalInfo() {
-    // Show medical information dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Medical Information'),
+        content: const Text(
+          'Please provide details about your medical condition, allergies, and current medications.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }

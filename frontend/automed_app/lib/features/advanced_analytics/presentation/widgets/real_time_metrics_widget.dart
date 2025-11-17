@@ -131,8 +131,8 @@ class RealTimeMetricsWidget extends ConsumerWidget {
 
   LineChartData _buildVitalSignsChart(List<dynamic> vitalSigns) {
     return LineChartData(
-      gridData: FlGridData(show: true),
-      titlesData: FlTitlesData(
+      gridData: const FlGridData(show: true),
+      titlesData: const FlTitlesData(
         leftTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: true, reservedSize: 40),
         ),
@@ -151,7 +151,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
           isCurved: true,
           color: Colors.blue,
           barWidth: 3,
-          dotData: FlDotData(show: false),
+          dotData: const FlDotData(show: false),
         ),
       ],
     );
@@ -168,7 +168,7 @@ class RealTimeMetricsWidget extends ConsumerWidget {
               1.2
           : 100,
       barTouchData: BarTouchData(enabled: true),
-      titlesData: FlTitlesData(
+      titlesData: const FlTitlesData(
         leftTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: true, reservedSize: 40),
         ),

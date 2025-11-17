@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/di/injection.dart';
-import '../../../../core/services/api_service.dart';
-import '../../../../core/models/ai_models.dart';
-import '../../../../core/models/api_response.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/services/api_service.dart';
+import 'package:automed_app/core/models/ai_models.dart';
+import 'package:automed_app/core/models/api_response.dart';
 import '../pages/ai_assistant_page.dart';
 
 // AI Assistant State Notifier

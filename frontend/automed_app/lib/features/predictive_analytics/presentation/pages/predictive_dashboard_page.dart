@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
 import '../providers/predictive_analytics_provider.dart';
 import '../widgets/prediction_chart.dart';
 import '../widgets/early_warning_panel.dart';
@@ -12,10 +12,12 @@ class PredictiveDashboardPage extends ConsumerStatefulWidget {
   const PredictiveDashboardPage({super.key});
 
   @override
-  ConsumerState<PredictiveDashboardPage> createState() => _PredictiveDashboardPageState();
+  ConsumerState<PredictiveDashboardPage> createState() =>
+      _PredictiveDashboardPageState();
 }
 
-class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPage>
+class _PredictiveDashboardPageState
+    extends ConsumerState<PredictiveDashboardPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   String _selectedTimeRange = '7d';
@@ -39,11 +41,11 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
   @override
   Widget build(BuildContext context) {
     final analyticsState = ref.watch(predictiveAnalyticsProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Predictive Analytics'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
         foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
@@ -62,7 +64,8 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
           _buildPatientSelector(),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(predictiveAnalyticsProvider.notifier).refreshData(),
+            onPressed: () =>
+                ref.read(predictiveAnalyticsProvider.notifier).refreshData(),
           ),
         ],
       ),
@@ -72,12 +75,14 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error, size: 64, color: AppColors.error),
+              const Icon(Icons.error, size: 64, color: AppColors.appError),
               const SizedBox(height: 16),
               Text('Error: $error'),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.read(predictiveAnalyticsProvider.notifier).loadPredictiveData(),
+                onPressed: () => ref
+                    .read(predictiveAnalyticsProvider.notifier)
+                    .loadPredictiveData(),
                 child: const Text('Retry'),
               ),
             ],
@@ -131,7 +136,9 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         setState(() {
           _selectedPatientId = value;
         });
-        ref.read(predictiveAnalyticsProvider.notifier).updatePatientFilter(value);
+        ref
+            .read(predictiveAnalyticsProvider.notifier)
+            .updatePatientFilter(value);
       },
       itemBuilder: (context) => [
         const PopupMenuItem(value: 'all', child: Text('All Patients')),
@@ -153,19 +160,19 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         children: [
           // Key Metrics Cards
           _buildKeyMetricsSection(data.keyMetrics),
-          
+
           const SizedBox(height: 24),
-          
+
           // Early Warning System
           _buildEarlyWarningSection(data.earlyWarnings),
-          
+
           const SizedBox(height: 24),
-          
+
           // Population Health Overview
           _buildPopulationHealthSection(data.populationHealth),
-          
+
           const SizedBox(height: 24),
-          
+
           // Recent Predictions
           _buildRecentPredictionsSection(data.recentPredictions),
         ],
@@ -197,28 +204,28 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
               'High Risk Patients',
               metrics.highRiskPatients.toString(),
               Icons.warning,
-              AppColors.warning,
+              AppColors.appWarning,
               '${metrics.highRiskChange > 0 ? '+' : ''}${metrics.highRiskChange}%',
             ),
             _buildMetricCard(
               'Predicted Admissions',
               metrics.predictedAdmissions.toString(),
               Icons.local_hospital,
-              AppColors.info,
+              AppColors.appInfo,
               '${metrics.admissionChange > 0 ? '+' : ''}${metrics.admissionChange}%',
             ),
             _buildMetricCard(
               'Early Warnings',
               metrics.earlyWarnings.toString(),
               Icons.notifications_active,
-              AppColors.error,
+              AppColors.appError,
               '${metrics.warningChange > 0 ? '+' : ''}${metrics.warningChange}%',
             ),
             _buildMetricCard(
               'Accuracy Score',
               '${(metrics.accuracyScore * 100).toStringAsFixed(1)}%',
               Icons.analytics,
-              AppColors.success,
+              AppColors.appSuccess,
               '${metrics.accuracyChange > 0 ? '+' : ''}${metrics.accuracyChange.toStringAsFixed(1)}%',
             ),
           ],
@@ -227,12 +234,13 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
     );
   }
 
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color, String change) {
+  Widget _buildMetricCard(
+      String title, String value, IconData icon, Color color, String change) {
     final isPositive = change.startsWith('+');
-    final changeColor = title == 'Accuracy Score' 
-        ? (isPositive ? AppColors.success : AppColors.error)
-        : (isPositive ? AppColors.error : AppColors.success);
-    
+    final changeColor = title == 'Accuracy Score'
+        ? (isPositive ? AppColors.appSuccess : AppColors.appError)
+        : (isPositive ? AppColors.appError : AppColors.appSuccess);
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -245,7 +253,8 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                 Icon(icon, color: color, size: 24),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: changeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -272,7 +281,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
             const SizedBox(height: 4),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
@@ -308,15 +317,15 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.appSuccess.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              border: Border.all(color: AppColors.appSuccess.withOpacity(0.3)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                Icon(Icons.check_circle, color: AppColors.success),
-                const SizedBox(width: 12),
-                const Expanded(
+                Icon(Icons.check_circle, color: AppColors.appSuccess),
+                SizedBox(width: 12),
+                Expanded(
                   child: Text(
                     'No critical warnings at this time. All patients are stable.',
                     style: TextStyle(fontWeight: FontWeight.w500),
@@ -366,7 +375,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                         'Total Population',
                         populationHealth.totalPopulation.toString(),
                         Icons.people,
-                        AppColors.primary,
+                        AppColors.appPrimary,
                       ),
                     ),
                     Expanded(
@@ -374,7 +383,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                         'At Risk',
                         populationHealth.atRiskCount.toString(),
                         Icons.warning,
-                        AppColors.warning,
+                        AppColors.appWarning,
                       ),
                     ),
                   ],
@@ -392,7 +401,8 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
     );
   }
 
-  Widget _buildPopulationMetric(String title, String value, IconData icon, Color color) {
+  Widget _buildPopulationMetric(
+      String title, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 32),
@@ -406,7 +416,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         ),
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -460,14 +470,14 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         children: [
           // Risk Distribution Chart
           _buildRiskDistributionChart(data.riskDistribution),
-          
+
           const SizedBox(height: 24),
-          
+
           // High Risk Patients
           _buildHighRiskPatientsSection(data.highRiskPatients),
-          
+
           const SizedBox(height: 24),
-          
+
           // Risk Factors Analysis
           _buildRiskFactorsSection(data.riskFactors),
         ],
@@ -498,7 +508,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                     PieChartSectionData(
                       value: distribution.lowRisk.toDouble(),
                       title: 'Low\n${distribution.lowRisk}',
-                      color: AppColors.success,
+                      color: AppColors.appSuccess,
                       radius: 100,
                       titleStyle: const TextStyle(
                         fontSize: 12,
@@ -509,7 +519,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                     PieChartSectionData(
                       value: distribution.moderateRisk.toDouble(),
                       title: 'Moderate\n${distribution.moderateRisk}',
-                      color: AppColors.warning,
+                      color: AppColors.appWarning,
                       radius: 100,
                       titleStyle: const TextStyle(
                         fontSize: 12,
@@ -520,7 +530,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                     PieChartSectionData(
                       value: distribution.highRisk.toDouble(),
                       title: 'High\n${distribution.highRisk}',
-                      color: AppColors.error,
+                      color: AppColors.appError,
                       radius: 100,
                       titleStyle: const TextStyle(
                         fontSize: 12,
@@ -633,14 +643,14 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         children: [
           // Prediction Accuracy Trends
           _buildAccuracyTrendsChart(data.accuracyTrends),
-          
+
           const SizedBox(height: 24),
-          
+
           // Health Outcome Trends
           _buildHealthOutcomeTrends(data.healthOutcomeTrends),
-          
+
           const SizedBox(height: 24),
-          
+
           // Seasonal Patterns
           _buildSeasonalPatterns(data.seasonalPatterns),
         ],
@@ -667,18 +677,19 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
               height: 300,
               child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(show: true),
-                  titlesData: FlTitlesData(show: true),
+                  gridData: const FlGridData(show: true),
+                  titlesData: const FlTitlesData(show: true),
                   borderData: FlBorderData(show: true),
                   lineBarsData: [
                     LineChartBarData(
                       spots: trends.asMap().entries.map((entry) {
-                        return FlSpot(entry.key.toDouble(), entry.value.accuracy);
+                        return FlSpot(
+                            entry.key.toDouble(), entry.value.accuracy);
                       }).toList(),
                       isCurved: true,
-                      color: AppColors.primary,
+                      color: AppColors.appPrimary,
                       barWidth: 3,
-                      dotData: FlDotData(show: true),
+                      dotData: const FlDotData(show: true),
                     ),
                   ],
                 ),
@@ -708,13 +719,13 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
             SizedBox(
               height: 300,
               child: SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
+                primaryXAxis: const CategoryAxis(),
                 series: <CartesianSeries<dynamic, dynamic>>[
                   LineSeries<HealthOutcomeTrend, String>(
                     dataSource: trends,
                     xValueMapper: (trend, _) => trend.period,
                     yValueMapper: (trend, _) => trend.value,
-                    color: AppColors.success,
+                    color: AppColors.appSuccess,
                     width: 3,
                     markerSettings: const MarkerSettings(isVisible: true),
                   ),
@@ -765,14 +776,14 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         children: [
           // Alert Summary
           _buildAlertSummary(data.alertSummary),
-          
+
           const SizedBox(height: 24),
-          
+
           // Active Alerts
           _buildActiveAlerts(data.activeAlerts),
-          
+
           const SizedBox(height: 24),
-          
+
           // Alert History
           _buildAlertHistory(data.alertHistory),
         ],
@@ -801,28 +812,28 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
                   child: _buildAlertSummaryItem(
                     'Critical',
                     summary.critical,
-                    AppColors.error,
+                    AppColors.appError,
                   ),
                 ),
                 Expanded(
                   child: _buildAlertSummaryItem(
                     'High',
                     summary.high,
-                    AppColors.warning,
+                    AppColors.appWarning,
                   ),
                 ),
                 Expanded(
                   child: _buildAlertSummaryItem(
                     'Medium',
                     summary.medium,
-                    AppColors.info,
+                    AppColors.appInfo,
                   ),
                 ),
                 Expanded(
                   child: _buildAlertSummaryItem(
                     'Low',
                     summary.low,
-                    AppColors.success,
+                    AppColors.appSuccess,
                   ),
                 ),
               ],
@@ -846,7 +857,7 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
         ),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -926,9 +937,9 @@ class _PredictiveDashboardPageState extends ConsumerState<PredictiveDashboardPag
   }
 
   Color _getRiskFactorColor(double prevalence) {
-    if (prevalence > 0.7) return AppColors.error;
-    if (prevalence > 0.4) return AppColors.warning;
-    return AppColors.success;
+    if (prevalence > 0.7) return AppColors.appError;
+    if (prevalence > 0.4) return AppColors.appWarning;
+    return AppColors.appSuccess;
   }
 
   void _showAllWarnings(List<EarlyWarning> warnings) {

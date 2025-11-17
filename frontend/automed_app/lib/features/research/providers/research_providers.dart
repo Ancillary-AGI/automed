@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/di/injection.dart';
+import 'package:automed_app/core/di/injection.dart';
 import '../models/research_models.dart';
 
 // Research Dashboard Provider
@@ -89,18 +89,18 @@ final molecularSimulationProvider =
       id: simulationId,
       moleculeName: 'Sample Molecule',
       energy: -125.5,
-      trajectory: TrajectoryData(
+      trajectory: const TrajectoryData(
         frames: 1000,
         duration: 10.0,
         coordinates: [],
       ),
-      energyProfile: EnergyProfile(
+      energyProfile: const EnergyProfile(
         totalEnergy: -125.5,
         kineticEnergy: 45.2,
         potentialEnergy: -170.7,
       ),
       bindingSites: [
-        BindingSite(
+        const BindingSite(
           residue: 'ASP152',
           affinity: -8.5,
           interactions: ['Hydrogen Bond', 'Hydrophobic'],
@@ -131,24 +131,24 @@ final tumorModelProvider =
       id: tumorId,
       type: 'Adenocarcinoma',
       stage: 'IIB',
-      cellularComposition: CellularComposition(
+      cellularComposition: const CellularComposition(
         cancerCells: 0.75,
         stromalCells: 0.15,
         immuneCells: 0.08,
         other: 0.02,
       ),
-      extracellularMatrix: ECMComposition(
+      extracellularMatrix: const ECMComposition(
         collagen: 0.45,
         elastin: 0.15,
         proteoglycans: 0.25,
         other: 0.15,
       ),
-      vascularNetwork: VascularNetwork(
+      vascularNetwork: const VascularNetwork(
         density: 0.12,
         permeability: 0.85,
         tortuosity: 1.3,
       ),
-      metabolicProfile: MetabolicProfile(
+      metabolicProfile: const MetabolicProfile(
         glycolysis: 0.78,
         oxidativePhosphorylation: 0.22,
         lactateProduction: 2.5,
@@ -179,12 +179,12 @@ final scaffoldDesignProvider =
       material: 'PLGA',
       porosity: 0.85,
       poreSize: 150.0,
-      mechanicalProperties: MechanicalProperties(
+      mechanicalProperties: const MechanicalProperties(
         youngsModulus: 2.5,
         tensileStrength: 45.0,
         elongation: 0.15,
       ),
-      degradation: DegradationProfile(
+      degradation: const DegradationProfile(
         halfLife: 90,
         mechanism: 'Hydrolysis',
       ),
@@ -216,7 +216,7 @@ final surgicalPlanProvider =
       approach: 'Transabdominal',
       instruments: ['Endoscope', 'Grasper', 'Cautery'],
       estimatedDuration: 120,
-      riskAssessment: RiskAssessment(
+      riskAssessment: const RiskAssessment(
         overallRisk: 'Low',
         complications: ['Bleeding', 'Infection'],
         mitigationStrategies: ['Hemostatic agents', 'Antibiotic prophylaxis'],
@@ -247,12 +247,12 @@ final genomeAnalysisProvider =
       organism: 'Homo sapiens',
       chromosome: '17',
       genes: 1298,
-      variants: VariantAnalysis(
+      variants: const VariantAnalysis(
         snps: 45632,
         indels: 2341,
         cnvs: 89,
       ),
-      expression: GeneExpression(
+      expression: const GeneExpression(
         upregulated: 234,
         downregulated: 156,
         unchanged: 908,
@@ -286,7 +286,7 @@ final drugCandidateProvider =
       solubility: 15.6,
       target: 'EGFR',
       ic50: 0.023,
-      toxicity: ToxicityProfile(
+      toxicity: const ToxicityProfile(
         ld50: 125.0,
         hepatotoxicity: 'Low',
         cardiotoxicity: 'Moderate',

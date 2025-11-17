@@ -310,8 +310,9 @@ class UpdatePatientRequest {
     if (address != null) fields['address'] = address;
     if (bloodType != null) fields['bloodType'] = bloodType;
     if (allergies != null) fields['allergies'] = allergies;
-    if (medicalConditions != null)
+    if (medicalConditions != null) {
       fields['medicalConditions'] = medicalConditions;
+    }
     if (emergencyContact != null) fields['emergencyContact'] = emergencyContact;
     if (insurance != null) fields['insurance'] = insurance;
     if (status != null) fields['status'] = status;

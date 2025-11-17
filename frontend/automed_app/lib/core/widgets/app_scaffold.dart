@@ -507,7 +507,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
       left: 0,
       right: 0,
       child: Container(
-        color: AppColors.warning,
+        color: AppColors.appWarning,
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: Row(
           children: [
@@ -554,7 +554,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.emergency,
                   size: 48,
                   color: Colors.white,
@@ -601,9 +601,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
         onPressed: () => context.go('/emergency'),
         backgroundColor: AppColors.emergency,
         foregroundColor: Colors.white,
-        child: const Icon(Icons.emergency),
         tooltip: 'Emergency',
         elevation: 6,
+        child: const Icon(Icons.emergency),
       ),
     );
   }
@@ -616,7 +616,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Select Language',
               style: AppTextStyles.headline6,
             ),

@@ -67,8 +67,8 @@ class MobileVitalsMonitor extends ConsumerWidget {
               height: 100,
               child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(show: false),
-                  titlesData: FlTitlesData(show: false),
+                  gridData: const FlGridData(show: false),
+                  titlesData: const FlTitlesData(show: false),
                   borderData: FlBorderData(show: false),
                   lineBarsData: [
                     LineChartBarData(
@@ -76,7 +76,7 @@ class MobileVitalsMonitor extends ConsumerWidget {
                       isCurved: true,
                       color: Colors.red,
                       barWidth: 2,
-                      dotData: FlDotData(show: false),
+                      dotData: const FlDotData(show: false),
                     ),
                   ],
                 ),

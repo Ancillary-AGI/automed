@@ -1,48 +1,48 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary colors
-  static const Color primary = Color(0xFF1976D2);
-  static const Color primaryLight = Color(0xFF42A5F5);
-  static const Color primaryDark = Color(0xFF1565C0);
-  static const Color primaryVariant = Color(0xFF0D47A1);
+  // App brand colors
+  static const Color appPrimary = Color(0xFF1976D2);
+  static const Color appPrimaryLight = Color(0xFF42A5F5);
+  static const Color appPrimaryDark = Color(0xFF1565C0);
+  static const Color appPrimaryVariant = Color(0xFF0D47A1);
 
-  // Secondary colors
-  static const Color secondary = Color(0xFFDC004E);
-  static const Color secondaryLight = Color(0xFFFF5983);
-  static const Color secondaryDark = Color(0xFFC2185B);
-  static const Color secondaryVariant = Color(0xFF9C27B0);
+  // App accent colors
+  static const Color appSecondary = Color(0xFFDC004E);
+  static const Color appSecondaryLight = Color(0xFFFF5983);
+  static const Color appSecondaryDark = Color(0xFFC2185B);
+  static const Color appSecondaryVariant = Color(0xFF9C27B0);
 
   // Surface colors
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFF5F5F5);
-  static const Color onSurface = Color(0xFF1C1B1F);
-  static const Color onSurfaceVariant = Color(0xFF49454F);
+  static const Color appSurface = Color(0xFFFFFFFF);
+  static const Color appSurfaceVariant = Color(0xFFF5F5F5);
+  static const Color appOnSurface = Color(0xFF1C1B1F);
+  static const Color appOnSurfaceVariant = Color(0xFF49454F);
 
   // Background colors
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color onBackground = Color(0xFF1C1B1F);
+  static const Color appBackground = Color(0xFFFFFFFF);
+  static const Color appOnBackground = Color(0xFF1C1B1F);
 
   // Error colors
-  static const Color error = Color(0xFFD32F2F);
-  static const Color errorLight = Color(0xFFEF5350);
-  static const Color errorDark = Color(0xFFC62828);
-  static const Color onError = Color(0xFFFFFFFF);
+  static const Color appError = Color(0xFFD32F2F);
+  static const Color appErrorLight = Color(0xFFEF5350);
+  static const Color appErrorDark = Color(0xFFC62828);
+  static const Color appOnError = Color(0xFFFFFFFF);
 
   // Warning colors
-  static const Color warning = Color(0xFFF57C00);
-  static const Color warningLight = Color(0xFFFFB74D);
-  static const Color warningDark = Color(0xFFF57C00);
+  static const Color appWarning = Color(0xFFF57C00);
+  static const Color appWarningLight = Color(0xFFFFB74D);
+  static const Color appWarningDark = Color(0xFFF57C00);
 
   // Success colors
-  static const Color success = Color(0xFF388E3C);
-  static const Color successLight = Color(0xFF4CAF50);
-  static const Color successDark = Color(0xFF2E7D32);
+  static const Color appSuccess = Color(0xFF388E3C);
+  static const Color appSuccessLight = Color(0xFF4CAF50);
+  static const Color appSuccessDark = Color(0xFF2E7D32);
 
   // Info colors
-  static const Color info = Color(0xFF1976D2);
-  static const Color infoLight = Color(0xFF42A5F5);
-  static const Color infoDark = Color(0xFF1565C0);
+  static const Color appInfo = Color(0xFF1976D2);
+  static const Color appInfoLight = Color(0xFF42A5F5);
+  static const Color appInfoDark = Color(0xFF1565C0);
 
   // Text colors
   static const Color textPrimary = Color(0xFF1C1B1F);
@@ -209,25 +209,25 @@ class AppColors {
   static Color getPrimary(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
         ? darkPrimary
-        : primary;
+        : appPrimary;
   }
 
   static Color getSurface(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
         ? darkSurface
-        : surface;
+        : appSurface;
   }
 
   static Color getOnSurface(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
         ? darkOnSurface
-        : onSurface;
+        : appOnSurface;
   }
 
   static Color getBackground(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
         ? darkBackground
-        : background;
+        : appBackground;
   }
 
   static Color getCardBackground(BuildContext context) {

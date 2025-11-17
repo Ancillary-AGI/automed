@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../generated/l10n.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/generated/l10n.dart';
 import '../providers/consultation_provider.dart';
 import '../providers/webrtc_provider.dart';
 import '../widgets/consultation_controls.dart';

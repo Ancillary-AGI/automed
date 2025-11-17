@@ -149,7 +149,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
     int colorIndex = 0;
 
     return LineChartData(
-      gridData: FlGridData(show: true),
+      gridData: const FlGridData(show: true),
       titlesData: FlTitlesData(
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
@@ -169,8 +169,8 @@ class PredictiveChartsWidget extends ConsumerWidget {
             },
           ),
         ),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
       lineBarsData: predictionGroups.entries.map((entry) {
@@ -187,7 +187,7 @@ class PredictiveChartsWidget extends ConsumerWidget {
           isCurved: true,
           color: color,
           barWidth: 3,
-          dotData: FlDotData(show: true),
+          dotData: const FlDotData(show: true),
         );
       }).toList(),
     );
@@ -333,8 +333,8 @@ class PredictiveChartsWidget extends ConsumerWidget {
             },
           ),
         ),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
       barGroups: trends.asMap().entries.map((entry) {

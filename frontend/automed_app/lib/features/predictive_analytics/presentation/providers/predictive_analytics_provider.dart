@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/di/injection.dart';
-import '../../../../core/services/api_service.dart';
+import 'package:automed_app/core/di/injection.dart';
+import 'package:automed_app/core/services/api_service.dart';
 
 // Predictive Analytics State
 class PredictiveAnalyticsState {

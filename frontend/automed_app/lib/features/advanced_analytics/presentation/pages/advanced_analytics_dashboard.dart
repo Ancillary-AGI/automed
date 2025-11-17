@@ -180,18 +180,18 @@ class _AdvancedAnalyticsDashboardState
           // Risk Assessment Matrix
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Risk Assessment Matrix',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: const Center(
+                    child: Center(
                       child: Text('Risk assessment visualization'),
                     ),
                   ),
@@ -215,18 +215,18 @@ class _AdvancedAnalyticsDashboardState
           // Resource Utilization Chart
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Resource Utilization',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: const Center(
+                    child: Center(
                       child: Text('Resource utilization charts'),
                     ),
                   ),
@@ -250,18 +250,18 @@ class _AdvancedAnalyticsDashboardState
           // Community Health Metrics
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Community Health Metrics',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: const Center(
+                    child: Center(
                       child: Text('Community health visualization'),
                     ),
                   ),

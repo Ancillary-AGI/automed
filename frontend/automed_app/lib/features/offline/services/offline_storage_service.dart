@@ -1,8 +1,8 @@
 import 'package:hive/hive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/models/sync_models.dart';
-import '../../../core/utils/logger.dart';
+import 'package:automed_app/core/models/sync_models.dart';
+import 'package:automed_app/core/utils/logger.dart';
 
 class OfflineStorageService {
   static const String _patientsBoxName = 'patients';

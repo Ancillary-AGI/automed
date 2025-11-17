@@ -6,7 +6,7 @@ class PatientFlowChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: SizedBox(
         height: 120,
         child: Center(child: Text('Patient flow chart placeholder')),

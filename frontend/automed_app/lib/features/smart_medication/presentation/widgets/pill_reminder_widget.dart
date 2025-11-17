@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/models/medication_models.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
+import 'package:automed_app/core/models/medication_models.dart';
 
 class PillReminderWidget extends StatefulWidget {
   final List<MedicationReminder> reminders;
@@ -60,7 +60,7 @@ class _PillReminderWidgetState extends State<PillReminderWidget> {
         final times = r.reminderTimes.map((t) => t.displayTime).join(', ');
         return ListTile(
           leading: Icon(r.isEnabled ? Icons.alarm_on : Icons.alarm_off,
-              color: r.isEnabled ? AppColors.success : AppColors.textSecondary),
+              color: r.isEnabled ? AppColors.appSuccess : AppColors.textSecondary),
           title: Text(r.medicationId, style: AppTextStyles.bodyText1),
           subtitle: Text(times,
               style: AppTextStyles.caption

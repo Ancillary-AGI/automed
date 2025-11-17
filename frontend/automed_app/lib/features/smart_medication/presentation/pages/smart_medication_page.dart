@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/models/medication_models.dart';
+import 'package:automed_app/core/theme/app_colors.dart';
+import 'package:automed_app/core/models/medication_models.dart';
 import '../widgets/medication_card.dart';
 import '../widgets/adherence_chart.dart';
 import '../widgets/pill_reminder_widget.dart';
@@ -72,7 +72,7 @@ class _SmartMedicationPageState extends ConsumerState<SmartMedicationPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Medication'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.appPrimary,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -91,8 +91,8 @@ class _SmartMedicationPageState extends ConsumerState<SmartMedicationPage>
               children: [MedicationCard(medication: sampleMedication)]),
 
           // Adherence view
-          Padding(
-            padding: const EdgeInsets.all(12),
+          const Padding(
+            padding: EdgeInsets.all(12),
             child: AdherenceChart(adherence: 0.87),
           ),
 
