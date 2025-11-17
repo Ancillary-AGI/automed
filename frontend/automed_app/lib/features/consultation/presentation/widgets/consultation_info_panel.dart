@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:automed_app/core/theme/app_text_styles.dart';
 
-// Consultation info panel widget
 class ConsultationInfoPanel extends StatelessWidget {
   final dynamic consultation;
   final VoidCallback onClose;
@@ -13,25 +13,33 @@ class ConsultationInfoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      color: Colors.white,
+      color: colorScheme.surface.withValues(alpha: 0.95),
       child: Column(
         children: [
           // Header
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey)),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1),
+              ),
             ),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Consultation Info',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.titleMedium
+                      .copyWith(color: colorScheme.onSurface),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close, color: colorScheme.onSurface),
                   onPressed: onClose,
                 ),
               ],
@@ -45,17 +53,44 @@ class ConsultationInfoPanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Doctor', consultation.doctorName ?? 'Unknown'),
-                  _buildInfoRow('Type', consultation.type ?? 'Regular'),
-                  _buildInfoRow('Status', consultation.status ?? 'Unknown'),
                   _buildInfoRow(
-                      'Patient', consultation.patientName ?? 'Unknown'),
-                  if (consultation.scheduledTime != null)
-                    _buildInfoRow(
-                        'Time', consultation.scheduledTime.toString()),
+                    'Type',
+                    consultation.type ?? 'Unknown',
+                    colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    'Doctor',
+                    consultation.doctorName ?? 'Unknown',
+                    colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    'Status',
+                    consultation.status ?? 'Unknown',
+                    colorScheme,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    'Start Time',
+                    consultation.startTime ?? 'Unknown',
+                    colorScheme,
+                  ),
                   if (consultation.notes != null &&
-                      consultation.notes.isNotEmpty)
-                    _buildInfoRow('Notes', consultation.notes),
+                      consultation.notes.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Notes',
+                      style: AppTextStyles.titleSmall
+                          .copyWith(color: colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      consultation.notes,
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -65,24 +100,27 @@ class ConsultationInfoPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+  Widget _buildInfoRow(String label, String value, ColorScheme colorScheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: colorScheme.onSurfaceVariant),
           ),
-          Expanded(
-            child: Text(value),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style:
+                AppTextStyles.bodyMedium.copyWith(color: colorScheme.onSurface),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
