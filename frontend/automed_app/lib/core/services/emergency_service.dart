@@ -5,8 +5,8 @@ import 'package:automed_app/core/services/api_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 enum EmergencyType {
-  cardiac_arrest,
-  heart_attack,
+  cardiacArrest,
+  heartAttack,
   stroke,
   respiratory_distress,
   severe_bleeding,
@@ -170,9 +170,9 @@ class EmergencyService {
       // Determine emergency type based on vitals
       EmergencyType emergencyType = EmergencyType.other;
       if (data.isCardiacArrest) {
-        emergencyType = EmergencyType.cardiac_arrest;
+        emergencyType = EmergencyType.cardiacArrest;
       } else if (data.heartRate < 40 || data.heartRate > 150) {
-        emergencyType = EmergencyType.heart_attack;
+        emergencyType = EmergencyType.heartAttack;
       } else if (data.oxygenSaturation < 90) {
         emergencyType = EmergencyType.respiratory_distress;
       }

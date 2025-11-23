@@ -56,7 +56,6 @@ class ThemeNotifier extends StateNotifier<ThemeModeOption> {
       case ThemeModeOption.dark:
         return ThemeMode.dark;
       case ThemeModeOption.system:
-      default:
         return ThemeMode.system;
     }
   }
@@ -68,7 +67,6 @@ class ThemeNotifier extends StateNotifier<ThemeModeOption> {
       case ThemeModeOption.dark:
         return Brightness.dark;
       case ThemeModeOption.system:
-      default:
         return MediaQuery.of(context).platformBrightness;
     }
   }
