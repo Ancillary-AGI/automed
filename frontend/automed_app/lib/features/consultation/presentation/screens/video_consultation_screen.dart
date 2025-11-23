@@ -27,38 +27,27 @@ class VideoConsultationScreen extends ConsumerStatefulWidget {
 
 class _VideoConsultationScreenState
     extends ConsumerState<VideoConsultationScreen> {
-  RTCVideoRenderer? _localRenderer;
-  RTCVideoRenderer? _remoteRenderer;
-  bool _isAudioMuted = false;
-  bool _isVideoMuted = false;
   bool _isChatVisible = false;
   bool _isInfoPanelVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeRenderers();
+    _initializeWebRTC();
   }
 
-  @override
-  void dispose() {
-    _localRenderer?.dispose();
-    _remoteRenderer?.dispose();
-    super.dispose();
-  }
+  Future<void> _initializeWebRTC() async {
+    final localRenderer = RTCVideoRenderer();
+    final remoteRenderer = RTCVideoRenderer();
 
-  Future<void> _initializeRenderers() async {
-    _localRenderer = RTCVideoRenderer();
-    _remoteRenderer = RTCVideoRenderer();
-
-    await _localRenderer!.initialize();
-    await _remoteRenderer!.initialize();
+    await localRenderer.initialize();
+    await remoteRenderer.initialize();
 
     // Initialize WebRTC connection
     ref.read(webRtcProvider.notifier).initializeConnection(
           widget.consultationId,
-          _localRenderer!,
-          _remoteRenderer!,
+          localRenderer,
+          remoteRenderer,
         );
   }
 
@@ -74,7 +63,7 @@ class _VideoConsultationScreenState
         data: (consultationData) => Stack(
           children: [
             // Video Views
-            _buildVideoViews(),
+            _buildVideoViews(webRtcState),
 
             // Top Bar
             Positioned(
@@ -90,8 +79,8 @@ class _VideoConsultationScreenState
               left: 20,
               right: 20,
               child: ConsultationControls(
-                isAudioMuted: _isAudioMuted,
-                isVideoMuted: _isVideoMuted,
+                isAudioMuted: webRtcState.isAudioMuted,
+                isVideoMuted: webRtcState.isVideoMuted,
                 onAudioToggle: _toggleAudio,
                 onVideoToggle: _toggleVideo,
                 onEndCall: _endCall,
@@ -133,7 +122,7 @@ class _VideoConsultationScreenState
                 top: MediaQuery.of(context).padding.top + 60,
                 left: 20,
                 right: 20,
-                child: _buildConnectionStatus(webRtcState.isConnected),
+                child: _buildConnectionStatus(webRtcState),
               ),
           ],
         ),
@@ -168,15 +157,26 @@ class _VideoConsultationScreenState
     );
   }
 
-  Widget _buildVideoViews() {
+  Widget _buildVideoViews(WebRtcState webRtcState) {
     return Stack(
       children: [
         // Remote Video (Full Screen)
-        if (_remoteRenderer != null)
+        if (webRtcState.remoteRenderer != null)
           Positioned.fill(
             child: RTCVideoView(
-              _remoteRenderer!,
+              webRtcState.remoteRenderer!,
               objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+            ),
+          )
+        else
+          Positioned.fill(
+            child: Container(
+              color: Colors.grey[900],
+              child: const Icon(
+                Icons.video_call,
+                color: Colors.white,
+                size: 64,
+              ),
             ),
           ),
 
@@ -193,9 +193,9 @@ class _VideoConsultationScreenState
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: _localRenderer != null
+              child: webRtcState.localRenderer != null
                   ? RTCVideoView(
-                      _localRenderer!,
+                      webRtcState.localRenderer!,
                       mirror: true,
                       objectFit:
                           RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
@@ -275,7 +275,7 @@ class _VideoConsultationScreenState
     );
   }
 
-  Widget _buildConnectionStatus(bool webRtcState) {
+  Widget _buildConnectionStatus(WebRtcState webRtcState) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -291,13 +291,17 @@ class _VideoConsultationScreenState
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(
-                webRtcState ? Colors.green : Colors.red,
+                webRtcState.isConnected ? Colors.green : Colors.red,
               ),
             ),
           ),
           const SizedBox(width: 8),
           Text(
-            webRtcState ? 'Connected' : 'Connecting...',
+            webRtcState.isInitializing
+                ? 'Initializing...'
+                : webRtcState.isConnected
+                    ? 'Connected'
+                    : 'Connecting...',
             style: AppTextStyles.bodySmall.copyWith(color: Colors.white),
           ),
         ],
@@ -306,13 +310,13 @@ class _VideoConsultationScreenState
   }
 
   void _toggleAudio() {
-    setState(() => _isAudioMuted = !_isAudioMuted);
-    // ref.read(webRtcProvider.notifier).toggleAudio(_isAudioMuted); // TODO: Implement WebRTC provider
+    final webRtcState = ref.read(webRtcProvider);
+    ref.read(webRtcProvider.notifier).toggleAudio(!webRtcState.isAudioMuted);
   }
 
   void _toggleVideo() {
-    setState(() => _isVideoMuted = !_isVideoMuted);
-    // ref.read(webRtcProvider.notifier).toggleVideo(_isVideoMuted); // TODO: Implement WebRTC provider
+    final webRtcState = ref.read(webRtcProvider);
+    ref.read(webRtcProvider.notifier).toggleVideo(!webRtcState.isVideoMuted);
   }
 
   void _toggleChat() {
@@ -324,7 +328,7 @@ class _VideoConsultationScreenState
   }
 
   void _endCall() {
-    // ref.read(webRtcProvider.notifier).endCall(); // TODO: Implement WebRTC provider
+    ref.read(webRtcProvider.notifier).endCall();
     context.pop();
   }
 }

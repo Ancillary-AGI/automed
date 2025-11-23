@@ -1,6 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 import 'firebase_service.dart';
+import 'package:automed_app/core/utils/logger.dart';
 
 class NotificationService {
   final FirebaseService firebaseService;
@@ -11,6 +14,9 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    // Initialize timezone data
+    tz.initializeTimeZones();
+
     // Initialize local notifications
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -96,25 +102,62 @@ class NotificationService {
     NotificationType type = NotificationType.general,
   }) async {
     try {
-      // TODO: Implement proper scheduled notifications with timezone handling
-      // For now, schedule for immediate display
+      // Ensure scheduled date is in the future
       final now = DateTime.now();
-      final scheduledDate =
-          now.add(const Duration(seconds: 1)); // Schedule for 1 second from now
+      if (scheduledDate.isBefore(now)) {
+        Logger.warning(
+            'Scheduled date is in the past, showing immediate notification');
+        await showNotification(
+          id: id,
+          title: title,
+          body: body,
+          type: type,
+        );
+        return;
+      }
 
-      // In a real implementation, this would use flutter_local_notifications
-      // to schedule notifications at specific times with proper timezone handling
+      // Convert to timezone-aware date
+      final scheduledDateTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
-      await showNotification(
-        id: id,
-        title: title,
-        body: body,
-        type: type,
+      // Create notification details for scheduled notification
+      final scheduledAndroidDetails = AndroidNotificationDetails(
+        _getChannelId(type),
+        _getChannelName(type),
+        channelDescription: _getChannelDescription(type),
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+        largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       );
 
-      print('Scheduled notification for: $scheduledDate');
+      const scheduledIosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: scheduledAndroidDetails,
+        iOS: scheduledIosDetails,
+      );
+
+      // Use zonedSchedule for proper timezone handling
+      await _localNotifications.zonedSchedule(
+        int.parse(id),
+        title,
+        body,
+        scheduledDateTime,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+      );
+
+      Logger.info(
+          'Successfully scheduled notification for: $scheduledDate (timezone: ${tz.local.name})');
     } catch (e) {
-      print('Error scheduling notification: $e');
+      Logger.error('Error scheduling notification: $e');
       // Fallback to immediate notification
       await showNotification(
         id: id,

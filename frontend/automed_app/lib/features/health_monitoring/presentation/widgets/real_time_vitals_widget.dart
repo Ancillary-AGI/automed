@@ -269,9 +269,9 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.appError.withOpacity(0.1),
+        color: AppColors.appError.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.appError.withOpacity(0.3)),
+        border: Border.all(color: AppColors.appError.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,9 +453,9 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -551,7 +551,7 @@ class _RealTimeVitalsWidgetState extends ConsumerState<RealTimeVitalsWidget>
                       dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: color.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                       ),
                     ),
                   ],

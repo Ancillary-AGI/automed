@@ -1,13 +1,37 @@
 import 'dart:io';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:automed_app/core/utils/logger.dart';
+import 'package:automed_app/core/services/api_service.dart';
+import 'package:geolocator/geolocator.dart';
+
+enum EmergencyType {
+  cardiac_arrest,
+  heart_attack,
+  stroke,
+  respiratory_distress,
+  severe_bleeding,
+  unconsciousness,
+  seizure,
+  diabetic_emergency,
+  allergic_reaction,
+  trauma,
+  poisoning,
+  mental_health_crisis,
+  fire,
+  accident,
+  other
+}
 
 /// Emergency service for handling critical situations and emergency calls
 class EmergencyService {
-  static final EmergencyService _instance = EmergencyService._internal();
-  factory EmergencyService() => _instance;
-  EmergencyService._internal();
+  static EmergencyService? _instance;
+  factory EmergencyService(ApiService apiService) {
+    _instance ??= EmergencyService._internal(apiService);
+    return _instance!;
+  }
+  EmergencyService._internal(this._apiService);
 
+  final ApiService _apiService;
   final List<EmergencyContact> _emergencyContacts = [
     EmergencyContact(
       id: '1',
@@ -75,13 +99,54 @@ class EmergencyService {
     }
   }
 
-  /// Send emergency alert (simplified - would send SMS/push in real app)
-  Future<void> sendEmergencyAlert(String message) async {
+  /// Send emergency alert to backend service
+  Future<bool> sendEmergencyAlert({
+    required EmergencyType type,
+    required String location,
+    required String description,
+    String? patientId,
+    int? severity,
+  }) async {
     try {
-      Logger.warning('Emergency alert: $message');
-      // In a real implementation, this would send SMS or push notifications
+      final request = {
+        'type': type.toString().split('.').last.toUpperCase(),
+        'location': location,
+        'description': description,
+        'reportedBy': 'patient_app', // TODO: Get from auth service
+        'patientId': patientId,
+        'severity': severity,
+      };
+
+      final response =
+          await _apiService.post('/emergency/alert', data: request);
+      Logger.warning('Emergency alert sent: $description');
+      return response != null;
     } catch (e) {
       Logger.error('Failed to send emergency alert: $e');
+      return false;
+    }
+  }
+
+  /// Update emergency location
+  Future<bool> updateEmergencyLocation(Position position) async {
+    try {
+      final request = {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'timestamp': DateTime.now().toIso8601String(),
+        'accuracy': position.accuracy,
+        'speed': position.speed,
+        'altitude': position.altitude,
+        'heading': position.heading,
+        'userId': 'current_user', // TODO: Get from auth service
+      };
+
+      final response =
+          await _apiService.post('/emergency/location/update', data: request);
+      return response != null;
+    } catch (e) {
+      Logger.error('Failed to update emergency location: $e');
+      return false;
     }
   }
 
@@ -101,7 +166,24 @@ class EmergencyService {
 
     if (_isEmergencyVitals(data)) {
       Logger.warning('Emergency triggered by vital signs');
-      await sendEmergencyAlert('CRITICAL: Abnormal vital signs detected!');
+
+      // Determine emergency type based on vitals
+      EmergencyType emergencyType = EmergencyType.other;
+      if (data.isCardiacArrest) {
+        emergencyType = EmergencyType.cardiac_arrest;
+      } else if (data.heartRate < 40 || data.heartRate > 150) {
+        emergencyType = EmergencyType.heart_attack;
+      } else if (data.oxygenSaturation < 90) {
+        emergencyType = EmergencyType.respiratory_distress;
+      }
+
+      await sendEmergencyAlert(
+        type: emergencyType,
+        location: 'Current location', // TODO: Get actual location
+        description:
+            'CRITICAL: Abnormal vital signs detected! Heart rate: ${data.heartRate}, Oxygen: ${data.oxygenSaturation}%',
+        severity: 10,
+      );
       await callEmergencyServices();
     }
   }

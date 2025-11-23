@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:automed_app/core/utils/logger.dart';
 
 class BackgroundLocationService {
   static const String _emergencyActiveKey = 'emergency_active';
@@ -113,32 +116,60 @@ class BackgroundLocationService {
         }
       },
       onError: (error) {
-        print('Location error: $error');
+        Logger.error('Location error: $error');
       },
     );
   }
 
   static Future<void> _sendLocationToEmergencyService(Position position) async {
     try {
-      // TODO: Implement actual API call to emergency-response-service
-      // For now, just log the location update
-      print(
-          'Location update sent to emergency service: ${position.latitude}, ${position.longitude} at ${position.timestamp}');
+      // Get stored auth token for API call
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
 
-      // In a real implementation, this would make an HTTP call:
-      // final response = await http.post(
-      //   Uri.parse('${ApiConfig.emergencyServiceUrl}/api/v1/emergency/location/update'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: jsonEncode({
-      //     'latitude': position.latitude,
-      //     'longitude': position.longitude,
-      //     'timestamp': position.timestamp?.toIso8601String(),
-      //     'accuracy': position.accuracy,
-      //     'speed': position.speed,
-      //   }),
-      // );
+      // Prepare location data
+      final locationData = {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'timestamp': position.timestamp.toIso8601String(),
+        'accuracy': position.accuracy,
+        'speed': position.speed,
+        'altitude': position.altitude,
+        'heading': position.heading,
+      };
+
+      // Make HTTP POST request to emergency service
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 10);
+
+      final uri =
+          Uri.parse('http://localhost:8080/api/v1/emergency/location/update');
+      final request = await client.postUrl(uri);
+
+      // Set headers
+      request.headers.set('Content-Type', 'application/json');
+      if (token != null) {
+        request.headers.set('Authorization', 'Bearer $token');
+      }
+
+      // Set body
+      request.write(jsonEncode(locationData));
+
+      // Send request and get response
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Logger.info(
+            'Location update sent successfully to emergency service: ${position.latitude}, ${position.longitude}');
+      } else {
+        Logger.warning(
+            'Failed to send location update. Status: ${response.statusCode}, Body: $responseBody');
+      }
+
+      client.close();
     } catch (e) {
-      print('Failed to send location to emergency service: $e');
+      Logger.error('Failed to send location to emergency service: $e');
     }
   }
 

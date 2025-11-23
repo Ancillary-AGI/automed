@@ -6,6 +6,7 @@ import 'package:automed_app/core/di/injection.dart';
 import 'package:automed_app/core/services/api_service.dart';
 import 'package:automed_app/core/models/ai_models.dart';
 import 'package:automed_app/core/models/api_response.dart';
+import 'package:automed_app/core/utils/logger.dart';
 import '../pages/ai_assistant_page.dart';
 
 // AI Assistant State Notifier
@@ -61,8 +62,7 @@ class AIAssistantNotifier extends StateNotifier<AIAssistantState> {
       );
     } catch (e, stack) {
       // Log error for semantic bug detection
-      print(
-          '[ERROR] [AIAssistantNotifier] Failed to process AI request: $e\n$stack');
+      Logger.error('Failed to process AI request: $e', e, stack);
       // Add error message
       final errorMessage = AIMessage(
         id: _uuid.v4(),

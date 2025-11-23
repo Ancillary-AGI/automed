@@ -234,6 +234,75 @@ class HospitalCapacity {
 }
 
 @JsonSerializable()
+class HospitalDashboard {
+  final String hospitalId;
+  final String hospitalName;
+  final int totalBeds;
+  final int occupiedBeds;
+  final int availableBeds;
+  final double occupancyRate;
+  final int staffOnDuty;
+  final int totalStaff;
+  final int equipmentOperational;
+  final int totalEquipment;
+  final List<String> activeAlerts;
+  final List<String> aiInsights;
+  final DateTime lastUpdated;
+
+  HospitalDashboard({
+    required this.hospitalId,
+    required this.hospitalName,
+    required this.totalBeds,
+    required this.occupiedBeds,
+    required this.availableBeds,
+    required this.occupancyRate,
+    required this.staffOnDuty,
+    required this.totalStaff,
+    required this.equipmentOperational,
+    required this.totalEquipment,
+    required this.activeAlerts,
+    required this.aiInsights,
+    required this.lastUpdated,
+  });
+
+  factory HospitalDashboard.fromJson(Map<String, dynamic> json) {
+    return HospitalDashboard(
+      hospitalId: json['hospitalId'] as String,
+      hospitalName: json['hospitalName'] as String,
+      totalBeds: json['totalBeds'] as int,
+      occupiedBeds: json['occupiedBeds'] as int,
+      availableBeds: json['availableBeds'] as int,
+      occupancyRate: (json['occupancyRate'] as num).toDouble(),
+      staffOnDuty: json['staffOnDuty'] as int,
+      totalStaff: json['totalStaff'] as int,
+      equipmentOperational: json['equipmentOperational'] as int,
+      totalEquipment: json['totalEquipment'] as int,
+      activeAlerts: (json['activeAlerts'] as List<dynamic>).cast<String>(),
+      aiInsights: (json['aiInsights'] as List<dynamic>).cast<String>(),
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'hospitalId': hospitalId,
+      'hospitalName': hospitalName,
+      'totalBeds': totalBeds,
+      'occupiedBeds': occupiedBeds,
+      'availableBeds': availableBeds,
+      'occupancyRate': occupancyRate,
+      'staffOnDuty': staffOnDuty,
+      'totalStaff': totalStaff,
+      'equipmentOperational': equipmentOperational,
+      'totalEquipment': totalEquipment,
+      'activeAlerts': activeAlerts,
+      'aiInsights': aiInsights,
+      'lastUpdated': lastUpdated.toIso8601String(),
+    };
+  }
+}
+
+@JsonSerializable()
 class Department {
   final String id;
   final String name;

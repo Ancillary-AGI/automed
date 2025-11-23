@@ -6,6 +6,7 @@ import 'package:automed_app/core/theme/app_colors.dart';
 import 'package:automed_app/core/theme/app_text_styles.dart';
 import 'package:automed_app/core/widgets/app_card.dart';
 import 'package:automed_app/core/widgets/app_scaffold.dart';
+import 'package:automed_app/core/di/injection.dart';
 import 'package:automed_app/generated/l10n.dart';
 import '../providers/hospital_dashboard_provider.dart';
 import '../widgets/bed_occupancy_card.dart';
@@ -26,7 +27,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
     return AppScaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO: Implement proper refresh logic
+          ref.invalidate(hospitalDashboardProvider);
         },
         child: CustomScrollView(
           slivers: [
@@ -48,10 +49,10 @@ class HospitalDashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     dashboardState.when(
-                      data: (data) => Text(
-                        'Hospital Name', // TODO: Fix data structure
+                      data: (dashboard) => Text(
+                        dashboard.hospitalName,
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                       loading: () => const SizedBox.shrink(),
@@ -91,7 +92,7 @@ class HospitalDashboardScreen extends ConsumerWidget {
                         context.push('/reports');
                         break;
                       case 'logout':
-                        // Handle logout
+                        _performLogout(context, ref);
                         break;
                     }
                   },
@@ -121,8 +122,8 @@ class HospitalDashboardScreen extends ConsumerWidget {
                 delegate: SliverChildListDelegate([
                   // Emergency Alerts
                   dashboardState.when(
-                    data: (data) => const EmergencyAlertsCard(
-                      activeAlerts: 0, // TODO: Fix data structure
+                    data: (dashboard) => EmergencyAlertsCard(
+                      activeAlerts: dashboard.activeAlerts.length,
                     ),
                     loading: () => const _LoadingCard(),
                     error: (error, stack) =>
@@ -139,9 +140,9 @@ class HospitalDashboardScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: dashboardState.when(
-                          data: (data) => const BedOccupancyCard(
-                            occupied: 75,
-                            total: 100, // TODO: Fix data structure
+                          data: (dashboard) => BedOccupancyCard(
+                            occupied: dashboard.occupiedBeds,
+                            total: dashboard.totalBeds,
                           ),
                           loading: () => const _LoadingCard(),
                           error: (error, stack) =>
@@ -151,8 +152,9 @@ class HospitalDashboardScreen extends ConsumerWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: dashboardState.when(
-                          data: (data) => const StaffStatusCard(
-                            onDuty: 45, total: 50, // TODO: Fix data structure
+                          data: (dashboard) => StaffStatusCard(
+                            onDuty: dashboard.staffOnDuty,
+                            total: dashboard.totalStaff,
                           ),
                           loading: () => const _LoadingCard(),
                           error: (error, stack) =>
@@ -165,8 +167,9 @@ class HospitalDashboardScreen extends ConsumerWidget {
 
                   // Equipment Status
                   dashboardState.when(
-                    data: (data) => const EquipmentStatusCard(
-                      operational: 85, total: 100, // TODO: Fix data structure
+                    data: (dashboard) => EquipmentStatusCard(
+                      operational: dashboard.equipmentOperational,
+                      total: dashboard.totalEquipment,
                     ),
                     loading: () => const _LoadingCard(),
                     error: (error, stack) =>
@@ -195,7 +198,8 @@ class HospitalDashboardScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.appSecondary.withOpacity(0.1),
+                                  color: AppColors.appSecondary
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -212,12 +216,8 @@ class HospitalDashboardScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           dashboardState.when(
-                            data: (data) => Column(
-                              children: [
-                                'AI Insight 1',
-                                'AI Insight 2',
-                                'AI Insight 3'
-                              ] // TODO: Fix data structure
+                            data: (dashboard) => Column(
+                              children: dashboard.aiInsights
                                   .map(
                                     (insight) => Padding(
                                       padding: const EdgeInsets.only(bottom: 8),
@@ -263,6 +263,31 @@ class HospitalDashboardScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Get auth service from provider
+      final authService = ref.read(authServiceProvider);
+
+      // Perform logout
+      await authService.logout();
+
+      // Navigate to login screen
+      if (context.mounted) {
+        context.go('/login');
+      }
+    } catch (e) {
+      // Show error if logout fails
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }
 

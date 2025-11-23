@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:automed_app/core/utils/logger.dart';
 
 /// Advanced Internationalization Service for Healthcare Applications
 /// Supports ICU message formatting, RTL languages, medical terminology,
@@ -425,7 +426,7 @@ class InternationalizationService {
 
     // Implementation would integrate with platform TTS services
     // For now, this is a placeholder for the actual TTS implementation
-    print('Speaking in ${voiceConfig['language']}: $text');
+    Logger.info('Speaking in ${voiceConfig['language']}: $text');
   }
 
   Future<String?> listenForSpeech({String? language, Duration? timeout}) async {
@@ -435,7 +436,7 @@ class InternationalizationService {
 
     // Implementation would integrate with platform speech recognition
     // For now, this is a placeholder for the actual speech recognition implementation
-    print('Listening for speech in ${voiceConfig['language']}');
+    Logger.info('Listening for speech in ${voiceConfig['language']}');
     return null;
   }
 
@@ -463,7 +464,7 @@ class InternationalizationService {
     };
 
     // In a real implementation, this would save to a file or send to a translation service
-    print('Translations exported: ${json.encode(exportData)}');
+    Logger.info('Translations exported: ${json.encode(exportData)}');
   }
 
   Future<void> importTranslations(Map<String, dynamic> importData) async {

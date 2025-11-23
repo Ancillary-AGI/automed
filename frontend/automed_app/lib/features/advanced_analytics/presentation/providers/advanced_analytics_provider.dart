@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:automed_app/core/di/injection.dart';
 import 'package:automed_app/core/services/api_service.dart';
+import 'package:automed_app/core/utils/logger.dart';
 import 'package:automed_app/features/advanced_analytics/domain/models/analytics_models.dart';
 
 final advancedAnalyticsProvider = StateNotifierProvider<
@@ -77,13 +78,13 @@ class AdvancedAnalyticsNotifier
         return 0.0;
       }
 
-      print('[DEBUG][AdvancedAnalyticsNotifier] Types of fetched values:');
+      Logger.debug('Types of fetched values');
       try {
         final overview = fetched.isNotEmpty ? fetched[0] : <String, dynamic>{};
         void dbg(String key) {
           final val = overview[key];
-          print(
-              '[DEBUG][AdvancedAnalyticsNotifier] $key -> type=${val?.runtimeType} value=${val?.toString()}');
+          Logger.debug(
+              '$key -> type=${val?.runtimeType} value=${val?.toString()}');
         }
 
         dbg('activePatients');
@@ -95,8 +96,7 @@ class AdvancedAnalyticsNotifier
         dbg('avgResponseTime');
         dbg('responseTrend');
       } catch (e) {
-        print(
-            '[DEBUG][AdvancedAnalyticsNotifier] Failed to print debug values: $e');
+        Logger.debug('Failed to print debug values: $e');
       }
 
       // Safely extract overview and system services
@@ -172,7 +172,7 @@ class AdvancedAnalyticsNotifier
       state = AsyncValue.data(dashboardData);
     } catch (error, stackTrace) {
       // Semantic bug logging for diagnostics
-      print('[ERROR][AdvancedAnalyticsNotifier] $error\n$stackTrace');
+      Logger.error('Failed to load analytics: $error', error, stackTrace);
       state = AsyncValue.error(
         'Failed to load analytics: $error',
         stackTrace,
@@ -195,7 +195,7 @@ class AdvancedAnalyticsNotifier
           .get('/analytics/export?format=$format&timeRange=$_currentTimeRange');
       // TODO: handle export response (e.g., download file, show confirmation)
       // For now, show success message
-      print('Analytics exported successfully in $format format');
+      Logger.info('Analytics exported successfully in $format format');
       // In a real implementation, this would:
       // 1. Download the exported file
       // 2. Save it to device storage

@@ -29,15 +29,18 @@ class MobilePatientSummary extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Recent patients
-            ...List.generate(3, (index) => _buildPatientTile(
-              context,
-              'Patient ${index + 1}',
-              'Last visit: ${DateTime.now().subtract(Duration(days: index + 1)).toString().substring(0, 10)}',
-              _getStatusColor(index),
-              () => Navigator.pushNamed(context, '/patient-details', arguments: 'patient_${index + 1}'),
-            )),
+            ...List.generate(
+                3,
+                (index) => _buildPatientTile(
+                      context,
+                      'Patient ${index + 1}',
+                      'Last visit: ${DateTime.now().subtract(Duration(days: index + 1)).toString().substring(0, 10)}',
+                      _getStatusColor(index),
+                      () => Navigator.pushNamed(context, '/patient-details',
+                          arguments: 'patient_${index + 1}'),
+                    )),
           ],
         ),
       ),
@@ -55,7 +58,7 @@ class MobilePatientSummary extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.2),
+          backgroundColor: statusColor.withValues(alpha: 0.2),
           child: Icon(Icons.person, color: statusColor),
         ),
         title: Text(name),

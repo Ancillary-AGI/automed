@@ -280,9 +280,10 @@ class _PatientMonitoringPageState extends ConsumerState<PatientMonitoringPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.appSuccess.withOpacity(0.1),
+                color: AppColors.appSuccess.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.appSuccess.withOpacity(0.3)),
+                border: Border.all(
+                    color: AppColors.appSuccess.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [

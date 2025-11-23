@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:automed_app/core/theme/app_colors.dart';
 import 'package:automed_app/core/utils/responsive_utils.dart';
+import 'package:automed_app/core/providers/theme_provider.dart';
+import 'package:automed_app/core/di/injection.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -148,9 +150,90 @@ class SettingsPage extends ConsumerWidget {
   void _showAppearanceDialog(BuildContext context) {
     showDialog(
       context: context,
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final currentTheme = ref.watch(themeProvider);
+
+          return AlertDialog(
+            title: const Text('Appearance'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Choose your preferred theme:'),
+                const SizedBox(height: 16),
+                _buildThemeOption(
+                  context,
+                  ref,
+                  'System',
+                  'Follow system setting',
+                  ThemeModeOption.system,
+                  currentTheme,
+                ),
+                _buildThemeOption(
+                  context,
+                  ref,
+                  'Light',
+                  'Always use light theme',
+                  ThemeModeOption.light,
+                  currentTheme,
+                ),
+                _buildThemeOption(
+                  context,
+                  ref,
+                  'Dark',
+                  'Always use dark theme',
+                  ThemeModeOption.dark,
+                  currentTheme,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    String subtitle,
+    ThemeModeOption option,
+    ThemeModeOption currentTheme,
+  ) {
+    return RadioListTile<ThemeModeOption>(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      value: option,
+      groupValue: currentTheme,
+      onChanged: (value) {
+        if (value != null) {
+          ref.read(themeProvider.notifier).setThemeMode(value);
+        }
+      },
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Appearance'),
-        content: const Text('Appearance settings will be implemented here'),
+        title: const Text('Language'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Choose your preferred language:'),
+            const SizedBox(height: 16),
+            _buildLanguageOption(context, 'English', const Locale('en')),
+            _buildLanguageOption(context, 'Español', const Locale('es')),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -161,19 +244,22 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Language'),
-        content: const Text('Language settings will be implemented here'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+  Widget _buildLanguageOption(
+      BuildContext context, String languageName, Locale locale) {
+    return ListTile(
+      title: Text(languageName),
+      onTap: () {
+        // Note: In a real app, you would use a localization service
+        // For now, we'll just show a message
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Language changed to $languageName. Restart the app to see changes.'),
+            duration: const Duration(seconds: 3),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -246,19 +332,46 @@ class SettingsPage extends ConsumerWidget {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implement logout logic
-              context.go('/login');
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.appError,
+          Consumer(
+            builder: (context, ref, child) => TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _performLogout(context, ref);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.appError,
+              ),
+              child: const Text('Logout'),
             ),
-            child: const Text('Logout'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Get auth service from provider
+      final authService = ref.read(authServiceProvider);
+
+      // Perform logout
+      await authService.logout();
+
+      // Clear any cached data if needed
+      // Navigate to login screen
+      if (context.mounted) {
+        context.go('/login');
+      }
+    } catch (e) {
+      // Show error if logout fails
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $e'),
+            backgroundColor: AppColors.appError,
+          ),
+        );
+      }
+    }
   }
 }

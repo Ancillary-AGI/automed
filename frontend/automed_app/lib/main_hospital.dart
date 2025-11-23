@@ -226,7 +226,7 @@ class AutomedHospitalApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
 
       // Routing
       routerConfig: router,

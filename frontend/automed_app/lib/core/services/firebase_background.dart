@@ -1,9 +1,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:automed_app/core/utils/logger.dart';
 
 // Minimal firebase background message handler stub used by main.dart
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
-    print('Handling background message: ${message.messageId}');
+    Logger.info('Handling background message: ${message.messageId}');
 
     // Handle different message types
     if (message.data.containsKey('type')) {
@@ -12,31 +13,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       switch (messageType) {
         case 'emergency_alert':
           // Handle emergency alert notifications
-          print('Received emergency alert: ${message.data}');
+          Logger.info('Received emergency alert: ${message.data}');
           // Could trigger local notifications or background services
           break;
 
         case 'consultation_reminder':
           // Handle consultation reminders
-          print('Received consultation reminder: ${message.data}');
+          Logger.info('Received consultation reminder: ${message.data}');
           break;
 
         case 'medication_reminder':
           // Handle medication reminders
-          print('Received medication reminder: ${message.data}');
+          Logger.info('Received medication reminder: ${message.data}');
           break;
 
         default:
-          print('Unknown message type: $messageType');
+          Logger.warning('Unknown message type: $messageType');
       }
     }
 
     // Handle notification payload
     if (message.notification != null) {
-      print(
+      Logger.info(
           'Message also contained a notification: ${message.notification!.title}');
     }
   } catch (e) {
-    print('Error handling background message: $e');
+    Logger.error('Error handling background message: $e');
   }
 }

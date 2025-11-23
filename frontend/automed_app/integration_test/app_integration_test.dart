@@ -3,6 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:automed_app/main.dart';
 
+// Mock lifecycle observer for testing
+class MockAppLifecycleObserver extends WidgetsBindingObserver
+    implements AppLifecycleObserver {}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -10,7 +14,9 @@ void main() {
     testWidgets('app starts and shows main screen',
         (WidgetTester tester) async {
       // Build the app and trigger a frame.
-      await tester.pumpWidget(const AutomedApp());
+      await tester.pumpWidget(AutomedApp(
+        lifecycleObserver: MockAppLifecycleObserver(),
+      ));
 
       // Wait for the app to settle
       await tester.pumpAndSettle();
@@ -21,7 +27,9 @@ void main() {
 
     testWidgets('theme switching works', (WidgetTester tester) async {
       // Build the app
-      await tester.pumpWidget(const AutomedApp());
+      await tester.pumpWidget(AutomedApp(
+        lifecycleObserver: MockAppLifecycleObserver(),
+      ));
       await tester.pumpAndSettle();
 
       // The app should be using the default theme
@@ -33,7 +41,9 @@ void main() {
 
     testWidgets('navigation works', (WidgetTester tester) async {
       // Build the app
-      await tester.pumpWidget(const AutomedApp());
+      await tester.pumpWidget(AutomedApp(
+        lifecycleObserver: MockAppLifecycleObserver(),
+      ));
       await tester.pumpAndSettle();
 
       // Basic navigation test - app should have some navigation structure

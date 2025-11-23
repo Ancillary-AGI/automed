@@ -189,6 +189,24 @@ data class EmergencyAnalyticsResponse(
     val period: AnalyticsPeriod
 )
 
+data class EmergencyLocationUpdateRequest(
+    val latitude: Double,
+    val longitude: Double,
+    val timestamp: String? = null,
+    val accuracy: Double? = null,
+    val speed: Double? = null,
+    val altitude: Double? = null,
+    val heading: Double? = null,
+    val userId: String? = null
+)
+
+data class EmergencyLocationUpdateResponse(
+    val success: Boolean,
+    val message: String,
+    val locationId: String? = null,
+    val timestamp: LocalDateTime = LocalDateTime.now()
+)
+
 data class AnalyticsPeriod(
     val startDate: LocalDateTime,
     val endDate: LocalDateTime

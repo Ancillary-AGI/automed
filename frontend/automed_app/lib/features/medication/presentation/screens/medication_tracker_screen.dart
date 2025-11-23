@@ -180,7 +180,7 @@ class _MedicationTrackerScreenState
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.6),
+                                  .withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -209,13 +209,17 @@ class _MedicationTrackerScreenState
           Icon(
             Icons.medication_outlined,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: AppTextStyles.titleMedium.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
             textAlign: TextAlign.center,
           ),
@@ -252,7 +256,10 @@ class _MedicationTrackerScreenState
           Text(
             error,
             style: AppTextStyles.bodySmall.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
             textAlign: TextAlign.center,
           ),

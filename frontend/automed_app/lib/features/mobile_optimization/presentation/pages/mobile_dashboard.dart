@@ -33,7 +33,8 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
     return Scaffold(
       body: SafeArea(
         child: dashboardState.when(
-          data: (data) => isTablet ? _buildTabletLayout(data) : _buildPhoneLayout(data),
+          data: (data) =>
+              isTablet ? _buildTabletLayout(data) : _buildPhoneLayout(data),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => _buildErrorState(error),
         ),
@@ -57,21 +58,21 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
                 // Quick Actions
                 const MobileQuickActions(),
                 const SizedBox(height: 16),
-                
+
                 // Critical Alerts
                 if (data.criticalAlerts.isNotEmpty) ...[
                   const MobileAlertsPanel(),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Patient Summary Cards
                 const MobilePatientSummary(),
                 const SizedBox(height: 16),
-                
+
                 // Vital Signs Monitor
                 const MobileVitalsMonitor(),
                 const SizedBox(height: 16),
-                
+
                 // Recent Activities
                 _buildRecentActivities(data.recentActivities),
                 const SizedBox(height: 80), // Space for FAB
@@ -102,7 +103,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
             ],
           ),
         ),
-        
+
         // Main Content Area
         Expanded(
           child: Column(
@@ -114,7 +115,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
                   padding: const EdgeInsets.all(16),
                   child: const MobileAlertsPanel(),
                 ),
-              
+
               // Content Tabs
               Expanded(
                 child: TabBarView(
@@ -152,7 +153,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
               end: Alignment.bottomRight,
               colors: [
                 Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -185,7 +186,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
                 ),
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
                   child: const Icon(Icons.person, color: Colors.white),
                 ),
               ],
@@ -222,7 +223,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
                 child: const Icon(Icons.person, color: Colors.white),
               ),
               const SizedBox(width: 12),
@@ -280,7 +281,9 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            ...activities.take(10).map((activity) => _buildActivityTile(activity)),
+            ...activities
+                .take(10)
+                .map((activity) => _buildActivityTile(activity)),
           ],
         ),
       ),
@@ -290,7 +293,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
   Widget _buildActivityTile(dynamic activity) {
     IconData icon;
     Color iconColor;
-    
+
     switch (activity.type) {
       case 'patient_admission':
         icon = Icons.person_add;
@@ -315,7 +318,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.2),
+        backgroundColor: iconColor.withValues(alpha: 0.2),
         child: Icon(icon, color: iconColor),
       ),
       title: Text(activity.title),
@@ -344,10 +347,14 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             children: [
-              _buildMetricCard('Patient Load', '${data.activePatients}', Icons.people, Colors.blue),
-              _buildMetricCard('Avg Response', '${data.avgResponseTime}min', Icons.timer, Colors.green),
-              _buildMetricCard('Bed Occupancy', '${data.bedOccupancy}%', Icons.bed, Colors.orange),
-              _buildMetricCard('Critical Alerts', '${data.criticalAlerts.length}', Icons.warning, Colors.red),
+              _buildMetricCard('Patient Load', '${data.activePatients}',
+                  Icons.people, Colors.blue),
+              _buildMetricCard('Avg Response', '${data.avgResponseTime}min',
+                  Icons.timer, Colors.green),
+              _buildMetricCard('Bed Occupancy', '${data.bedOccupancy}%',
+                  Icons.bed, Colors.orange),
+              _buildMetricCard('Critical Alerts',
+                  '${data.criticalAlerts.length}', Icons.warning, Colors.red),
             ],
           ),
         ],
@@ -355,7 +362,8 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
     );
   }
 
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(
+      String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -457,7 +465,7 @@ class _MobileDashboardState extends ConsumerState<MobileDashboard>
   String _formatTime(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inHours < 1) {

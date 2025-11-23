@@ -112,14 +112,17 @@ class ResearchDashboardPage extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.appPrimary, AppColors.withOpacity(AppColors.appPrimary, 0.8)],
+          colors: [
+            AppColors.appPrimary,
+            AppColors.appPrimary.withValues(alpha: 0.8)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.appPrimary.withOpacity(0.3),
+            color: AppColors.appPrimary.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -151,7 +154,7 @@ class ResearchDashboardPage extends ConsumerWidget {
           Text(
             'Advanced computational tools for cutting-edge medical research',
             style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.onPrimary.withOpacity(0.9),
+              color: AppColors.onPrimary.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 16),
@@ -186,7 +189,7 @@ class ResearchDashboardPage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.onPrimary.withOpacity(0.1),
+          color: AppColors.onPrimary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -207,7 +210,7 @@ class ResearchDashboardPage extends ConsumerWidget {
             Text(
               label,
               style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.onPrimary.withOpacity(0.8),
+                color: AppColors.onPrimary.withValues(alpha: 0.8),
               ),
               textAlign: TextAlign.center,
             ),

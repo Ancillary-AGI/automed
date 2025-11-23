@@ -84,6 +84,12 @@ class EmergencyController(
             .map { ResponseEntity.ok(it) }
     }
 
+    @PostMapping("/location/update")
+    fun updateEmergencyLocation(@RequestBody request: EmergencyLocationUpdateRequest): Mono<ResponseEntity<EmergencyLocationUpdateResponse>> {
+        return emergencyResponseService.updateEmergencyLocation(request)
+            .map { ResponseEntity.ok(it) }
+    }
+
     @GetMapping("/analytics")
     fun getEmergencyAnalytics(
         @RequestParam(required = false) startDate: LocalDateTime?,

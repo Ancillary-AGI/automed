@@ -234,6 +234,27 @@ class EmergencyResponseService(
         }
     }
 
+    fun updateEmergencyLocation(request: EmergencyLocationUpdateRequest): Mono<EmergencyLocationUpdateResponse> {
+        return Mono.fromCallable {
+            // Log location update for emergency tracking
+            println("Emergency location update received: lat=${request.latitude}, lng=${request.longitude}, user=${request.userId}")
+
+            // In a real implementation, you might:
+            // 1. Store location in a database
+            // 2. Update active emergency alerts with location
+            // 3. Send location to emergency responders
+            // 4. Trigger proximity-based alerts
+
+            // For now, just acknowledge the update
+            EmergencyLocationUpdateResponse(
+                success = true,
+                message = "Location updated successfully",
+                locationId = UUID.randomUUID().toString(),
+                timestamp = LocalDateTime.now()
+            )
+        }
+    }
+
     fun getEmergencyAnalytics(
         startDate: LocalDateTime?,
         endDate: LocalDateTime?

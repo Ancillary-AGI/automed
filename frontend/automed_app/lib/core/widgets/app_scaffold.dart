@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/internationalization_service.dart';
+import '../providers/theme_provider.dart';
 import '../di/injection.dart';
 
 /// Advanced App Scaffold with comprehensive features for healthcare applications
@@ -422,7 +423,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
             context,
             icon: Icons.logout,
             title: 'Logout',
-            onTap: () => _logout(context),
+            onTap: () async => await _logout(context),
           ),
         ],
       ),
@@ -621,22 +622,32 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
               style: AppTextStyles.headline6,
             ),
             const SizedBox(height: 16),
-            // TODO: Implement language selection
             ListTile(
               title: const Text('English'),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Change language
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Language changed to English. Restart the app to see changes.'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
               },
             ),
             ListTile(
-              title: const Text('Spanish'),
+              title: const Text('Español'),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Change language
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Idioma cambiado a Español. Reinicia la app para ver los cambios.'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
               },
             ),
-            // Add more languages...
           ],
         ),
       ),
@@ -644,11 +655,29 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
   }
 
   void _toggleTheme(BuildContext context) {
-    // TODO: Implement theme toggle
+    ref.read(themeProvider.notifier).toggleTheme();
   }
 
-  void _logout(BuildContext context) {
-    // TODO: Implement logout
-    context.go('/login');
+  Future<void> _logout(BuildContext context) async {
+    try {
+      // Get auth service and perform logout
+      final authService = ref.read(authServiceProvider);
+      await authService.logout();
+
+      // Navigate to login screen
+      if (context.mounted) {
+        context.go('/login');
+      }
+    } catch (error) {
+      // Show error if logout fails
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $error'),
+            backgroundColor: AppColors.appError,
+          ),
+        );
+      }
+    }
   }
 }

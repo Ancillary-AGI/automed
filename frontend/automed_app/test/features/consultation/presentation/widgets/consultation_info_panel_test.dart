@@ -62,7 +62,7 @@ void main() {
     });
 
     testWidgets('displays notes when available', (WidgetTester tester) async {
-      final consultationWithNotes = const MockConsultation(
+      const consultationWithNotes = MockConsultation(
         type: 'Video Consultation',
         doctorName: 'Dr. Smith',
         status: 'Active',
@@ -87,7 +87,7 @@ void main() {
 
     testWidgets('does not display notes when empty',
         (WidgetTester tester) async {
-      final consultationWithoutNotes = const MockConsultation(
+      const consultationWithoutNotes = MockConsultation(
         type: 'Video Consultation',
         doctorName: 'Dr. Smith',
         status: 'Active',
@@ -111,7 +111,7 @@ void main() {
 
     testWidgets('does not display notes when null',
         (WidgetTester tester) async {
-      final consultationWithoutNotes = const MockConsultation(
+      const consultationWithoutNotes = MockConsultation(
         type: 'Video Consultation',
         doctorName: 'Dr. Smith',
         status: 'Active',
@@ -135,7 +135,7 @@ void main() {
 
     testWidgets('displays unknown values for missing data',
         (WidgetTester tester) async {
-      final incompleteConsultation = const MockConsultation();
+      const incompleteConsultation = MockConsultation();
 
       await TestUtils.pumpAndSettleWidget(
         tester,
@@ -260,7 +260,7 @@ void main() {
 
     testWidgets('displays different consultation types correctly',
         (WidgetTester tester) async {
-      final phoneConsultation = const MockConsultation(
+      const phoneConsultation = MockConsultation(
         type: 'Phone Consultation',
         doctorName: 'Dr. Johnson',
         status: 'Completed',
