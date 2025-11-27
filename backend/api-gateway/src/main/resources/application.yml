@@ -1,55 +1,407 @@
+# Google-Level Production Configuration for API Gateway
 spring:
   application:
     name: api-gateway
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:automed_gateway}
+    username: ${DB_USERNAME:automed}
+    password: ${DB_PASSWORD:secure_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 2000ms
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:automed}
+    password: ${RABBITMQ_PASSWORD:secure_password}
+    virtual-host: ${RABBITMQ_VHOST:/automed}
+    listener:
+      simple:
+        concurrency: 10
+        max-concurrency: 20
+        prefetch: 1
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8080/auth/realms/automed}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:8080/auth/realms/automed/protocol/openid-connect/certs}
+
+  # Cloud Gateway Configuration (Programmatic routing takes precedence)
   cloud:
     gateway:
-      routes:
-        - id: patient-service
-          uri: lb://patient-service
-          predicates:
-            - Path=/api/v1/patients/**
-          filters:
-            - RewritePath=/api/v1/patients/(?<path>.*), /api/v1/patients/${path}
-        - id: hospital-service
-          uri: lb://hospital-service
-          predicates:
-            - Path=/api/v1/hospitals/**
-          filters:
-            - RewritePath=/api/v1/hospitals/(?<path>.*), /api/v1/hospitals/${path}
-        - id: consultation-service
-          uri: lb://consultation-service
-          predicates:
-            - Path=/api/v1/consultations/**
-          filters:
-            - RewritePath=/api/v1/consultations/(?<path>.*), /api/v1/consultations/${path}
-        - id: sync-service
-          uri: lb://sync-service
-          predicates:
-            - Path=/api/v1/sync/**
-          filters:
-            - RewritePath=/api/v1/sync/(?<path>.*), /api/v1/sync/${path}
-        - id: ai-service
-          uri: lb://ai-service
-          predicates:
-            - Path=/api/v1/ai/**
-          filters:
-            - RewritePath=/api/v1/ai/(?<path>.*), /api/v1/ai/${path}
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 30s
+        pool:
+          type: elastic
+          max-idle-time: 30s
+          max-life-time: 60s
+      metrics:
+        enabled: true
 
+  # Sleuth Configuration for Distributed Tracing
+  sleuth:
+    sampler:
+      probability: ${TRACING_SAMPLING_RATE:0.1}
+    web:
+      skip-pattern: "/actuator/.*|/health|/metrics"
+    messaging:
+      rabbit:
+        enabled: true
+
+  # Jackson Configuration for JSON processing
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: NON_NULL
+
+# Server Configuration
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20s
+    keep-alive-timeout: 20s
+  shutdown: graceful
 
+# Management/Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,env,configprops,loggers,threaddump,heapdump
+      base-path: /actuator
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  health:
+    diskspace:
+      threshold: 10MB
+    circuitbreakers:
+      enabled: true
+    rabbit:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 30s
+    tags:
+      application: ${spring.application.name}
+      environment: ${app.environment:production}
+      region: ${app.region:us-central1}
+      zone: ${app.zone:us-central1-a}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,500ms,1000ms,2000ms
 
+# Application-Specific Configuration
+app:
+  name: "Automed API Gateway"
+  version: "2.0.0"
+  environment: ${ENVIRONMENT:production}
+  region: ${REGION:us-central1}
+  zone: ${ZONE:us-central1-a}
+
+  # Security Configuration
+  security:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:https://*.automed.com,http://localhost:*,https://localhost:*}
+    jwt:
+      issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/auth/realms/automed}
+      clock-skew: 60s
+      leeway: 30s
+    api-keys:
+      enabled: ${API_KEYS_ENABLED:false}
+
+  # Resilience Configuration
+  resilience:
+    circuit-breaker:
+      failure-rate-threshold: 50.0
+      wait-duration-in-open-state: 30s
+      permitted-number-of-calls-in-half-open-state: 3
+      sliding-window-size: 10
+      minimum-number-of-calls: 5
+    retry:
+      max-attempts: 3
+      backoff: 100ms
+      jitter: 0.1
+    bulkhead:
+      max-concurrent-calls: 20
+      max-wait-duration: 500ms
+    timeout:
+      default-timeout: 30s
+      emergency-timeout: 5s
+      ai-timeout: 120s
+
+  # Observability Configuration
+  observability:
+    service-name: ${spring.application.name}
+    service-version: ${app.version}
+    metrics:
+      enabled: true
+      step: 30s
+      include-jvm-metrics: true
+      include-system-metrics: true
+    tracing:
+      enabled: true
+      sampling-rate: ${TRACING_SAMPLING_RATE:0.1}
+      include-headers: false
+    logging:
+      level: ${LOG_LEVEL:INFO}
+      include-correlation-id: true
+      include-request-id: true
+      structured-logging: true
+
+  # Cache Configuration
+  cache:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+    ttl:
+      default: 3600
+      patient: 1800
+      hospital: 3600
+      ai: 7200
+
+  # Messaging Configuration
+  messaging:
+    rabbitmq:
+      host: ${RABBITMQ_HOST:localhost}
+      port: ${RABBITMQ_PORT:5672}
+      username: ${RABBITMQ_USERNAME:automed}
+      password: ${RABBITMQ_PASSWORD:secure_password}
+      virtual-host: ${RABBITMQ_VHOST:/automed}
+
+  # Feature Flags
+  features:
+    emergency-response: true
+    ai-predictions: ${AI_PREDICTIONS_ENABLED:false}
+    advanced-analytics: true
+    telemedicine: true
+    research-module: ${RESEARCH_MODULE_ENABLED:false}
+    blockchain-audit: ${BLOCKCHAIN_AUDIT_ENABLED:false}
+    multi-tenant: ${MULTI_TENANT_ENABLED:false}
+
+# Logging Configuration
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    root: ${LOG_LEVEL:INFO}
+    com.automed: ${LOG_LEVEL:INFO}
+    org.springframework: WARN
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.amqp: INFO
+    org.springframework.data.redis: INFO
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId:-}] [%X{requestId:-}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId:-}] [%X{requestId:-}] [%X{userId:-}] [%X{clientIp:-}] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/api-gateway.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+    instance-info-replication-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    metadata-map:
+      zone: ${app.zone}
+      profile: ${spring.profiles.active}
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30000
+        permittedNumberOfCallsInHalfOpenState: 3
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 60000
+    instances:
+      patient-service:
+        baseConfig: default
+      hospital-service:
+        baseConfig: default
+      ai-service:
+        baseConfig: default
+        waitDurationInOpenState: 60000
+      emergency-service:
+        baseConfig: default
+        waitDurationInOpenState: 10000
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 100
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        ignoreExceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      patient-service:
+        baseConfig: default
+      hospital-service:
+        baseConfig: default
+      ai-service:
+        baseConfig: default
+        waitDuration: 500
+
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 500
+    instances:
+      patient-service:
+        baseConfig: default
+      hospital-service:
+        baseConfig: default
+      ai-service:
+        baseConfig: default
+        maxConcurrentCalls: 5
+
+  ratelimiter:
+    configs:
+      default:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1000
+        timeoutDuration: 1000
+        registerHealthIndicator: true
+    instances:
+      api-calls:
+        baseConfig: default
+      emergency-calls:
+        baseConfig: default
+        limitForPeriod: 100
+
+# Micrometer Configuration
+micrometer:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 30s
+        descriptions: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,500ms,1000ms,2000ms
+
+---
+# Development Profile Overrides
+spring:
+  config:
+    activate:
+      on-profile: dev
+app:
+  environment: development
+  features:
+    ai-predictions: true
+    research-module: true
+logging:
+  level:
     com.automed: DEBUG
+    org.springframework: INFO
+
+---
+# Staging Profile Overrides
+spring:
+  config:
+    activate:
+      on-profile: staging
+app:
+  environment: staging
+  features:
+    ai-predictions: true
+    research-module: true
+
+---
+# Production Profile Overrides
+spring:
+  config:
+    activate:
+      on-profile: prod
+app:
+  environment: production
+  features:
+    ai-predictions: ${AI_PREDICTIONS_ENABLED:true}
+    research-module: ${RESEARCH_MODULE_ENABLED:true}
+    blockchain-audit: ${BLOCKCHAIN_AUDIT_ENABLED:true}
+logging:
+  level:
+    root: WARN
+    com.automed: INFO

@@ -1,407 +1,463 @@
-name: Automed CI/CD Pipeline
+name: CI/CD Pipeline for Automed Healthcare Platform
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  release:
+    types: [ published ]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: automed
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Backend Tests and Build
-  backend-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [
-          patient-service,
-          hospital-service,
-          consultation-service,
-          ai-service,
-          clinical-decision-service,
-          workflow-automation-service,
-          sync-service,
-          tenant-service,
-          monitoring-service
-        ]
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Run tests for ${{ matrix.service }}
-      run: |
-        cd backend/${{ matrix.service }}
-        ./gradlew test jacocoTestReport
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results-${{ matrix.service }}
-        path: backend/${{ matrix.service }}/build/reports/
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: backend/${{ matrix.service }}/build/reports/jacoco/test/jacocoTestReport.xml
-        flags: backend-${{ matrix.service }}
-
-  # Frontend Tests and Build
-  frontend-test:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.16.0'
-        channel: 'stable'
-
-    - name: Get Flutter dependencies
-      run: |
-        cd frontend/automed_app
-        flutter pub get
-
-    - name: Run code generation
-      run: |
-        cd frontend/automed_app
-        dart run build_runner build --delete-conflicting-outputs
-
-    - name: Analyze Flutter code
-      run: |
-        cd frontend/automed_app
-        flutter analyze
-
-    - name: Run Flutter tests
-      run: |
-        cd frontend/automed_app
-        flutter test --coverage
-
-    - name: Upload Flutter coverage
-      uses: codecov/codecov-action@v3
-      with:
-        file: frontend/automed_app/coverage/lcov.info
-        flags: frontend
-
-    - name: Run integration tests
-      run: |
-        cd frontend/automed_app
-        flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_integration_test.dart
-
-  # Security Scanning
+  # Security Scanning and Code Quality
   security-scan:
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test]
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-    - name: Run OWASP Dependency Check
-      uses: dependency-check/Dependency-Check_Action@main
-      with:
-        project: 'automed'
-        path: '.'
-        format: 'ALL'
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-    - name: Upload OWASP results
-      uses: actions/upload-artifact@v3
-      with:
-        name: dependency-check-report
-        path: reports/
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
 
-  # Build and Push Docker Images
-  build-and-push:
+      - name: Run OWASP Dependency Check
+        run: |
+          ./gradlew dependencyCheckAnalyze --continue
+        continue-on-error: true
+
+      - name: Upload OWASP results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: owasp-dependency-check-report
+          path: build/reports/
+
+  # Backend Testing and Build
+  backend-test:
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test, security-scan]
-    if: github.ref == 'refs/heads/main'
-    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: automed_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+      rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+          - 5672:5672
+          - 15672:15672
+        env:
+          RABBITMQ_DEFAULT_USER: automed
+          RABBITMQ_DEFAULT_PASS: test_password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run backend tests
+        run: |
+          ./gradlew test jacocoTestReport --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: automed_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USERNAME: automed
+          RABBITMQ_PASSWORD: test_password
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            **/build/test-results/
+            **/build/reports/tests/
+            **/build/reports/jacoco/
+
+      - name: Run SonarQube analysis
+        uses: sonarsource/sonarsource.github.action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=automed-backend
+            -Dsonar.sources=backend/
+            -Dsonar.tests=backend/
+            -Dsonar.test.inclusions=**/*Test.kt,**/*IT.kt
+            -Dsonar.coverage.jacoco.xmlReportPaths=**/build/reports/jacoco/test/jacocoTestReport.xml
+
+  # Frontend Testing and Build
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/automed_app/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install Flutter dependencies
+        run: |
+          cd frontend/automed_app
+          flutter pub get
+
+      - name: Run Flutter analyze
+        run: |
+          cd frontend/automed_app
+          flutter analyze --fatal-infos
+
+      - name: Run Flutter tests
+        run: |
+          cd frontend/automed_app
+          flutter test --coverage
+
+      - name: Upload Flutter test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            frontend/automed_app/coverage/
+            frontend/automed_app/test-results/
+
+  # Build Docker Images
+  build-images:
+    runs-on: ubuntu-latest
+    needs: [security-scan, backend-test, frontend-test]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     strategy:
       matrix:
-        service: [
-          api-gateway,
-          patient-service,
-          hospital-service,
-          consultation-service,
-          ai-service,
-          clinical-decision-service,
-          workflow-automation-service,
-          sync-service,
-          tenant-service,
-          monitoring-service
-        ]
-    
+        service: [api-gateway, patient-service, hospital-service, ai-service, research-service, emergency-response-service]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: backend/${{ matrix.service }}
-        file: backend/${{ matrix.service }}/Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
 
-  # Build Flutter Web App
-  build-flutter-web:
+  # Build Frontend Images
+  build-frontend:
     runs-on: ubuntu-latest
-    needs: [frontend-test]
-    if: github.ref == 'refs/heads/main'
-    
+    needs: [security-scan, frontend-test]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.16.0'
-        channel: 'stable'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
 
-    - name: Get Flutter dependencies
-      run: |
-        cd frontend/automed_app
-        flutter pub get
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Run code generation
-      run: |
-        cd frontend/automed_app
-        dart run build_runner build --delete-conflicting-outputs
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Flutter web
-      run: |
-        cd frontend/automed_app
-        flutter build web --release
+      - name: Build Flutter web app
+        run: |
+          cd frontend/automed_app
+          flutter build web --release --dart-define=ENVIRONMENT=production
 
-    - name: Upload web build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: flutter-web-build
-        path: frontend/automed_app/build/web/
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/automed_app
+          file: ./frontend/automed_app/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
   # Deploy to Staging
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [build-and-push, build-flutter-web]
-    if: github.ref == 'refs/heads/main'
+    needs: [build-images, build-frontend]
+    if: github.ref == 'refs/heads/develop'
     environment: staging
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
 
-    - name: Configure kubectl
-      run: |
-        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
+      - name: Deploy to staging
+        run: |
+          # Update image tags in k8s manifests
+          sed -i "s|image:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api-gateway:${{ github.sha }}|g" k8s/api-gateway-deployment.yaml
+          sed -i "s|image:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/patient-service:${{ github.sha }}|g" k8s/patient-service-deployment.yaml
+          # ... update other services
 
-    - name: Deploy to staging
-      run: |
-        export KUBECONFIG=kubeconfig
-        
-        # Update image tags in Kubernetes manifests
-        sed -i "s|IMAGE_TAG|${{ github.sha }}|g" k8s/staging/*.yaml
-        
-        # Apply Kubernetes manifests
-        kubectl apply -f k8s/staging/namespace.yaml
-        kubectl apply -f k8s/staging/
-        
-        # Wait for deployment to complete
-        kubectl rollout status deployment/api-gateway -n automed-staging
-        kubectl rollout status deployment/patient-service -n automed-staging
-        kubectl rollout status deployment/hospital-service -n automed-staging
-        kubectl rollout status deployment/consultation-service -n automed-staging
+          # Apply Kubernetes manifests
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/
 
-    - name: Run smoke tests
-      run: |
-        # Wait for services to be ready
-        sleep 60
-        
-        # Run basic health checks
-        curl -f http://staging.automed.com/health || exit 1
-        curl -f http://staging.automed.com/api/patients/health || exit 1
-        curl -f http://staging.automed.com/api/hospitals/health || exit 1
+          # Wait for rollout
+          kubectl rollout status deployment/api-gateway -n automed-staging --timeout=600s
+
+      - name: Run integration tests
+        run: |
+          # Run integration tests against staging environment
+          ./gradlew integrationTest -Dtest.environment=staging
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-images, build-frontend]
+    if: github.event_name == 'release'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Deploy to production with blue-green strategy
+        run: |
+          # Implement blue-green deployment
+          BLUE_GREEN_STRATEGY=blue
+
+          # Update image tags for blue deployment
+          sed -i "s|image:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api-gateway:${{ github.sha }}|g" k8s/blue/
+          # ... update other services
+
+          # Apply blue deployment
+          kubectl apply -f k8s/blue/
+
+          # Wait for blue deployment to be ready
+          kubectl rollout status deployment/api-gateway-blue -n automed --timeout=600s
+
+          # Run smoke tests on blue deployment
+          ./gradlew smokeTest -Dtest.environment=blue
+
+          # Switch traffic to blue deployment (update ingress/service)
+          kubectl patch service api-gateway -p '{"spec":{"selector":{"version":"blue"}}}'
+
+          # Monitor for 5 minutes
+          sleep 300
+
+          # If successful, scale down green deployment
+          kubectl scale deployment api-gateway-green --replicas=0
+
+      - name: Run production validation tests
+        run: |
+          # Run comprehensive validation tests
+          ./gradlew productionValidationTest
+
+      - name: Create deployment notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # Performance Testing
   performance-test:
     runs-on: ubuntu-latest
     needs: [deploy-staging]
-    if: github.ref == 'refs/heads/main'
-    
+    if: github.ref == 'refs/heads/develop'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Run performance tests
+        run: |
+          cd performance-tests
+          npm install
+          npm run test:load
+          npm run test:stress
+          npm run test:spike
 
-    - name: Install Artillery
-      run: npm install -g artillery
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-test-results
+          path: performance-tests/results/
 
-    - name: Run performance tests
-      run: |
-        cd performance-tests
-        artillery run load-test.yml --output report.json
-
-    - name: Generate performance report
-      run: |
-        cd performance-tests
-        artillery report report.json --output report.html
-
-    - name: Upload performance results
-      uses: actions/upload-artifact@v3
-      with:
-        name: performance-test-results
-        path: performance-tests/report.html
-
-  # Deploy to Production
-  deploy-production:
+  # Chaos Engineering
+  chaos-test:
     runs-on: ubuntu-latest
-    needs: [deploy-staging, performance-test]
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'schedule'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
+      - name: Run chaos experiments
+        run: |
+          # Install chaos toolkit
+          pip install chaostoolkit
+          pip install chaostoolkit-kubernetes
 
-    - name: Configure kubectl
-      run: |
-        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
+          # Run chaos experiments
+          chaos run chaos/pod-kill-experiment.json
+          chaos run chaos/network-delay-experiment.json
+          chaos run chaos/cpu-stress-experiment.json
 
-    - name: Deploy to production
-      run: |
-        export KUBECONFIG=kubeconfig
-        
-        # Update image tags in Kubernetes manifests
-        sed -i "s|IMAGE_TAG|${{ github.sha }}|g" k8s/production/*.yaml
-        
-        # Apply Kubernetes manifests with rolling update
-        kubectl apply -f k8s/production/namespace.yaml
-        kubectl apply -f k8s/production/
-        
-        # Wait for deployment to complete
-        kubectl rollout status deployment/api-gateway -n automed-production --timeout=600s
-        kubectl rollout status deployment/patient-service -n automed-production --timeout=600s
-        kubectl rollout status deployment/hospital-service -n automed-production --timeout=600s
-        kubectl rollout status deployment/consultation-service -n automed-production --timeout=600s
+      - name: Upload chaos results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: chaos-test-results
+          path: chaos-results/
 
-    - name: Run production health checks
-      run: |
-        # Wait for services to be ready
-        sleep 120
-        
-        # Run comprehensive health checks
-        curl -f https://api.automed.com/health || exit 1
-        curl -f https://api.automed.com/api/patients/health || exit 1
-        curl -f https://api.automed.com/api/hospitals/health || exit 1
-        curl -f https://api.automed.com/api/consultations/health || exit 1
-        curl -f https://api.automed.com/api/ai/health || exit 1
-
-    - name: Notify deployment success
-      uses: 8398a7/action-slack@v3
-      with:
-        status: success
-        text: 'Automed deployment to production completed successfully! 🚀'
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  # Rollback on Failure
-  rollback-on-failure:
+  # Rollback Job (Manual trigger)
+  rollback:
     runs-on: ubuntu-latest
-    needs: [deploy-production]
-    if: failure()
-    
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
     steps:
-    - name: Rollback production deployment
-      run: |
-        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
-        
-        # Rollback to previous version
-        kubectl rollout undo deployment/api-gateway -n automed-production
-        kubectl rollout undo deployment/patient-service -n automed-production
-        kubectl rollout undo deployment/hospital-service -n automed-production
-        kubectl rollout undo deployment/consultation-service -n automed-production
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Notify rollback
-      uses: 8398a7/action-slack@v3
-      with:
-        status: failure
-        text: 'Automed deployment failed and has been rolled back! ⚠️'
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Rollback deployment
+        run: |
+          # Rollback to previous version
+          kubectl rollout undo deployment/api-gateway
+          kubectl rollout undo deployment/patient-service
+          # ... rollback other services
+
+          # Verify rollback
+          kubectl rollout status deployment/api-gateway --timeout=300s
