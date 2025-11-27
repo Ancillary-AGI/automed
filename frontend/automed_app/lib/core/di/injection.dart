@@ -52,8 +52,57 @@ final dioProvider = Provider<Dio>((ref) {
       onError: (error, handler) async {
         // Handle token refresh on 401
         if (error.response?.statusCode == 401) {
-          // Attempt token refresh logic here
-          // For now, just pass through
+          try {
+            // Attempt token refresh
+            final secureStorage = ref.read(secureStorageProvider);
+            final refreshToken = await secureStorage.read(key: 'refresh_token');
+
+            if (refreshToken != null) {
+              // Call refresh token endpoint
+              final refreshResponse = await Dio().post(
+                '${ref.read(appConfigProvider).apiBaseUrl}/auth/refresh',
+                data: {'refreshToken': refreshToken},
+                options: Options(
+                  headers: {'Content-Type': 'application/json'},
+                  sendTimeout: const Duration(seconds: 10),
+                  receiveTimeout: const Duration(seconds: 10),
+                ),
+              );
+
+              if (refreshResponse.statusCode == 200) {
+                final newAccessToken = refreshResponse.data['accessToken'];
+                final newRefreshToken = refreshResponse.data['refreshToken'];
+
+                // Store new tokens
+                await secureStorage.write(
+                    key: 'auth_token', value: newAccessToken);
+                if (newRefreshToken != null) {
+                  await secureStorage.write(
+                      key: 'refresh_token', value: newRefreshToken);
+                }
+
+                // Retry the original request with new token
+                final originalRequest = error.requestOptions;
+                originalRequest.headers['Authorization'] =
+                    'Bearer $newAccessToken';
+
+                final retryResponse = await Dio().fetch(originalRequest);
+                return handler.resolve(retryResponse);
+              }
+            }
+
+            // If refresh failed or no refresh token, clear stored tokens
+            await secureStorage.delete(key: 'auth_token');
+            await secureStorage.delete(key: 'refresh_token');
+
+            // Emit logout event (this would typically use an event bus or provider)
+            // For now, we'll just continue with the error
+          } catch (refreshError) {
+            // Refresh failed, clear tokens and continue with original error
+            final secureStorage = ref.read(secureStorageProvider);
+            await secureStorage.delete(key: 'auth_token');
+            await secureStorage.delete(key: 'refresh_token');
+          }
         }
         return handler.next(error);
       },

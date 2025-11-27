@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:automed_app/core/theme/app_text_styles.dart';
 import 'package:automed_app/core/widgets/app_scaffold.dart';
 import 'package:automed_app/core/services/background_location_service.dart';
+import 'package:automed_app/core/models/hospital_models.dart';
+import 'package:automed_app/core/models/patient_models.dart';
 import 'package:automed_app/generated/l10n.dart';
 import 'package:automed_app/features/emergency/presentation/providers/emergency_provider.dart';
 import 'package:automed_app/features/emergency/presentation/widgets/emergency_button.dart';
@@ -368,22 +372,228 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
       return;
     }
 
-    // TODO: Navigate to map screen with nearest hospitals
-    // For now, show a placeholder
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Finding nearest hospitals...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Call API to find nearest hospitals
+      // For now, return mock hospitals - in production this would call the actual API
+      final hospitals = await _getMockHospitals();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (hospitals.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('No Hospitals Found'),
+            content: const Text('No hospitals found nearby your location.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // Show hospital selection dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Nearest Hospitals'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: hospitals.length,
+              itemBuilder: (context, index) {
+                final hospital = hospitals[index];
+                final distance = _calculateDistance(
+                  _currentPosition!.latitude,
+                  _currentPosition!.longitude,
+                  hospital.address.latitude ?? _currentPosition!.latitude,
+                  hospital.address.longitude ?? _currentPosition!.longitude,
+                );
+
+                return ListTile(
+                  leading: const Icon(Icons.local_hospital, color: Colors.red),
+                  title: Text(hospital.name),
+                  subtitle: Text('${distance.toStringAsFixed(1)} km away'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.directions),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _openDirections(hospital);
+                    },
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _showHospitalDetails(hospital);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).close),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to find hospitals. Please try again.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<List<Hospital>> _getMockHospitals() async {
+    // Simulate API delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Return mock hospitals near the user's location
+    final baseLat = _currentPosition!.latitude;
+    final baseLon = _currentPosition!.longitude;
+
+    return [
+      Hospital(
+        id: '1',
+        name: 'City General Hospital',
+        type: 'GENERAL',
+        address: Address(
+          street: '123 Main St',
+          city: 'City Center',
+          state: 'State',
+          country: 'Country',
+          zipCode: '12345',
+          latitude: baseLat + 0.01,
+          longitude: baseLon + 0.01,
+        ),
+        phoneNumber: '+1-555-0101',
+        specialties: ['Emergency Medicine', 'Cardiology', 'Surgery'],
+        status: HospitalStatus.active,
+        capacity: 500,
+        currentOccupancy: 350,
+        createdAt: DateTime.now().subtract(const Duration(days: 365)),
+        updatedAt: DateTime.now(),
+      ),
+      Hospital(
+        id: '2',
+        name: 'Regional Medical Center',
+        type: 'GENERAL',
+        address: Address(
+          street: '456 Health Ave',
+          city: 'Medical District',
+          state: 'State',
+          country: 'Country',
+          zipCode: '12346',
+          latitude: baseLat - 0.005,
+          longitude: baseLon + 0.008,
+        ),
+        phoneNumber: '+1-555-0102',
+        specialties: ['Emergency Medicine', 'Neurology', 'Oncology'],
+        status: HospitalStatus.active,
+        capacity: 300,
+        currentOccupancy: 200,
+        createdAt: DateTime.now().subtract(const Duration(days: 200)),
+        updatedAt: DateTime.now(),
+      ),
+    ];
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371; // Earth's radius in kilometers
+
+    final double dLat = (lat2 - lat1) * (math.pi / 180);
+    final double dLon = (lon2 - lon1) * (math.pi / 180);
+
+    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1 * math.pi / 180) *
+            math.cos(lat2 * math.pi / 180) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  void _openDirections(Hospital hospital) {
+    // Open external maps application with directions
+    // This would typically use url_launcher to open Google Maps, Apple Maps, etc.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Opening directions to ${hospital.name}')),
+    );
+  }
+
+  void _showHospitalDetails(Hospital hospital) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nearest Hospital'),
-        content: Text(
-          'Finding nearest hospital at your location: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+        title: Text(hospital.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Address: ${hospital.address}'),
+            Text('Phone: ${hospital.phoneNumber}'),
+            if (hospital.specialties.isNotEmpty)
+              Text('Specialties: ${hospital.specialties.join(", ")}'),
+            Text('Available Beds: ${hospital.availableBeds}'),
+            Text('Status: ${hospital.status.displayName}'),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: Text(S.of(context).close),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _callHospital(hospital.phoneNumber);
+            },
+            child: const Text('Call'),
           ),
         ],
       ),
+    );
+  }
+
+  void _callHospital(String phoneNumber) {
+    // Use url_launcher to initiate phone call
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Calling $phoneNumber')),
     );
   }
 
