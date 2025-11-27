@@ -8,15 +8,15 @@ enum EmergencyType {
   cardiacArrest,
   heartAttack,
   stroke,
-  respiratory_distress,
-  severe_bleeding,
+  respiratoryDistress,
+  severeBleeding,
   unconsciousness,
   seizure,
-  diabetic_emergency,
-  allergic_reaction,
+  diabeticEmergency,
+  allergicReaction,
   trauma,
   poisoning,
-  mental_health_crisis,
+  mentalHealthCrisis,
   fire,
   accident,
   other
@@ -120,7 +120,7 @@ class EmergencyService {
       final response =
           await _apiService.post('/emergency/alert', data: request);
       Logger.warning('Emergency alert sent: $description');
-      return response != null;
+      return true;
     } catch (e) {
       Logger.error('Failed to send emergency alert: $e');
       return false;
@@ -143,7 +143,7 @@ class EmergencyService {
 
       final response =
           await _apiService.post('/emergency/location/update', data: request);
-      return response != null;
+      return true;
     } catch (e) {
       Logger.error('Failed to update emergency location: $e');
       return false;
@@ -174,7 +174,7 @@ class EmergencyService {
       } else if (data.heartRate < 40 || data.heartRate > 150) {
         emergencyType = EmergencyType.heartAttack;
       } else if (data.oxygenSaturation < 90) {
-        emergencyType = EmergencyType.respiratory_distress;
+        emergencyType = EmergencyType.respiratoryDistress;
       }
 
       await sendEmergencyAlert(

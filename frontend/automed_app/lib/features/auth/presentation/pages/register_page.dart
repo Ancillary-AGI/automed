@@ -86,8 +86,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Patient'),
+                      child: RadioMenuButton<String>(
                         value: 'patient',
                         groupValue: _selectedUserType,
                         onChanged: (String? value) {
@@ -97,11 +96,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             });
                           }
                         },
+                        child: const Text('Patient'),
                       ),
                     ),
                     Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Healthcare Provider'),
+                      child: RadioMenuButton<String>(
                         value: 'provider',
                         groupValue: _selectedUserType,
                         onChanged: (String? value) {
@@ -111,6 +110,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             });
                           }
                         },
+                        child: const Text('Healthcare Provider'),
                       ),
                     ),
                   ],
@@ -355,7 +355,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         ),
       );
 
-      context.go(RouteNames.login);
+      if (context.mounted) context.go(RouteNames.login);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -29,6 +29,7 @@ dependencies:
 
   # Network & API
   dio: ^5.4.0
+  http: ^1.1.0
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
   connectivity_plus: ^5.0.2
@@ -146,6 +147,9 @@ dev_dependencies:
 
   # Performance
   patrol: ^3.6.1
+
+  # Desktop Window Management
+  window_manager: ^0.3.7
 
 flutter:
   generate: true

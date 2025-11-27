@@ -223,9 +223,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (email.contains('hospital') ||
           email.contains('doctor') ||
           email.contains('nurse')) {
-        context.go(RouteNames.hospitalDashboard);
+        if (context.mounted) context.go(RouteNames.hospitalDashboard);
       } else {
-        context.go(RouteNames.patientDashboard);
+        if (context.mounted) context.go(RouteNames.patientDashboard);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

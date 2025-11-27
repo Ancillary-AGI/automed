@@ -101,9 +101,13 @@ class _AppScaffoldState extends ConsumerState<AppScaffold>
     await _i18n.initialize();
 
     // Listen to connectivity changes
-    ref.listen(connectivityProvider, (previous, next) {
-      setState(() {
-        _isOffline = next == ConnectivityResult.none;
+    ref.listen(connectivityServiceProvider, (previous, next) {
+      // The connectivity service provides a stream, but for simplicity,
+      // we'll check connectivity when the service changes
+      next.connectivityStream.listen((results) {
+        setState(() {
+          _isOffline = results.contains(ConnectivityResult.none);
+        });
       });
     });
   }

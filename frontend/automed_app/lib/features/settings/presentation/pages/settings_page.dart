@@ -207,9 +207,7 @@ class SettingsPage extends ConsumerWidget {
     ThemeModeOption option,
     ThemeModeOption currentTheme,
   ) {
-    return RadioListTile<ThemeModeOption>(
-      title: Text(title),
-      subtitle: Text(subtitle),
+    return RadioMenuButton<ThemeModeOption>(
       value: option,
       groupValue: currentTheme,
       onChanged: (value) {
@@ -217,6 +215,22 @@ class SettingsPage extends ConsumerWidget {
           ref.read(themeProvider.notifier).setThemeMode(value);
         }
       },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.color
+                      ?.withValues(alpha: 0.7),
+                ),
+          ),
+        ],
+      ),
     );
   }
 

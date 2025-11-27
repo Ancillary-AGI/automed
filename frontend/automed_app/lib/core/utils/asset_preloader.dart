@@ -37,7 +37,9 @@ class AssetPreloader {
       await _identifyCriticalAndFrequentAssets();
 
       // Step 4: Preload critical assets with priority
-      await _preloadCriticalAssets(context);
+      if (context.mounted) {
+        await _preloadCriticalAssets(context);
+      }
 
       // Step 5: Start background preloading of frequent assets
       unawaited(_startBackgroundPreloading(context));

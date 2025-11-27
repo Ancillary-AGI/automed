@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'core/di/injection.dart';
 import 'core/router/route_names.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/platform_utils.dart';
 import 'core/services/firebase_service.dart';
+import 'core/providers/theme_provider.dart';
 import 'generated/l10n.dart';
 import 'features/research/presentation/pages/research_dashboard_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -47,25 +49,83 @@ Future<void> _initializePlatformConfigurations() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Configure system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.white,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
-
   // Platform-specific initializations
   if (PlatformUtils.isAndroid) {
-    // Android-specific initialization
+    // Android-specific initialization for research app
+    // Configure notification channels for research updates
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+
+    // Set up Android notification channel for research notifications
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'research_channel',
+      'Research Notifications',
+      description: 'Notifications for research project updates and results',
+      importance: Importance.high,
+      playSound: true,
+    );
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   } else if (PlatformUtils.isIOS) {
-    // iOS-specific initialization
+    // iOS-specific initialization for research app
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+
+    // Configure iOS notification categories for research
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
   } else if (PlatformUtils.isWeb) {
-    // Web-specific initialization
+    // Web-specific initialization for research app
+    // Configure web-specific Firebase settings
+    await FirebaseMessaging.instance.requestPermission();
+
+    // Web-specific notification configuration
+    debugPrint('Research app initialized on web platform');
   } else if (PlatformUtils.isDesktop) {
-    // Desktop-specific initialization
+    // Desktop-specific initialization for research app
+    // Configure desktop window properties for research interface
+    try {
+      await windowManager.ensureInitialized();
+
+      const windowOptions = WindowOptions(
+        minimumSize: Size(1200, 800),
+        size: Size(1400, 900),
+        center: true,
+        title: 'Automed Research',
+        titleBarStyle: TitleBarStyle.normal,
+      );
+
+      await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+
+      // Configure desktop-specific notification settings
+      // Desktop notifications use system-specific implementations
+
+      debugPrint(
+          'Research app initialized on desktop platform with enhanced window management');
+    } catch (e) {
+      debugPrint('Desktop initialization partially failed: $e');
+    }
   }
 }
 
@@ -180,6 +240,7 @@ class AutomedResearchApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(researchRouterProvider);
+    final themeMode = ref.watch(currentThemeModeProvider);
 
     return MaterialApp.router(
       title: 'Automed Research',
@@ -188,15 +249,10 @@ class AutomedResearchApp extends ConsumerWidget {
       // Theme Configuration
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
 
       // Localization
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      localizationsDelegates: S.localizationsDelegates,
       supportedLocales: S.supportedLocales,
 
       // Routing
@@ -204,6 +260,23 @@ class AutomedResearchApp extends ConsumerWidget {
 
       // Builder for responsive design and platform adaptations
       builder: (context, child) {
+        final isDarkMode = themeMode == ThemeMode.dark ||
+            (themeMode == ThemeMode.system &&
+                MediaQuery.of(context).platformBrightness == Brightness.dark);
+
+        // Configure system UI overlay style based on app theme
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                isDarkMode ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor:
+                isDarkMode ? Colors.grey[900] : Colors.white,
+            systemNavigationBarIconBrightness:
+                isDarkMode ? Brightness.light : Brightness.dark,
+          ),
+        );
+
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: MediaQuery.of(context)

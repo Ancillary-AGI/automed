@@ -252,6 +252,44 @@ Map<String, dynamic> _$HospitalCapacityToJson(HospitalCapacity instance) =>
       'lastUpdated': instance.lastUpdated.toIso8601String(),
     };
 
+HospitalDashboard _$HospitalDashboardFromJson(Map<String, dynamic> json) =>
+    HospitalDashboard(
+      hospitalId: json['hospitalId'] as String,
+      hospitalName: json['hospitalName'] as String,
+      totalBeds: (json['totalBeds'] as num).toInt(),
+      occupiedBeds: (json['occupiedBeds'] as num).toInt(),
+      availableBeds: (json['availableBeds'] as num).toInt(),
+      occupancyRate: (json['occupancyRate'] as num).toDouble(),
+      staffOnDuty: (json['staffOnDuty'] as num).toInt(),
+      totalStaff: (json['totalStaff'] as num).toInt(),
+      equipmentOperational: (json['equipmentOperational'] as num).toInt(),
+      totalEquipment: (json['totalEquipment'] as num).toInt(),
+      activeAlerts: (json['activeAlerts'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      aiInsights: (json['aiInsights'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+    );
+
+Map<String, dynamic> _$HospitalDashboardToJson(HospitalDashboard instance) =>
+    <String, dynamic>{
+      'hospitalId': instance.hospitalId,
+      'hospitalName': instance.hospitalName,
+      'totalBeds': instance.totalBeds,
+      'occupiedBeds': instance.occupiedBeds,
+      'availableBeds': instance.availableBeds,
+      'occupancyRate': instance.occupancyRate,
+      'staffOnDuty': instance.staffOnDuty,
+      'totalStaff': instance.totalStaff,
+      'equipmentOperational': instance.equipmentOperational,
+      'totalEquipment': instance.totalEquipment,
+      'activeAlerts': instance.activeAlerts,
+      'aiInsights': instance.aiInsights,
+      'lastUpdated': instance.lastUpdated.toIso8601String(),
+    };
+
 Department _$DepartmentFromJson(Map<String, dynamic> json) => Department(
       id: json['id'] as String,
       name: json['name'] as String,

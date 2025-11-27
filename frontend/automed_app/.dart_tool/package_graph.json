@@ -49,6 +49,7 @@
         "google_maps_flutter",
         "hive",
         "hive_flutter",
+        "http",
         "image_picker",
         "intl",
         "json_annotation",
@@ -91,7 +92,17 @@
         "patrol",
         "retrofit_generator",
         "riverpod_generator",
-        "very_good_analysis"
+        "very_good_analysis",
+        "window_manager"
+      ]
+    },
+    {
+      "name": "window_manager",
+      "version": "0.3.9",
+      "dependencies": [
+        "flutter",
+        "path",
+        "screen_retriever"
       ]
     },
     {
@@ -918,6 +929,16 @@
       ]
     },
     {
+      "name": "http",
+      "version": "1.5.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
       "name": "dio",
       "version": "5.9.0",
       "dependencies": [
@@ -1027,6 +1048,18 @@
       ]
     },
     {
+      "name": "screen_retriever",
+      "version": "0.1.9",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "path",
+      "version": "1.9.1",
+      "dependencies": []
+    },
+    {
       "name": "test_api",
       "version": "0.7.6",
       "dependencies": [
@@ -1078,16 +1111,6 @@
       "dependencies": []
     },
     {
-      "name": "http",
-      "version": "1.5.0",
-      "dependencies": [
-        "async",
-        "http_parser",
-        "meta",
-        "web"
-      ]
-    },
-    {
       "name": "boolean_selector",
       "version": "2.1.2",
       "dependencies": [
@@ -1134,11 +1157,6 @@
         "source_span",
         "yaml"
       ]
-    },
-    {
-      "name": "path",
-      "version": "1.9.1",
-      "dependencies": []
     },
     {
       "name": "dart_style",
@@ -2581,14 +2599,9 @@
       ]
     },
     {
-      "name": "dio_web_adapter",
-      "version": "2.1.1",
-      "dependencies": [
-        "dio",
-        "http_parser",
-        "meta",
-        "web"
-      ]
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
     },
     {
       "name": "http_parser",
@@ -2598,6 +2611,16 @@
         "source_span",
         "string_scanner",
         "typed_data"
+      ]
+    },
+    {
+      "name": "dio_web_adapter",
+      "version": "2.1.1",
+      "dependencies": [
+        "dio",
+        "http_parser",
+        "meta",
+        "web"
       ]
     },
     {
@@ -2669,11 +2692,6 @@
       "dependencies": [
         "meta"
       ]
-    },
-    {
-      "name": "web",
-      "version": "1.1.1",
-      "dependencies": []
     },
     {
       "name": "built_value",
